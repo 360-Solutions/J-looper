@@ -3,52 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-LOOPER v0.07</title>
+    <title>J-LOOPER v0.08</title>
     <style>
         :root {
-            --pedal-white: #fcfcfc;
+            --pedal-white: #ffffff;
             --metal-silver: conic-gradient(from 180deg, #e0e0e0, #999, #e0e0e0, #999, #e0e0e0);
+            --rubber-black: #222222;
             --node-dim: #333; --node-active: #ffffff;
             --rec-bright: #ff0000; --rec-dim: #660000;
             --play-green: #33ff33; --mute-grey: #888;
         }
         body { background-color: #121212; display: flex; justify-content: center; min-height: 100vh; margin: 0; font-family: -apple-system, sans-serif; touch-action: manipulation; }
-        .pedal-body { width: 350px; background: var(--pedal-white); border-radius: 25px; margin: 15px 0; padding-bottom: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; border: 1px solid #ddd; }
-        .section { width: 92%; border-radius: 12px; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; background: #eee; }
-        .global-sec { background: #dcdcdc; margin-top: 15px; }
+        
+        /* Bright White Pedal Body */
+        .pedal-body { 
+            width: 350px; background: var(--pedal-white); border-radius: 25px; 
+            margin: 15px 0; padding-bottom: 30px; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9), inset 0 0 10px rgba(0,0,0,0.1); 
+            display: flex; flex-direction: column; align-items: center; border: 1px solid #fff; 
+        }
+
+        .section { width: 92%; border-radius: 12px; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; background: #f7f7f7; }
+        .global-sec { background: #eeeeee; margin-top: 15px; }
+        
+        /* Black Rubber Buttons */
         .btn-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-        .mini-btn { background: #fff; border: 1px solid #bbb; padding: 10px 0; border-radius: 5px; font-size: 9px; font-weight: bold; box-shadow: 0 3px 0 #999; }
-        .mini-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #999; }
-        .display-area { background: #111; border-radius: 8px; padding: 10px 5px; margin: 8px 0; box-shadow: inset 0 2px 8px black; }
+        .mini-btn { 
+            background: var(--rubber-black); color: white; border: none; padding: 12px 0; 
+            border-radius: 6px; font-size: 8px; font-weight: 800; letter-spacing: 0.5px;
+            box-shadow: 0 4px 0 #000; text-transform: uppercase;
+        }
+        .mini-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #000; }
+        
+        .display-area { background: #000; border-radius: 8px; padding: 10px 5px; margin: 8px 0; box-shadow: inset 0 2px 8px rgba(0,0,0,1); }
         .node-row { display: flex; justify-content: space-around; margin-bottom: 4px; }
         .node { width: 10px; height: 10px; border-radius: 2px; background: #222; }
         .node.beat { background: #444; } .node.the-one { background: #600; }
         .node.active { background: #fff; box-shadow: 0 0 10px #fff; }
+
         .stomp-btn { width: 85px; height: 85px; background: var(--metal-silver); border-radius: 50%; border: 4px solid #888; box-shadow: 0 8px 0 #555, 0 12px 15px rgba(0,0,0,0.4); margin-top: 5px; }
         .status-led { width: 18px; height: 18px; border-radius: 50%; background: #222; margin-bottom: 8px; border: 2px solid #555; }
         .led-wait { background: var(--rec-dim); }
         .led-rec { background: var(--rec-bright); box-shadow: 0 0 20px var(--rec-bright); }
         .led-play { background: var(--play-green); box-shadow: 0 0 15px var(--play-green); }
-        .led-muted { background: var(--mute-grey); box-shadow: none; }
-        .slider-pop { position: fixed; top: 20%; width: 260px; background: white; border: 2px solid #333; padding: 20px; border-radius: 20px; display: none; flex-direction: column; align-items: center; z-index: 1000; }
+        .led-muted { background: var(--mute-grey); }
+
+        .slider-pop { position: fixed; top: 20%; width: 260px; background: white; border: 2px solid #333; padding: 20px; border-radius: 20px; display: none; flex-direction: column; align-items: center; z-index: 1000; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 <div class="pedal-body">
     <div style="text-align:center; margin-top:10px;">
-        <h1 style="font-size:14px; margin:0; letter-spacing:1px;">J-LOOPER v0.07</h1>
-        <p style="font-size:8px; opacity:0.6;">CREATED BY JEREMIAH KELLER</p>
+        <h1 style="font-size:16px; margin:0; letter-spacing:2px; color:#000; font-weight:900;">J-LOOPER v0.08</h1>
+        <p style="font-size:8px; opacity:0.6; color:#000;">JEREMIAH KELLER</p>
     </div>
+
     <div class="section global-sec">
         <div class="btn-row">
-            <button id="start-btn" class="mini-btn" style="background:#ccffcc" onclick="startAudio()">START</button>
+            <button id="start-btn" class="mini-btn" style="background:#00bb00; color:white; box-shadow: 0 4px 0 #006600;" onclick="toggleEngine()">START</button>
             <button class="mini-btn" onclick="openSlider('tempo')">TEMPO</button>
             <button class="mini-btn" onclick="openSlider('clickVol')">CLICK VOL</button>
             <button id="mute-click" class="mini-btn" onclick="toggleMute('click')">MUTE CLICK</button>
         </div>
     </div>
+
     <div class="section">
-        <div style="font-size:9px; font-weight:bold; margin-bottom:5px;">TRACK 1</div>
+        <div style="font-size:9px; font-weight:bold; margin-bottom:5px; color:#333;">TRACK 1</div>
         <div class="display-area" id="nodes-0"></div>
         <div class="btn-row">
             <button class="mini-btn" onclick="clearTrack(0)">CLEAR</button>
@@ -61,8 +81,9 @@
             <div class="stomp-btn" onclick="handleStomp(0)"></div>
         </div>
     </div>
+
     <div class="section">
-        <div style="font-size:9px; font-weight:bold; margin-bottom:5px;">TRACK 2</div>
+        <div style="font-size:9px; font-weight:bold; margin-bottom:5px; color:#333;">TRACK 2</div>
         <div class="display-area" id="nodes-1"></div>
         <div class="btn-row">
             <button class="mini-btn" onclick="clearTrack(1)">CLEAR</button>
@@ -76,11 +97,13 @@
         </div>
     </div>
 </div>
+
 <div id="slider-overlay" class="slider-pop">
-    <b id="sl-title">TEMPO</b> <h1 id="sl-readout">94</h1>
+    <b id="sl-title" style="color:#000">TEMPO</b> <h1 id="sl-readout" style="color:#000; margin:10px 0;">94</h1>
     <input type="range" id="sl-input" style="width:100%" oninput="updateSlider(this.value)">
     <button class="mini-btn" style="width:100px; margin-top:15px;" onclick="closeSlider()">DONE</button>
 </div>
+
 <script>
     let audioCtx, masterGain, clickGain, tempo=94, isRunning=false, currentStep=0;
     let tracks = [
@@ -89,13 +112,33 @@
     ];
     let clickMuted = false, recData = [], stream, processor, activeSliderTarget = '';
 
-    async function startAudio() {
+    async function initAudio() {
         if(audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
         clickGain = audioCtx.createGain(); clickGain.connect(masterGain);
         stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-        document.getElementById('start-btn').innerText = "RUNNING"; isRunning = true; tick();
+    }
+
+    async function toggleEngine() {
+        await initAudio();
+        const btn = document.getElementById('start-btn');
+        if(!isRunning) {
+            audioCtx.resume();
+            isRunning = true;
+            btn.innerText = "STOP";
+            btn.style.background = "#cc0000";
+            btn.style.boxShadow = "0 4px 0 #660000";
+            tick();
+        } else {
+            isRunning = false;
+            btn.innerText = "START";
+            btn.style.background = "#00bb00";
+            btn.style.boxShadow = "0 4px 0 #006600";
+            currentStep = 0;
+            // Visual reset
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+        }
     }
 
     function handleStomp(i) {
@@ -140,7 +183,8 @@
             }
         });
         if(!clickMuted && currentStep % 4 === 0) playClick(currentStep % 16 === 0 ? 1000 : 500);
-        currentStep = (currentStep + 1) % 64; setTimeout(tick, stepTime * 1000);
+        currentStep = (currentStep + 1) % 64; 
+        setTimeout(tick, stepTime * 1000);
     }
 
     function startRec() {
@@ -154,21 +198,20 @@
         if(!processor) return; processor.disconnect();
         const flat = new Float32Array(recData.length * 4096);
         for(let i=0; i<recData.length; i++) flat.set(recData[i], i*4096);
-        
-        // NORMALIZATION Logic for loudness
         let maxVal = 0;
         for (let i = 0; i < flat.length; i++) { if (Math.abs(flat[i]) > maxVal) maxVal = Math.abs(flat[i]); }
         if (maxVal > 0) { for (let i = 0; i < flat.length; i++) { flat[i] = flat[i] / maxVal; } }
-        
         const buffer = audioCtx.createBuffer(1, flat.length, audioCtx.sampleRate);
         buffer.copyToChannel(flat, 0); tracks[idx].buffer = buffer;
     }
 
     function playClick(f) {
         const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-        o.frequency.value = f; g.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
-        o.connect(g); g.connect(clickGain); o.start(); o.stop(audioCtx.currentTime + 0.05);
+        o.frequency.value = f; 
+        // Increased Click Gain for clarity
+        g.gain.setValueAtTime(0.3, audioCtx.currentTime); 
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        o.connect(g); g.connect(clickGain); o.start(); o.stop(audioCtx.currentTime + 0.06);
     }
 
     function renderNodes(idx) {
@@ -177,7 +220,7 @@
             const r = document.createElement('div'); r.className = 'node-row';
             for(let s=0; s<16; s++) {
                 const n = document.createElement('div'); n.className = 'node';
-                if(b===0 && s===0) n.classList.add('the-one'); else if(s%4===0) n.classList.add('beat');
+                if(b===0 && s===0) n.classList.add('the-only-one'); else if(s%4===0) n.classList.add('beat');
                 n.id = `n-${idx}-${b}-${s}`; r.appendChild(n);
             }
             c.appendChild(r);
@@ -186,8 +229,8 @@
 
     function clearTrack(i) { tracks[i].buffer = null; tracks[i].state = "IDLE"; tracks[i].muted = false; document.getElementById(`led-${i}`).className = 'status-led'; }
     function cycleBars(idx) { tracks[idx].bars = [1, 2, 4][([1, 2, 4].indexOf(tracks[idx].bars) + 1) % 3]; document.getElementById(`bars-${idx}`).innerText = tracks[idx].bars; renderNodes(idx); }
-    function toggleMute(id) { if(id==='click') clickMuted=!clickMuted; }
-    function openSlider(t) { activeSliderTarget = t; document.getElementById('slider-overlay').style.display = 'flex'; document.getElementById('sl-title').innerText = t.toUpperCase(); updateSlider(document.getElementById('sl-input').value); }
+    function toggleMute(id) { if(id==='click') { clickMuted=!clickMuted; document.getElementById('mute-click').style.background = clickMuted ? "#666" : "#222"; } }
+    function openSlider(t) { activeSliderTarget = t; document.getElementById('slider-overlay').style.display = 'flex'; document.getElementById('sl-title').innerText = t.toUpperCase(); }
     function updateSlider(v) { document.getElementById('sl-readout').innerText = v; if(activeSliderTarget==='tempo') tempo=parseInt(v); if(activeSliderTarget==='clickVol') clickGain.gain.value=v/100; if(activeSliderTarget.startsWith('vol')) tracks[activeSliderTarget.slice(-1)].gain=v/100; if(activeSliderTarget.startsWith('nudge')) tracks[activeSliderTarget.slice(-1)].nudge=v/1000; }
     function closeSlider() { document.getElementById('slider-overlay').style.display='none'; }
     renderNodes(0); renderNodes(1);
