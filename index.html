@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-Looper v0.04</title>
+    <title>J-LOOPER v0.06</title>
     <style>
         :root {
             --pedal-white: #fcfcfc;
@@ -16,323 +16,235 @@
         }
 
         body {
-            background-color: #1a1a1a;
-            display: flex; flex-direction: column; align-items: center;
+            background-color: #121212; display: flex; justify-content: center;
             min-height: 100vh; margin: 0; font-family: -apple-system, sans-serif;
             touch-action: manipulation; color: #333;
         }
 
-        /* The main scrollable container */
-        .pedal-container {
-            width: 340px; background: var(--pedal-white);
-            margin: 20px 0; border-radius: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-            display: flex; flex-direction: column; align-items: center;
-            padding-bottom: 30px; border: 1px solid #ddd;
+        .pedal-body {
+            width: 350px; background: var(--pedal-white); border-radius: 25px;
+            margin: 15px 0; padding-bottom: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.9);
+            display: flex; flex-direction: column; align-items: center; border: 1px solid #ddd;
         }
 
-        .header { text-align: center; margin: 20px 0; }
-        .header h1 { font-size: 16px; margin: 0; letter-spacing: 2px; font-weight: 900; }
-
-        /* Global Row */
-        .global-controls {
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 5px; width: 92%; margin-bottom: 15px;
-        }
-
-        /* Layer Section */
-        .layer-box {
-            width: 92%; background: #eee; border-radius: 15px;
-            padding: 10px; margin-bottom: 10px; border: 1px solid #ccc;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .layer-label { font-size: 10px; font-weight: bold; margin-bottom: 5px; opacity: 0.6; }
+        .section { width: 92%; border-radius: 12px; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; background: #eee; }
+        .global-sec { background: #dcdcdc; margin-top: 15px; }
         
-        .display-area {
-            background: #111; border-radius: 8px;
-            padding: 8px 5px; box-shadow: inset 0 2px 5px black;
+        .btn-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .mini-btn {
+            background: #fff; border: 1px solid #bbb; padding: 10px 0; border-radius: 5px;
+            font-size: 9px; font-weight: bold; box-shadow: 0 3px 0 #999;
         }
+        .mini-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #999; }
+        .mute-btn.active { background: #ffaaaa; color: #a00; }
+
+        .display-area { background: #111; border-radius: 8px; padding: 10px 5px; margin: 8px 0; box-shadow: inset 0 2px 8px black; }
         .node-row { display: flex; justify-content: space-around; margin-bottom: 4px; }
-        .node { width: 10px; height: 10px; border-radius: 2px; background: var(--node-dim); }
+        .node { width: 10px; height: 10px; border-radius: 2px; background: #222; }
         .node.beat { background: #444; }
         .node.the-one { background: #600; }
-        .node.active { background: var(--node-active); box-shadow: 0 0 8px white; }
+        .node.active { background: #fff; box-shadow: 0 0 10px #fff; }
 
-        .layer-btns {
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 5px; margin-top: 8px;
-        }
-
-        .mini-btn {
-            background: #ddd; border: 1px solid #bbb; padding: 8px 0;
-            border-radius: 5px; font-size: 8px; font-weight: bold;
-            box-shadow: 0 2px 0 #999;
-        }
-        .mini-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 #999; }
-
-        /* Stomp Area */
-        .stomp-zone { display: flex; flex-direction: column; align-items: center; margin-top: 10px; }
-        .status-led {
-            width: 20px; height: 20px; border-radius: 50%;
-            background: #222; margin-bottom: 15px; border: 2px solid #555;
-        }
-        .led-wait { background: var(--rec-dim); box-shadow: 0 0 5px var(--rec-dim); }
+        .stomp-btn { width: 85px; height: 85px; background: var(--metal-silver); border-radius: 50%; border: 4px solid #888; box-shadow: 0 8px 0 #555, 0 12px 15px rgba(0,0,0,0.4); margin-top: 5px; }
+        .status-led { width: 18px; height: 18px; border-radius: 50%; background: #222; margin-bottom: 8px; border: 2px solid #555; }
+        .led-wait { background: var(--rec-dim); }
         .led-rec { background: var(--rec-bright); box-shadow: 0 0 20px var(--rec-bright); }
         .led-play { background: var(--play-green); box-shadow: 0 0 15px var(--play-green); }
 
-        .stomp-btn {
-            width: 100px; height: 100px;
-            background: var(--metal-silver); border-radius: 50%;
-            border: 5px solid #888; box-shadow: 0 8px 0 #555, 0 12px 20px rgba(0,0,0,0.4);
-        }
-        
-        /* Floating Slider Overlay */
-        #slider-overlay {
-            position: fixed; top: 30%; width: 280px;
-            background: white; border: 2px solid #ccc;
-            padding: 20px; border-radius: 20px; display: none;
-            flex-direction: column; align-items: center; z-index: 1000;
-        }
+        .slider-pop { position: fixed; top: 20%; width: 260px; background: white; border: 2px solid #333; padding: 20px; border-radius: 20px; display: none; flex-direction: column; align-items: center; z-index: 1000; }
     </style>
 </head>
 <body>
 
-<div class="pedal-container">
-    <div class="header">
-        <h1>J-LOOPER v0.04</h1>
-        <p style="font-size:9px; margin:0; opacity:0.6;">JEREMIAH KELLER</p>
+<div class="pedal-body">
+    <div style="text-align:center; margin-top:10px;">
+        <h1 style="font-size:14px; margin:0; letter-spacing:1px;">J-LOOPER v0.06</h1>
+        <p style="font-size:8px; opacity:0.6;">CREATED BY JEREMIAH KELLER</p>
     </div>
 
-    <div class="global-controls">
-        <button class="mini-btn" onclick="openSlider('tempo')">TEMPO</button>
-        <button class="mini-btn" onclick="openSlider('click')">CLICK VOL</button>
-        <button class="mini-btn" onclick="stopAll()">STOP</button>
-        <button class="mini-btn" onclick="location.reload()">CLEAR ALL</button>
-    </div>
-
-    <div id="layers-wrapper" style="width:100%; display:flex; flex-direction:column; align-items:center;">
-        <div class="layer-box" id="layer-0">
-            <div class="layer-label">LAYER 1</div>
-            <div class="display-area" id="nodes-0"></div>
-            <div class="layer-btns">
-                <button class="mini-btn" onclick="openSlider('vol0')">VOL</button>
-                <button class="mini-btn" onclick="cycleBars(0)">BARS: <span id="bars-0">1</span></button>
-                <button class="mini-btn" onclick="clearLayer(0)">CLEAR</button>
-                <button class="mini-btn">SAVE</button>
-            </div>
+    <div class="section global-sec">
+        <div class="btn-row">
+            <button id="start-btn" class="mini-btn" style="background:#ccffcc" onclick="startAudio()">START</button>
+            <button class="mini-btn" onclick="openSlider('tempo')">TEMPO</button>
+            <button class="mini-btn" onclick="openSlider('clickVol')">CLICK VOL</button>
+            <button id="mute-click" class="mini-btn mute-btn" onclick="toggleMute('click')">MUTE</button>
         </div>
     </div>
 
-    <div class="stomp-zone">
-        <div class="status-led" id="status-led"></div>
-        <div class="stomp-btn" onclick="handleStomp()"></div>
+    <div class="section">
+        <div style="font-size:9px; font-weight:bold; margin-bottom:5px;">TRACK 1</div>
+        <div class="display-area" id="nodes-0"></div>
+        <div class="btn-row">
+            <button class="mini-btn mute-btn" onclick="toggleMute(0)">MUTE</button>
+            <button class="mini-btn" onclick="openSlider('vol0')">VOL</button>
+            <button class="mini-btn" onclick="cycleBars(0)">BARS: <span id="bars-0">1</span></button>
+            <button class="mini-btn" onclick="openSlider('nudge0')">NUDGE</button>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; margin-top:10px;">
+            <div id="led-0" class="status-led"></div>
+            <div class="stomp-btn" onclick="stomp(0)"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div style="font-size:9px; font-weight:bold; margin-bottom:5px;">TRACK 2</div>
+        <div class="display-area" id="nodes-1"></div>
+        <div class="btn-row">
+            <button class="mini-btn mute-btn" onclick="toggleMute(1)">MUTE</button>
+            <button class="mini-btn" onclick="openSlider('vol1')">VOL</button>
+            <button class="mini-btn" onclick="cycleBars(1)">BARS: <span id="bars-1">1</span></button>
+            <button class="mini-btn" onclick="openSlider('nudge1')">NUDGE</button>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; margin-top:10px;">
+            <div id="led-1" class="status-led"></div>
+            <div class="stomp-btn" onclick="stomp(1)"></div>
+        </div>
     </div>
 </div>
 
-<div id="slider-overlay">
+<div id="slider-overlay" class="slider-pop">
     <b id="sl-title">TEMPO</b>
-    <h2 id="sl-readout">94</h2>
+    <h1 id="sl-readout">94</h1>
     <input type="range" id="sl-input" style="width:100%" oninput="updateSlider(this.value)">
     <button class="mini-btn" style="width:100px; margin-top:15px;" onclick="closeSlider()">DONE</button>
 </div>
 
 <script>
-    let audioCtx, masterGain, clickGain;
-    let tempo = 94, isRunning = false, currentStep = 0;
-    let layers = [{ bars: 1, buffer: null, gain: 1, active: true }];
-    let state = "IDLE"; // IDLE, WAITING, RECORDING, PLAYING
-    let cycleCount = 0;
-    let activeSliderTarget = '';
+    let audioCtx, masterGain, clickGain, tempo=94, isRunning=false, currentStep=0;
+    let tracks = [
+        { bars: 1, buffer: null, gain: 1, state: "IDLE", nudge: -0.200, muted: false, waitCycles: 0 },
+        { bars: 1, buffer: null, gain: 1, state: "IDLE", nudge: -0.200, muted: false, waitCycles: 0 }
+    ];
+    let clickMuted = false, activeSliderTarget = '', recData = [], stream, processor;
 
-    // Buffer vars
-    let recStartStep = 0;
-    let stream, processor;
-
-    async function initAudio() {
-        if (audioCtx) return;
+    async function startAudio() {
+        if(audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        masterGain = audioCtx.createGain();
-        clickGain = audioCtx.createGain();
-        clickGain.connect(masterGain);
-        masterGain.connect(audioCtx.destination);
-        
-        stream = await navigator.mediaDevices.getUserMedia({
-            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-        });
+        masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
+        clickGain = audioCtx.createGain(); clickGain.connect(masterGain);
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+        document.getElementById('start-btn').innerText = "RUNNING";
+        isRunning = true; tick();
     }
 
-    function renderLayerNodes(idx) {
-        const container = document.getElementById(`nodes-${idx}`);
-        if(!container) return;
-        container.innerHTML = '';
-        const bCount = layers[idx].bars;
-        for(let b=0; b<bCount; b++) {
-            const row = document.createElement('div'); row.className = 'node-row';
-            for(let s=0; s<16; s++) {
-                const n = document.createElement('div'); n.className = 'node';
-                if(b===0 && s===0) n.classList.add('the-one');
-                else if(s%4===0) n.classList.add('beat');
-                n.id = `n-${idx}-${b}-${s}`;
-                row.appendChild(n);
-            }
-            container.appendChild(row);
+    function stomp(i) {
+        if(!isRunning) return;
+        if(tracks[i].state === "IDLE" || tracks[i].state === "PLAYING") {
+            tracks[i].state = "WAITING"; tracks[i].waitCycles = 0;
+            document.getElementById(`led-${i}`).className = 'status-led led-wait';
         }
-    }
-
-    function handleStomp() {
-        initAudio();
-        audioCtx.resume();
-        if(!isRunning) { isRunning = true; tick(); return; }
-
-        if(state === "IDLE" || state === "PLAYING") {
-            // If we already have a loop, prepare an overdub layer
-            if(layers[0].buffer && layers.length < 2) {
-                layers.push({ bars: layers[0].bars, buffer: null, gain: 1, active: true });
-                addNewLayerUI(1);
-            }
-            state = "WAITING";
-            document.getElementById('status-led').className = 'status-led led-wait';
-            cycleCount = 0;
-        }
-    }
-
-    function addNewLayerUI(idx) {
-        const wrap = document.getElementById('layers-wrapper');
-        const box = document.createElement('div');
-        box.className = 'layer-box';
-        box.id = `layer-${idx}`;
-        box.innerHTML = `
-            <div class="layer-label">LAYER ${idx+1} (OVERDUB)</div>
-            <div class="display-area" id="nodes-${idx}"></div>
-            <div class="layer-btns">
-                <button class="mini-btn" onclick="openSlider('vol${idx}')">VOL</button>
-                <button class="mini-btn" onclick="cycleBars(${idx})">BARS: <span id="bars-${idx}">${layers[idx].bars}</span></button>
-                <button class="mini-btn" onclick="clearLayer(${idx})">CLEAR</button>
-                <button class="mini-btn">SAVE</button>
-            </div>
-        `;
-        wrap.appendChild(box);
-        renderLayerNodes(idx);
     }
 
     function tick() {
         if(!isRunning) return;
         const stepTime = (60/tempo)/4;
-        const totalSteps = layers[0].bars * 16;
         
-        // Visuals
-        document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
-        layers.forEach((l, idx) => {
-            const s = currentStep % (l.bars * 16);
-            const b = Math.floor(s / 16);
-            const st = s % 16;
-            document.getElementById(`n-${idx}-${b}-${st}`)?.classList.add('active');
+        tracks.forEach((t, idx) => {
+            const loopSteps = t.bars * 16;
+            const sInL = currentStep % loopSteps;
+            // Visuals
+            document.querySelectorAll(`#nodes-${idx} .node`).forEach(n => n.classList.remove('active'));
+            document.getElementById(`n-${idx}-${Math.floor(sInL/16)}-${sInL%16}`)?.classList.add('active');
+
+            // The "Zero-Gap" Logic
+            if (sInL === loopSteps - 1 && t.state === "RECORDING") {
+                // Cut recording 40ms early to allow "Same One" playback
+                setTimeout(() => stopRec(idx), (stepTime * 1000) - 40);
+            }
+
+            if (sInL === 0) {
+                if(t.state === "WAITING") {
+                    t.waitCycles++;
+                    if(t.waitCycles >= 2) {
+                        t.state = "RECORDING";
+                        document.getElementById(`led-${idx}`).className = 'status-led led-rec';
+                        masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                        startRec();
+                    }
+                } else if(t.state === "RECORDING") {
+                    t.state = "PLAYING";
+                    document.getElementById(`led-${idx}`).className = 'status-led led-play';
+                    masterGain.gain.setValueAtTime(1, audioCtx.currentTime);
+                }
+                if(t.state === "PLAYING" && t.buffer && !t.muted) {
+                    const src = audioCtx.createBufferSource(); src.buffer = t.buffer;
+                    const g = audioCtx.createGain(); g.gain.value = t.gain;
+                    src.connect(g); g.connect(masterGain);
+                    src.start(audioCtx.currentTime + t.nudge);
+                }
+            }
         });
 
-        // Audio
-        if(state !== "RECORDING") {
-            // Click
-            if(currentStep % 4 === 0) playBeep(currentStep % 16 === 0 ? 1000 : 500);
-            // Play Layers
-            layers.forEach(l => {
-                if(l.buffer && currentStep % (l.bars * 16) === 0) {
-                    const src = audioCtx.createBufferSource();
-                    src.buffer = l.buffer;
-                    const g = audioCtx.createGain(); g.gain.value = l.gain;
-                    src.connect(g); g.connect(masterGain);
-                    src.start();
-                }
-            });
-        }
-
-        // State Transitions
-        if(currentStep === 0) {
-            if(state === "WAITING") {
-                cycleCount++;
-                if(cycleCount >= 2) {
-                    state = "RECORDING";
-                    document.getElementById('status-led').className = 'status-led led-rec';
-                    masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
-                    startRecordingBuffer();
-                }
-            } else if(state === "RECORDING") {
-                state = "PLAYING";
-                document.getElementById('status-led').className = 'status-led led-play';
-                stopRecordingBuffer();
-                masterGain.gain.setValueAtTime(1, audioCtx.currentTime);
-            }
-        }
-
-        currentStep = (currentStep + 1) % totalSteps;
+        if(!clickMuted && currentStep % 4 === 0) playClick(currentStep % 16 === 0 ? 1000 : 500);
+        currentStep = (currentStep + 1) % 64;
         setTimeout(tick, stepTime * 1000);
     }
 
-    // --- Recording Engine ---
-    let recordedData = [];
-    function startRecordingBuffer() {
-        recordedData = [];
-        const source = audioCtx.createMediaStreamSource(stream);
+    function startRec() {
+        recData = []; const src = audioCtx.createMediaStreamSource(stream);
         processor = audioCtx.createScriptProcessor(4096, 1, 1);
-        source.connect(processor);
-        processor.connect(audioCtx.destination);
-        processor.onaudioprocess = (e) => {
-            recordedData.push(new Float32Array(e.inputBuffer.getChannelData(0)));
-        };
+        src.connect(processor); processor.connect(audioCtx.destination);
+        processor.onaudioprocess = e => recData.push(new Float32Array(e.inputBuffer.getChannelData(0)));
     }
 
-    async function stopRecordingBuffer() {
+    function stopRec(idx) {
+        if(!processor) return;
         processor.disconnect();
-        const flat = new Float32Array(recordedData.length * 4096);
-        for(let i=0; i<recordedData.length; i++) flat.set(recordedData[i], i*4096);
-        const audioBuffer = audioCtx.createBuffer(1, flat.length, audioCtx.sampleRate);
-        audioBuffer.copyToChannel(flat, 0);
-        layers[layers.length-1].buffer = audioBuffer;
+        const flat = new Float32Array(recData.length * 4096);
+        for(let i=0; i<recData.length; i++) flat.set(recData[i], i*4096);
+        const buffer = audioCtx.createBuffer(1, flat.length, audioCtx.sampleRate);
+        buffer.copyToChannel(flat, 0); tracks[idx].buffer = buffer;
     }
 
-    function playBeep(freq) {
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        osc.frequency.value = freq;
-        g.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-        osc.connect(g); g.connect(clickGain);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+    function playClick(f) {
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.frequency.value = f; g.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+        o.connect(g); g.connect(clickGain); o.start(); o.stop(audioCtx.currentTime + 0.05);
     }
 
-    // --- UI Helpers ---
-    function openSlider(m) {
-        activeSliderTarget = m;
-        document.getElementById('slider-overlay').style.display = 'flex';
-        document.getElementById('sl-title').innerText = m.toUpperCase();
+    function renderNodes(idx) {
+        const c = document.getElementById(`nodes-${idx}`); c.innerHTML = '';
+        for(let b=0; b < tracks[idx].bars; b++) {
+            const r = document.createElement('div'); r.className = 'node-row';
+            for(let s=0; s<16; s++) {
+                const n = document.createElement('div'); n.className = 'node';
+                if(b===0 && s===0) n.classList.add('the-one'); else if(s%4===0) n.classList.add('beat');
+                n.id = `n-${idx}-${b}-${s}`; r.appendChild(n);
+            }
+            c.appendChild(r);
+        }
     }
+
+    function openSlider(t) {
+        activeSliderTarget = t; const ov = document.getElementById('slider-overlay'), sl = document.getElementById('sl-input');
+        ov.style.display = 'flex'; document.getElementById('sl-title').innerText = t.toUpperCase();
+        if(t === 'tempo') { sl.min=40; sl.max=200; sl.value=tempo; }
+        else if(t.startsWith('nudge')) { sl.min=-500; sl.max=500; sl.value=tracks[t.slice(-1)].nudge*1000; }
+        else { sl.min=0; sl.max=100; sl.value=70; }
+        updateSlider(sl.value);
+    }
+
     function updateSlider(v) {
         document.getElementById('sl-readout').innerText = v;
-        if(activeSliderTarget === 'tempo') tempo = v;
-        if(activeSliderTarget === 'click') clickGain.gain.value = v/100;
-        if(activeSliderTarget.startsWith('vol')) {
-            let idx = activeSliderTarget.replace('vol','');
-            layers[idx].gain = v/100;
-        }
+        if(activeSliderTarget==='tempo') tempo=parseInt(v);
+        if(activeSliderTarget==='clickVol') clickGain.gain.value=v/100;
+        if(activeSliderTarget.startsWith('vol')) tracks[activeSliderTarget.slice(-1)].gain=v/100;
+        if(activeSliderTarget.startsWith('nudge')) tracks[activeSliderTarget.slice(-1)].nudge=v/1000;
     }
-    function closeSlider() { document.getElementById('slider-overlay').style.display = 'none'; }
-    
+
+    function toggleMute(id) {
+        if(id==='click') clickMuted=!clickMuted; else tracks[id].muted=!tracks[id].muted;
+        event.target.classList.toggle('active');
+    }
+
     function cycleBars(idx) {
-        layers[idx].bars = [1, 2, 4][([1, 2, 4].indexOf(layers[idx].bars) + 1) % 3];
-        document.getElementById(`bars-${idx}`).innerText = layers[idx].bars;
-        renderLayerNodes(idx);
+        tracks[idx].bars = [1, 2, 4][([1, 2, 4].indexOf(tracks[idx].bars) + 1) % 3];
+        document.getElementById(`bars-${idx}`).innerText = tracks[idx].bars; renderNodes(idx);
     }
 
-    function clearLayer(idx) {
-        if(idx === 0) { layers[0].buffer = null; } 
-        else {
-            layers.splice(idx, 1);
-            document.getElementById(`layer-${idx}`).remove();
-        }
-    }
-
-    function stopAll() { isRunning = false; state = "IDLE"; }
-
-    renderLayerNodes(0);
+    function closeSlider() { document.getElementById('slider-overlay').style.display='none'; }
+    renderNodes(0); renderNodes(1);
 </script>
 </body>
 </html>
