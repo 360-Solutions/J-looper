@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-Looper v0.02</title>
+    <title>J-Looper v0.03</title>
     <style>
         :root {
             --pedal-white: #fcfcfc;
@@ -90,7 +90,7 @@
 
 <div class="pedal-body">
     <div class="header">
-        <h1>J-LOOPER v0.02</h1>
+        <h1>J-LOOPER v0.03</h1>
         <p>CREATED BY JEREMIAH KELLER</p>
     </div>
 
@@ -98,7 +98,7 @@
         <button class="mini-btn" onclick="openSlider('tempo')">TEMPO</button>
         <button class="mini-btn" onclick="cycleBars()">BARS: <span id="bar-label">1</span></button>
         <button class="mini-btn" onclick="location.reload()">CLEAR</button>
-        <button class="mini-btn" onclick="alert('Saving...')">SAVE</button>
+        <button class="mini-btn" onclick="alert('Save functionality coming next...')">SAVE</button>
     </div>
     <div class="controls-grid">
         <button class="mini-btn" onclick="openSlider('vol')">VOL</button>
@@ -109,7 +109,7 @@
 
     <div id="slider-overlay" class="slider-pop">
         <span id="slider-title" style="font-size:12px; letter-spacing:1px;">TEMPO</span>
-        <div class="slider-readout" id="slider-val">120</div>
+        <div class="slider-readout" id="slider-val">94</div>
         <input type="range" id="main-slider" oninput="updateSlider(this.value)">
         <button class="mini-btn" style="width:80px; margin-top:15px;" onclick="closeSlider()">DONE</button>
     </div>
@@ -121,19 +121,47 @@
 
 <script>
     let audioCtx, masterGain, clickGain;
-    let tempo = 120, bars = 1, currentStep = 0, isRunning = false;
+    let tempo = 94, bars = 1, currentStep = 0, isRunning = false;
     let state = "IDLE"; 
     let pendingRecord = false;
     let cycleCount = 0;
     let activeSliderMode = '';
+    
+    // Recording vars
+    let mediaRecorder;
+    let chunks = [];
+    let loopBuffer = null;
+    let loopSource = null;
 
-    function initAudio() {
+    async function initAudio() {
         if (audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         masterGain = audioCtx.createGain();
         clickGain = audioCtx.createGain();
         clickGain.connect(masterGain);
         masterGain.connect(audioCtx.destination);
+
+        try {
+            // THE PRO FIX: Bypass iOS noise cancellation for "Thick" sound
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                    latency: 0
+                }
+            });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const blob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
+                const arrayBuffer = await blob.arrayBuffer();
+                loopBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                chunks = [];
+            };
+        } catch (err) {
+            alert("Microphone access is required for looping.");
+        }
     }
 
     function renderNodes() {
@@ -170,15 +198,15 @@
 
     function updateSlider(val) {
         document.getElementById('slider-val').innerText = (activeSliderMode === 'tempo') ? val : val + "%";
-        if (activeSliderMode === 'tempo') tempo = val;
+        if (activeSliderMode === 'tempo') tempo = parseInt(val);
         if (activeSliderMode === 'click') clickGain.gain.value = val / 100;
         if (activeSliderMode === 'vol') masterGain.gain.value = val / 100;
     }
 
     function closeSlider() { document.getElementById('slider-overlay').style.display = 'none'; }
 
-    function handleStomp() {
-        initAudio();
+    async function handleStomp() {
+        await initAudio();
         audioCtx.resume();
         if (!isRunning) {
             isRunning = true;
@@ -188,7 +216,7 @@
             if (state === "IDLE" || state === "PLAYING") {
                 pendingRecord = true;
                 document.getElementById('status-led').className = 'status-led led-wait';
-                cycleCount = 0; // Reset cycle count to ensure a full lap
+                cycleCount = 0; 
             }
         }
     }
@@ -197,40 +225,47 @@
         if (!isRunning) return;
         const stepTime = (60 / tempo) / 4;
         
-        // Visual Progress
         document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
         const b = Math.floor(currentStep / 16);
         const s = currentStep % 16;
         document.getElementById(`node-${b}-${s}`)?.classList.add('active');
 
-        // Play Click (only if not recording)
+        // Mute logic based on state
         if (state !== "RECORDING") {
+            // Play Click
             const osc = audioCtx.createOscillator();
             const g = audioCtx.createGain();
             osc.frequency.setValueAtTime(s % 4 === 0 ? 1000 : 500, audioCtx.currentTime);
-            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            g.gain.setValueAtTime(0.08, audioCtx.currentTime);
             g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
             osc.connect(g); g.connect(clickGain);
             osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+            
+            // Play Loop if it exists
+            if (currentStep === 0 && loopBuffer) {
+                if(loopSource) loopSource.stop();
+                loopSource = audioCtx.createBufferSource();
+                loopSource.buffer = loopBuffer;
+                loopSource.connect(masterGain);
+                loopSource.start();
+            }
         }
 
-        // Handle Logic on "The One"
         if (currentStep === 0) {
             if (pendingRecord) {
                 cycleCount++;
-                // If we've completed the partial cycle AND one full cycle
                 if (cycleCount >= 2) {
                     state = "RECORDING";
                     pendingRecord = false;
                     document.getElementById('status-led').className = 'status-led led-rec';
-                    // MUTE ALL
                     masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    mediaRecorder.start();
                 }
             } else if (state === "RECORDING") {
                 state = "PLAYING";
                 document.getElementById('status-led').className = 'status-led led-play';
-                // UNMUTE ALL
                 masterGain.gain.setValueAtTime(1, audioCtx.currentTime);
+                mediaRecorder.stop();
             }
         }
 
@@ -243,8 +278,15 @@
         currentStep = 0;
         state = "IDLE";
         pendingRecord = false;
+        if(loopSource) loopSource.stop();
         document.getElementById('status-led').className = 'status-led';
         document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+    }
+
+    function undo() {
+        loopBuffer = null;
+        if(loopSource) loopSource.stop();
+        alert("Loop Cleared");
     }
 
     function cycleBars() {
