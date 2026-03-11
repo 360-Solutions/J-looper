@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-LOOPER v1.4</title>
+    <title>J-LOOPER v1.5</title>
     <style>
         :root {
             --pedal-body: #fcfcfc;
@@ -17,41 +17,51 @@
             --play-green: #33ff33; --mute-grey: #666;
         }
         body { background-color: #1a1a1a; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; font-family: -apple-system, sans-serif; touch-action: manipulation; }
-        .pedal-body { width: 350px; background: var(--pedal-body); border-radius: 20px; margin: 10px 0; padding-bottom: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; border: 1px solid #eee; position: relative; }
-        .section { width: 92%; border-radius: 12px; padding: 8px; margin-bottom: 8px; border: 1px solid #e0e0e0; background: #f9f9f9; }
-        .global-sec { background: #f0f0f0; margin-top: 10px; position: relative; }
+        
+        .pedal-body { width: 350px; background: var(--pedal-body); border-radius: 18px; margin: 8px 0; padding-bottom: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; border: 1px solid #eee; position: relative; }
+        
+        .header-container { display: flex; justify-content: space-between; align-items: center; width: 92%; margin: 10px auto 4px auto; }
+        .header-text { text-align: left; }
+        .tempo-indicator { width: 14px; height: 14px; border-radius: 50%; background: #440000; border: 2px solid #222; transition: background 0.05s; }
+        
+        .section { width: 92%; border-radius: 10px; padding: 6px; margin-bottom: 6px; border: 1px solid #e0e0e0; background: #f9f9f9; }
+        .global-sec { background: #f0f0f0; }
+        
         .btn-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
         .btn-row-global { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-        .mini-btn { background: var(--rubber-gray); color: #fff; border: none; padding: 10px 0; border-radius: 6px; font-size: 8px; font-weight: 800; box-shadow: 0 3px 0 #1a1a1a; text-transform: uppercase; cursor: pointer; }
+        
+        .mini-btn { background: var(--rubber-gray); color: #fff; border: none; padding: 8px 0; border-radius: 5px; font-size: 8px; font-weight: 800; box-shadow: 0 3px 0 #1a1a1a; text-transform: uppercase; cursor: pointer; }
         .mini-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1a1a1a; }
-        .display-area { background: var(--node-bg); border-radius: 8px; padding: 8px 4px; margin: 6px 0; box-shadow: inset 0 3px 8px rgba(0,0,0,0.6); }
-        .node-row { display: flex; justify-content: space-around; margin-bottom: 4px; }
+        
+        .display-area { background: var(--node-bg); border-radius: 6px; padding: 6px 4px; margin: 4px 0; box-shadow: inset 0 3px 6px rgba(0,0,0,0.6); }
+        .node-row { display: flex; justify-content: space-around; margin-bottom: 3px; }
         .node { width: 9px; height: 9px; border-radius: 2px; background: var(--node-dim); }
         .node.beat { background: var(--node-beat); }
         .node.active { background: var(--node-active); box-shadow: 0 0 10px #fff; }
         
-        .stomp-container { display: flex; justify-content: center; align-items: center; margin-top: 5px; gap: 15px; }
-        .stomp-btn { width: 75px; height: 75px; background: var(--metal-silver); border-radius: 50%; border: 4px solid #999; box-shadow: 0 6px 0 #666, 0 10px 15px rgba(0,0,0,0.4); cursor: pointer; }
-        .status-led { width: 18px; height: 18px; border-radius: 50%; background: #222; border: 2px solid #666; transition: all 0.1s; }
+        .stomp-container { display: flex; justify-content: center; align-items: center; margin-top: 4px; gap: 15px; }
+        .stomp-btn { width: 60px; height: 60px; background: var(--metal-silver); border-radius: 50%; border: 3px solid #999; box-shadow: 0 5px 0 #666, 0 8px 12px rgba(0,0,0,0.4); cursor: pointer; }
+        .status-led { width: 16px; height: 16px; border-radius: 50%; background: #222; border: 2px solid #666; transition: all 0.1s; }
         
         .led-wait { background: var(--rec-prepare); box-shadow: 0 0 8px var(--rec-prepare); }
-        .led-rec { background: var(--rec-bright); box-shadow: 0 0 25px var(--rec-bright); }
-        .led-play { background: var(--play-green); box-shadow: 0 0 20px var(--play-green); }
+        .led-rec { background: var(--rec-bright); box-shadow: 0 0 20px var(--rec-bright); }
+        .led-play { background: var(--play-green); box-shadow: 0 0 15px var(--play-green); }
         .led-muted { background: var(--mute-grey); }
         
-        .tempo-indicator { width: 12px; height: 12px; border-radius: 50%; background: #440000; border: 1px solid #222; margin: 0 auto 6px auto; transition: background 0.05s; }
-        .slider-pop { position: fixed; top: 20%; width: 270px; background: white; border: 2px solid #222; padding: 25px; border-radius: 24px; display: none; flex-direction: column; align-items: center; z-index: 1000; box-shadow: 0 25px 60px rgba(0,0,0,0.6); }
+        .slider-pop { position: fixed; top: 15%; width: 270px; background: white; border: 2px solid #222; padding: 20px; border-radius: 20px; display: none; flex-direction: column; align-items: center; z-index: 1000; box-shadow: 0 25px 60px rgba(0,0,0,0.6); }
     </style>
 </head>
 <body>
 <div class="pedal-body">
-    <div style="text-align:center; margin-top:8px;">
-        <h1 style="font-size:16px; margin:0; letter-spacing:2px; color:#222; font-weight:900;">J-LOOPER</h1>
-        <p style="font-size:8px; opacity:0.5; color:#222; font-weight:bold; margin-top:2px;">v1.4 | TWO-PHASE AUDIO UPDATE</p>
+    <div class="header-container">
+        <div class="header-text">
+            <h1 style="font-size:16px; margin:0; letter-spacing:1px; color:#222; font-weight:900;">J-LOOPER</h1>
+            <p style="font-size:8px; opacity:0.6; color:#222; font-weight:bold; margin-top:2px;">v1.5 | 3-TRACK SEAMLESS</p>
+        </div>
+        <div id="tempo-led" class="tempo-indicator"></div>
     </div>
     
     <div class="section global-sec">
-        <div id="tempo-led" class="tempo-indicator"></div>
         <div class="btn-row-global">
             <button id="start-btn" class="mini-btn" style="background:#2ecc71; box-shadow: 0 3px 0 #27ae60;" onclick="toggleEngine()">START</button>
             <button class="mini-btn" onclick="openSlider('tempo')">TEMPO</button>
@@ -62,7 +72,7 @@
     </div>
 
     <div class="section">
-        <div style="font-size:9px; font-weight:900; margin-bottom:4px; color:#444;">TRACK 1</div>
+        <div style="font-size:9px; font-weight:900; margin-bottom:2px; color:#444;">TRACK 1</div>
         <div class="display-area" id="nodes-0"></div>
         <div class="btn-row">
             <button class="mini-btn" onclick="clearTrack(0)">CLEAR</button>
@@ -78,7 +88,7 @@
     </div>
 
     <div class="section">
-        <div style="font-size:9px; font-weight:900; margin-bottom:4px; color:#444;">TRACK 2</div>
+        <div style="font-size:9px; font-weight:900; margin-bottom:2px; color:#444;">TRACK 2</div>
         <div class="display-area" id="nodes-1"></div>
         <div class="btn-row">
             <button class="mini-btn" onclick="clearTrack(1)">CLEAR</button>
@@ -92,18 +102,35 @@
             <div id="led-1" class="status-led"></div>
         </div>
     </div>
+
+    <div class="section">
+        <div style="font-size:9px; font-weight:900; margin-bottom:2px; color:#444;">TRACK 3</div>
+        <div class="display-area" id="nodes-2"></div>
+        <div class="btn-row">
+            <button class="mini-btn" onclick="clearTrack(2)">CLEAR</button>
+            <button class="mini-btn" onclick="openSlider('vol2')">VOL</button>
+            <button class="mini-btn" onclick="cycleChop(2)">CHOP: <span id="chop-2">OFF</span></button>
+            <button class="mini-btn" onclick="cycleBars(2)">BARS: <span id="bars-2">1</span></button>
+            <button class="mini-btn" onclick="openSlider('nudge2')">NUDGE</button>
+        </div>
+        <div class="stomp-container">
+            <div class="stomp-btn" onclick="handleStomp(2)"></div>
+            <div id="led-2" class="status-led"></div>
+        </div>
+    </div>
 </div>
 
 <div id="slider-overlay" class="slider-pop">
     <b id="sl-title" style="color:#000;">TEMPO</b> <h1 id="sl-readout" style="color:#000; margin:15px 0;">94</h1>
     <input type="range" id="sl-input" style="width:100%;" oninput="updateSlider(this.value)">
-    <button class="mini-btn" style="width:120px; margin-top:20px;" onclick="closeSlider()">DONE</button>
+    <button class="mini-btn" style="width:120px; margin-top:15px;" onclick="closeSlider()">DONE</button>
 </div>
 
 <script>
     let audioCtx, masterGain, clickGain, tempo=94, isRunning=false, currentStep=0;
     let btJamMode = false;
     let tracks = [
+        { bars: 1, chop: 16, buffer: null, gain: 1.0, state: "IDLE", nudge: -0.200, muted: false, waitCycles: 0, activeGain: null, activeSource: null },
         { bars: 1, chop: 16, buffer: null, gain: 1.0, state: "IDLE", nudge: -0.200, muted: false, waitCycles: 0, activeGain: null, activeSource: null },
         { bars: 1, chop: 16, buffer: null, gain: 1.0, state: "IDLE", nudge: -0.200, muted: false, waitCycles: 0, activeGain: null, activeSource: null }
     ];
@@ -129,10 +156,7 @@
         if (btJamMode) {
             btn.innerText = "BT JAM: ON";
             btn.style.background = "#0055aa";
-            if (stream) {
-                stream.getTracks().forEach(t => t.stop());
-                stream = null;
-            }
+            if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
         } else {
             btn.innerText = "BT JAM: OFF";
             btn.style.background = "var(--rubber-gray)";
@@ -161,10 +185,7 @@
         let t = tracks[i];
         
         if(t.state === "IDLE") {
-            // If they try to record while in BT Jam mode, auto-switch back to recording phase
-            if(btJamMode) {
-                await toggleBTMode();
-            }
+            if(btJamMode) { await toggleBTMode(); }
             t.state = "WAITING"; t.waitCycles = 0;
             document.getElementById(`led-${i}`).className = 'status-led led-wait';
 
@@ -172,7 +193,6 @@
             t.muted = !t.muted; 
             t.state = t.muted ? "MUTED" : "PLAYING";
             document.getElementById(`led-${i}`).className = 'status-led ' + (t.muted ? 'led-muted' : 'led-play');
-            
             if (t.activeGain) {
                 t.activeGain.gain.setTargetAtTime(t.muted ? 0 : t.gain, audioCtx.currentTime, 0.015);
             }
@@ -198,10 +218,6 @@
             nodes.forEach(n => n.classList.remove('active'));
             document.getElementById(`n-${idx}-${Math.floor(sInL/16)}-${sInL%16}`)?.classList.add('active');
 
-            if (sInL === loopSteps - 1 && t.state === "RECORDING") {
-                setTimeout(() => stopRec(idx), (stepTime * 1000) - 45);
-            }
-
             if (sInL === 0) {
                 if(t.state === "WAITING") {
                     t.waitCycles++;
@@ -215,6 +231,8 @@
                     t.state = "PLAYING"; 
                     document.getElementById(`led-${idx}`).className = 'status-led led-play';
                     masterGain.gain.setValueAtTime(1, audioCtx.currentTime); 
+                    // Stop exactly on the One and calculate perfect mathematical length
+                    stopRec(idx, t.bars);
                 }
                 
                 if((t.state === "PLAYING" || t.state === "MUTED") && t.buffer) {
@@ -236,21 +254,42 @@
         recData = []; 
         if (!stream) return;
         const src = audioCtx.createMediaStreamSource(stream);
-        processor = audioCtx.createScriptProcessor(4096, 1, 1);
+        // Reduced buffer size from 4096 to 1024 to dramatically lower latency and missing tail chunks
+        processor = audioCtx.createScriptProcessor(1024, 1, 1);
         src.connect(processor); processor.connect(audioCtx.destination);
         processor.onaudioprocess = e => recData.push(new Float32Array(e.inputBuffer.getChannelData(0)));
     }
 
-    function stopRec(idx) {
+    function stopRec(idx, bars) {
         if(processor) {
             processor.disconnect();
-            const flat = new Float32Array(recData.length * 4096);
-            for(let i=0; i<recData.length; i++) flat.set(recData[i], i*4096);
+            
+            const flat = new Float32Array(recData.length * 1024);
+            for(let i=0; i<recData.length; i++) flat.set(recData[i], i*1024);
+            
+            // EXACT MATHEMATICAL TRIMMING
+            const loopDuration = (60 / tempo) * 4 * bars;
+            const exactSamples = Math.floor(loopDuration * audioCtx.sampleRate);
+            
+            const buffer = audioCtx.createBuffer(1, exactSamples, audioCtx.sampleRate);
+            const channelData = buffer.getChannelData(0);
+            
             let maxVal = 0;
-            for (let i = 0; i < flat.length; i++) { if (Math.abs(flat[i]) > maxVal) maxVal = Math.abs(flat[i]); }
-            if (maxVal > 0) { for (let i = 0; i < flat.length; i++) { flat[i] = flat[i] / maxVal; } }
-            const buffer = audioCtx.createBuffer(1, flat.length, audioCtx.sampleRate);
-            buffer.copyToChannel(flat, 0); tracks[idx].buffer = buffer;
+            // Map the recorded data to the exact mathematical container length
+            for(let i=0; i<exactSamples; i++) {
+                let val = flat[i] || 0;
+                channelData[i] = val;
+                if(Math.abs(val) > maxVal) maxVal = Math.abs(val);
+            }
+            
+            // Normalize volume
+            if (maxVal > 0) {
+                for (let i = 0; i < exactSamples; i++) {
+                    channelData[i] = channelData[i] / maxVal;
+                }
+            }
+            
+            tracks[idx].buffer = buffer;
         }
     }
 
@@ -319,7 +358,7 @@
     }
     function closeSlider() { document.getElementById('slider-overlay').style.display='none'; }
     
-    renderNodes(0); renderNodes(1);
+    renderNodes(0); renderNodes(1); renderNodes(2);
 </script>
 </body>
 </html>
