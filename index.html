@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-LOOPER v2.0</title>
+    <title>J-LOOPER v2.1</title>
     <style>
         :root {
             --pedal-body: #fcfcfc;
@@ -31,11 +31,12 @@
         .node.beat { background: var(--node-beat); }
         .node.active { background: var(--node-active); box-shadow: 0 0 10px #fff; }
         .stomp-container { display: flex; justify-content: center; align-items: center; margin-top: 4px; gap: 15px; }
-        .stomp-btn { width: 60px; height: 60px; background: var(--metal-silver); border-radius: 50%; border: 3px solid #999; box-shadow: 0 5px 0 #666, 0 8px 12px rgba(0,0,0,0.4); }
+        .stomp-btn { width: 60px; height: 60px; background: var(--metal-silver); border-radius: 50%; border: 3px solid #999; box-shadow: 0 5px 0 #666, 0 8px 12px rgba(0,0,0,0.4); cursor: pointer; }
         .status-led { width: 16px; height: 16px; border-radius: 50%; background: #222; border: 2px solid #666; transition: all 0.1s; }
         .led-wait { background: var(--rec-prepare); }
         .led-rec { background: var(--rec-bright); box-shadow: 0 0 20px var(--rec-bright); }
         .led-play { background: var(--play-green); box-shadow: 0 0 15px var(--play-green); }
+        .led-muted { background: var(--mute-grey); }
         .slider-pop { position: fixed; top: 15%; width: 270px; background: white; border: 2px solid #222; padding: 20px; border-radius: 20px; display: none; flex-direction: column; align-items: center; z-index: 1000; }
     </style>
 </head>
@@ -44,7 +45,7 @@
     <div class="header-container">
         <div style="text-align:left;">
             <h1 style="font-size:16px; margin:0; letter-spacing:1px; color:#222; font-weight:900;">J-LOOPER</h1>
-            <p style="font-size:8px; opacity:0.6; color:#222; font-weight:bold; margin-top:2px;">v2.0 | PRE-ROLL ENGINE</p>
+            <p style="font-size:8px; opacity:0.6; color:#222; font-weight:bold; margin-top:2px;">v2.1 | ENGINE STABILITY FIX</p>
         </div>
         <div id="tempo-led" class="tempo-indicator"></div>
     </div>
@@ -124,11 +125,13 @@
     ];
 
     async function initAudio() {
-        if(audioCtx) return;
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
-        clickGain = audioCtx.createGain(); clickGain.connect(masterGain);
-        await grabMic();
+        if(!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
+            clickGain = audioCtx.createGain(); clickGain.connect(masterGain);
+            await grabMic();
+        }
+        if (audioCtx.state === 'suspended') { await audioCtx.resume(); }
     }
 
     async function grabMic() {
@@ -140,14 +143,22 @@
         document.getElementById('bt-jam-btn').innerText = btJamMode ? "BT JAM: ON" : "BT JAM: OFF";
         if (btJamMode && stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
         else if (!btJamMode) { await grabMic(); }
-        if (isRunning) { audioCtx.suspend(); setTimeout(() => audioCtx.resume(), 50); }
+        if (isRunning && audioCtx) { await audioCtx.suspend(); setTimeout(() => audioCtx.resume(), 50); }
     }
 
     async function toggleEngine() {
         await initAudio();
-        if(!isRunning) { isRunning = true; tick(); } 
-        else { isRunning = false; audioCtx.suspend(); currentStep = 0; }
-        document.getElementById('start-btn').innerText = isRunning ? "STOP" : "START";
+        const btn = document.getElementById('start-btn');
+        if(!isRunning) { 
+            isRunning = true; 
+            btn.innerText = "STOP"; btn.style.background = "#e74c3c";
+            tick(); 
+        } else { 
+            isRunning = false; 
+            btn.innerText = "START"; btn.style.background = "#2ecc71";
+            audioCtx.suspend(); 
+            currentStep = 0; 
+        }
     }
 
     function handleStomp(i) {
@@ -168,7 +179,6 @@
         if(!isRunning) return;
         const stepTime = (60/tempo)/4;
         
-        // Tempo LED
         if (currentStep % 4 === 0) {
             const tLed = document.getElementById('tempo-led');
             tLed.style.background = '#ff3333'; setTimeout(() => tLed.style.background = '#440000', 100);
@@ -182,7 +192,7 @@
             document.querySelectorAll(`#nodes-${idx} .node`).forEach(n => n.classList.remove('active'));
             document.getElementById(`n-${idx}-${Math.floor(sInL/16)}-${sInL%16}`)?.classList.add('active');
 
-            // PRE-ROLL TRIGGER: Secretly start recording 100ms before the "One" hits
+            // PRE-ROLL TRIGGER
             if (sInL === loopSteps - 1 && t.state === "WAITING" && t.waitCycles >= 1) {
                 setTimeout(() => { if(t.state === "WAITING") startRec(); }, (stepTime * 1000) - 100);
             }
@@ -225,18 +235,11 @@
             processor.disconnect();
             const flat = new Float32Array(recData.length * 4096);
             for(let i=0; i<recData.length; i++) flat.set(recData[i], i*4096);
-            
-            // Organic De-Click at the tail end
-            const sampleRate = audioCtx.sampleRate;
-            const fadeSamples = Math.floor(sampleRate * 0.01); 
-            for (let i = 0; i < fadeSamples; i++) {
-                if (i < flat.length) flat[flat.length - 1 - i] *= (i / fadeSamples);
-            }
-            
+            const fadeSamples = Math.floor(audioCtx.sampleRate * 0.01); 
+            for (let i = 0; i < fadeSamples; i++) { if (i < flat.length) flat[flat.length - 1 - i] *= (i / fadeSamples); }
             let maxVal = 0;
             for (let i = 0; i < flat.length; i++) { if (Math.abs(flat[i]) > maxVal) maxVal = Math.abs(flat[i]); }
             if (maxVal > 0) for (let i = 0; i < flat.length; i++) flat[i] /= maxVal;
-            
             const buffer = audioCtx.createBuffer(1, flat.length, audioCtx.sampleRate);
             buffer.copyToChannel(flat, 0); tracks[idx].buffer = buffer;
         }
