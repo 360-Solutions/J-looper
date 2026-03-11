@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-LOOPER v1.7</title>
+    <title>J-LOOPER v1.8</title>
     <style>
         :root {
             --pedal-body: #fcfcfc;
@@ -56,7 +56,7 @@
     <div class="header-container">
         <div class="header-text">
             <h1 style="font-size:16px; margin:0; letter-spacing:1px; color:#222; font-weight:900;">J-LOOPER</h1>
-            <p style="font-size:8px; opacity:0.6; color:#222; font-weight:bold; margin-top:2px;">v1.7 | ORGANIC CAPTURE UPDATE</p>
+            <p style="font-size:8px; opacity:0.6; color:#222; font-weight:bold; margin-top:2px;">v1.8 | DE-CLICKER UPDATE</p>
         </div>
         <div id="tempo-led" class="tempo-indicator"></div>
     </div>
@@ -224,7 +224,6 @@
             document.getElementById(`n-${idx}-${Math.floor(sInL/16)}-${sInL%16}`)?.classList.add('active');
 
             if (sInL === 0) {
-                // If we WERE recording on the previous cycle, close the file right now natively
                 if(t.state === "RECORDING") {
                     stopRec(idx);
                     t.state = "PLAYING"; 
@@ -265,8 +264,8 @@
         recData = []; 
         if (!stream) return;
         const src = audioCtx.createMediaStreamSource(stream);
-        // Back to 1024 processor for rock-solid stability, no math trimming needed
-        processor = audioCtx.createScriptProcessor(1024, 1, 1);
+        // Put buffer back up to 4096 to prevent CPU strain and white noise underruns
+        processor = audioCtx.createScriptProcessor(4096, 1, 1);
         src.connect(processor); processor.connect(audioCtx.destination);
         processor.onaudioprocess = e => recData.push(new Float32Array(e.inputBuffer.getChannelData(0)));
     }
@@ -275,9 +274,22 @@
         if(processor) {
             processor.disconnect();
             
-            // Just flatten exactly what we captured from Tick A to Tick B. Organic.
-            const flat = new Float32Array(recData.length * 1024);
-            for(let i=0; i<recData.length; i++) flat.set(recData[i], i*1024);
+            const flat = new Float32Array(recData.length * 4096);
+            for(let i=0; i<recData.length; i++) flat.set(recData[i], i*4096);
+            
+            // DE-CLICKER: Apply a 10ms micro-fade to the start and end of the buffer
+            const sampleRate = audioCtx.sampleRate;
+            const fadeSamples = Math.floor(sampleRate * 0.01); // 10 milliseconds
+            
+            for (let i = 0; i < fadeSamples; i++) {
+                if (i < flat.length) {
+                    let fadeMultiplier = i / fadeSamples;
+                    // Fade In at the start
+                    flat[i] = flat[i] * fadeMultiplier;
+                    // Fade Out at the end
+                    flat[flat.length - 1 - i] = flat[flat.length - 1 - i] * fadeMultiplier;
+                }
+            }
             
             let maxVal = 0;
             for (let i = 0; i < flat.length; i++) { if (Math.abs(flat[i]) > maxVal) maxVal = Math.abs(flat[i]); }
