@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-LOOPER v2.1</title>
+    <title>J-LOOPER v2.3</title>
     <style>
         :root {
             --pedal-body: #fcfcfc;
@@ -37,7 +37,7 @@
         .led-rec { background: var(--rec-bright); box-shadow: 0 0 20px var(--rec-bright); }
         .led-play { background: var(--play-green); box-shadow: 0 0 15px var(--play-green); }
         .led-muted { background: var(--mute-grey); }
-        .slider-pop { position: fixed; top: 15%; width: 270px; background: white; border: 2px solid #222; padding: 20px; border-radius: 20px; display: none; flex-direction: column; align-items: center; z-index: 1000; }
+        .slider-pop { position: fixed; top: 15%; width: 270px; background: white; border: 2px solid #222; padding: 20px; border-radius: 20px; display: none; flex-direction: column; align-items: center; z-index: 1000; box-shadow: 0 25px 60px rgba(0,0,0,0.6); }
     </style>
 </head>
 <body>
@@ -45,7 +45,7 @@
     <div class="header-container">
         <div style="text-align:left;">
             <h1 style="font-size:16px; margin:0; letter-spacing:1px; color:#222; font-weight:900;">J-LOOPER</h1>
-            <p style="font-size:8px; opacity:0.6; color:#222; font-weight:bold; margin-top:2px;">v2.1 | ENGINE STABILITY FIX</p>
+            <p style="font-size:8px; opacity:0.6; color:#222; font-weight:bold; margin-top:2px;">v2.3 | IRONCLAD STARTUP</p>
         </div>
         <div id="tempo-led" class="tempo-indicator"></div>
     </div>
@@ -75,7 +75,6 @@
             <div id="led-0" class="status-led"></div>
         </div>
     </div>
-
     <div class="section">
         <div style="font-size:9px; font-weight:900; color:#444;">TRACK 2</div>
         <div class="display-area" id="nodes-1"></div>
@@ -91,7 +90,6 @@
             <div id="led-1" class="status-led"></div>
         </div>
     </div>
-
     <div class="section">
         <div style="font-size:9px; font-weight:900; color:#444;">TRACK 3</div>
         <div class="display-area" id="nodes-2"></div>
@@ -124,43 +122,39 @@
         { bars:1, chop:16, buffer:null, gain:1.0, state:"IDLE", nudge:-0.200, muted:false, waitCycles:0, activeGain:null }
     ];
 
-    async function initAudio() {
-        if(!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
-            clickGain = audioCtx.createGain(); clickGain.connect(masterGain);
-            await grabMic();
-        }
-        if (audioCtx.state === 'suspended') { await audioCtx.resume(); }
-    }
-
-    async function grabMic() {
-        try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } }); } catch(e) {}
-    }
-
-    async function toggleBTMode() {
-        btJamMode = !btJamMode;
-        document.getElementById('bt-jam-btn').innerText = btJamMode ? "BT JAM: ON" : "BT JAM: OFF";
-        if (btJamMode && stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-        else if (!btJamMode) { await grabMic(); }
-        if (isRunning && audioCtx) { await audioCtx.suspend(); setTimeout(() => audioCtx.resume(), 50); }
-    }
-
     async function toggleEngine() {
-        await initAudio();
         const btn = document.getElementById('start-btn');
-        if(!isRunning) { 
-            isRunning = true; 
-            btn.innerText = "STOP"; btn.style.background = "#e74c3c";
-            tick(); 
-        } else { 
-            isRunning = false; 
+        if(!isRunning) {
+            // STEP 1: Init Context
+            if(!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
+                clickGain = audioCtx.createGain(); clickGain.connect(masterGain);
+            }
+            // STEP 2: Resume Context (Physical Handshake)
+            await audioCtx.resume();
+            // STEP 3: Grab Mic
+            try { 
+                stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } }); 
+            } catch(e) { console.log("Mic error"); }
+            
+            // STEP 4: Only start loop if Context is actually RUNNING
+            if(audioCtx.state === 'running') {
+                isRunning = true;
+                currentStep = 0;
+                btn.innerText = "STOP"; btn.style.background = "#e74c3c";
+                tick();
+            }
+        } else {
+            isRunning = false;
             btn.innerText = "START"; btn.style.background = "#2ecc71";
-            audioCtx.suspend(); 
-            currentStep = 0; 
+            audioCtx.suspend();
+            currentStep = 0;
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
         }
     }
 
+    // handleStomp, startRec, stopRec, playClick, renderNodes, sliders remain from v2.2
     function handleStomp(i) {
         if(!isRunning) return;
         let t = tracks[i];
@@ -175,28 +169,32 @@
         }
     }
 
+    async function toggleBTMode() {
+        btJamMode = !btJamMode;
+        document.getElementById('bt-jam-btn').innerText = btJamMode ? "BT JAM: ON" : "BT JAM: OFF";
+        if (btJamMode && stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+        else if (!btJamMode) { 
+            try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch(e){}
+        }
+        if (isRunning && audioCtx) { await audioCtx.suspend(); setTimeout(() => audioCtx.resume(), 50); }
+    }
+
     function tick() {
         if(!isRunning) return;
         const stepTime = (60/tempo)/4;
-        
         if (currentStep % 4 === 0) {
             const tLed = document.getElementById('tempo-led');
             tLed.style.background = '#ff3333'; setTimeout(() => tLed.style.background = '#440000', 100);
             if(!clickMuted) playClick(currentStep % 16 === 0 ? 1000 : 500);
         }
-
         tracks.forEach((t, idx) => {
             const loopSteps = (t.chop < 16) ? t.chop : t.bars * 16;
             const sInL = currentStep % loopSteps;
-            
             document.querySelectorAll(`#nodes-${idx} .node`).forEach(n => n.classList.remove('active'));
             document.getElementById(`n-${idx}-${Math.floor(sInL/16)}-${sInL%16}`)?.classList.add('active');
-
-            // PRE-ROLL TRIGGER
             if (sInL === loopSteps - 1 && t.state === "WAITING" && t.waitCycles >= 1) {
                 setTimeout(() => { if(t.state === "WAITING") startRec(); }, (stepTime * 1000) - 100);
             }
-
             if (sInL === 0) {
                 if(t.state === "RECORDING") {
                     stopRec(idx); t.state = "PLAYING"; 
@@ -219,7 +217,7 @@
                 }
             }
         });
-        currentStep = (currentStep + 1) % 64; setTimeout(tick, stepTime * 1000);
+        currentStep++; setTimeout(tick, stepTime * 1000);
     }
 
     function startRec() {
