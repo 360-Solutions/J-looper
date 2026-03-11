@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-LOOPER v1.1</title>
+    <title>J-LOOPER v1.2</title>
     <style>
         :root {
             --pedal-body: #fcfcfc;
@@ -17,71 +17,78 @@
             --play-green: #33ff33; --mute-grey: #666;
         }
         body { background-color: #1a1a1a; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; font-family: -apple-system, sans-serif; touch-action: manipulation; }
-        .pedal-body { width: 350px; background: var(--pedal-body); border-radius: 28px; margin: 15px 0; padding-bottom: 25px; box-shadow: 0 30px 70px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; border: 1px solid #eee; position: relative; }
-        .section { width: 92%; border-radius: 14px; padding: 12px; margin-bottom: 12px; border: 1px solid #e0e0e0; background: #f9f9f9; }
-        .global-sec { background: #f0f0f0; margin-top: 15px; }
-        .btn-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-        .btn-row-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-        .mini-btn { background: var(--rubber-gray); color: #fff; border: none; padding: 10px 0; border-radius: 7px; font-size: 8px; font-weight: 800; box-shadow: 0 4px 0 #1a1a1a; text-transform: uppercase; }
-        .mini-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #1a1a1a; }
-        .display-area { background: var(--node-bg); border-radius: 10px; padding: 12px 6px; margin: 10px 0; box-shadow: inset 0 3px 10px rgba(0,0,0,0.6); }
-        .node-row { display: flex; justify-content: space-around; margin-bottom: 6px; }
-        .node { width: 11px; height: 11px; border-radius: 2px; background: var(--node-dim); }
+        .pedal-body { width: 350px; background: var(--pedal-body); border-radius: 20px; margin: 10px 0; padding-bottom: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; border: 1px solid #eee; position: relative; }
+        .section { width: 92%; border-radius: 12px; padding: 8px; margin-bottom: 8px; border: 1px solid #e0e0e0; background: #f9f9f9; }
+        .global-sec { background: #f0f0f0; margin-top: 10px; position: relative; }
+        .btn-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .btn-row-global { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        .mini-btn { background: var(--rubber-gray); color: #fff; border: none; padding: 10px 0; border-radius: 6px; font-size: 8px; font-weight: 800; box-shadow: 0 3px 0 #1a1a1a; text-transform: uppercase; }
+        .mini-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1a1a1a; }
+        .display-area { background: var(--node-bg); border-radius: 8px; padding: 8px 4px; margin: 6px 0; box-shadow: inset 0 3px 8px rgba(0,0,0,0.6); }
+        .node-row { display: flex; justify-content: space-around; margin-bottom: 4px; }
+        .node { width: 9px; height: 9px; border-radius: 2px; background: var(--node-dim); }
         .node.beat { background: var(--node-beat); }
-        .node.active { background: var(--node-active); box-shadow: 0 0 12px #fff; }
-        .stomp-btn { width: 90px; height: 90px; background: var(--metal-silver); border-radius: 50%; border: 4px solid #999; box-shadow: 0 8px 0 #666, 0 15px 20px rgba(0,0,0,0.4); margin-top: 5px; }
-        .status-led { width: 20px; height: 20px; border-radius: 50%; background: #222; margin-bottom: 10px; border: 2px solid #666; transition: all 0.2s; }
+        .node.active { background: var(--node-active); box-shadow: 0 0 10px #fff; }
+        
+        .stomp-container { display: flex; justify-content: center; align-items: center; margin-top: 5px; gap: 15px; }
+        .stomp-btn { width: 75px; height: 75px; background: var(--metal-silver); border-radius: 50%; border: 4px solid #999; box-shadow: 0 6px 0 #666, 0 10px 15px rgba(0,0,0,0.4); }
+        .status-led { width: 18px; height: 18px; border-radius: 50%; background: #222; border: 2px solid #666; transition: all 0.1s; }
+        
         .led-wait { background: var(--rec-prepare); box-shadow: 0 0 8px var(--rec-prepare); }
         .led-rec { background: var(--rec-bright); box-shadow: 0 0 25px var(--rec-bright); }
         .led-play { background: var(--play-green); box-shadow: 0 0 20px var(--play-green); }
         .led-muted { background: var(--mute-grey); }
+        
+        .tempo-indicator { width: 12px; height: 12px; border-radius: 50%; background: #440000; border: 1px solid #222; margin: 0 auto 6px auto; transition: background 0.05s; }
         .slider-pop { position: fixed; top: 20%; width: 270px; background: white; border: 2px solid #222; padding: 25px; border-radius: 24px; display: none; flex-direction: column; align-items: center; z-index: 1000; box-shadow: 0 25px 60px rgba(0,0,0,0.6); }
     </style>
 </head>
 <body>
 <div class="pedal-body">
-    <div style="text-align:center; margin-top:12px;">
-        <h1 style="font-size:18px; margin:0; letter-spacing:3px; color:#222; font-weight:900;">J-LOOPER</h1>
-        <p style="font-size:9px; opacity:0.5; color:#222; font-weight:bold;">v1.1 BT-READY | JEREMIAH KELLER</p>
+    <div style="text-align:center; margin-top:8px;">
+        <h1 style="font-size:16px; margin:0; letter-spacing:2px; color:#222; font-weight:900;">J-LOOPER</h1>
+        <p style="font-size:8px; opacity:0.5; color:#222; font-weight:bold; margin-top:2px;">v1.2 | LIVE CHOKE UPDATE</p>
     </div>
     
     <div class="section global-sec">
-        <div class="btn-row-5">
-            <button id="start-btn" class="mini-btn" style="background:#2ecc71; box-shadow: 0 4px 0 #27ae60;" onclick="toggleEngine()">START</button>
+        <div id="tempo-led" class="tempo-indicator"></div>
+        <div class="btn-row-global">
+            <button id="start-btn" class="mini-btn" style="background:#2ecc71; box-shadow: 0 3px 0 #27ae60;" onclick="toggleEngine()">START</button>
             <button class="mini-btn" onclick="openSlider('tempo')">TEMPO</button>
             <button class="mini-btn" onclick="openSlider('clickVol')">CLICK</button>
             <button id="mute-click" class="mini-btn" onclick="toggleMute('click')">MUTE</button>
-            <button class="mini-btn" style="background:#0055aa; box-shadow: 0 4px 0 #003366;" onclick="openSlider('btOffset')">BT OFFSET</button>
         </div>
     </div>
 
     <div class="section">
-        <div style="font-size:10px; font-weight:900; margin-bottom:6px; color:#444;">TRACK 1</div>
+        <div style="font-size:9px; font-weight:900; margin-bottom:4px; color:#444;">TRACK 1</div>
         <div class="display-area" id="nodes-0"></div>
         <div class="btn-row">
             <button class="mini-btn" onclick="clearTrack(0)">CLEAR</button>
             <button class="mini-btn" onclick="openSlider('vol0')">VOL</button>
+            <button class="mini-btn" onclick="cycleChop(0)">CHOP: <span id="chop-0">OFF</span></button>
             <button class="mini-btn" onclick="cycleBars(0)">BARS: <span id="bars-0">1</span></button>
             <button class="mini-btn" onclick="openSlider('nudge0')">NUDGE</button>
         </div>
-        <div style="display:flex; flex-direction:column; align-items:center; margin-top:12px;">
-            <div id="led-0" class="status-led"></div>
+        <div class="stomp-container">
             <div class="stomp-btn" onclick="handleStomp(0)"></div>
+            <div id="led-0" class="status-led"></div>
         </div>
     </div>
 
     <div class="section">
-        <div style="font-size:10px; font-weight:900; margin-bottom:6px; color:#444;">TRACK 2</div>
+        <div style="font-size:9px; font-weight:900; margin-bottom:4px; color:#444;">TRACK 2</div>
         <div class="display-area" id="nodes-1"></div>
         <div class="btn-row">
             <button class="mini-btn" onclick="clearTrack(1)">CLEAR</button>
             <button class="mini-btn" onclick="openSlider('vol1')">VOL</button>
+            <button class="mini-btn" onclick="cycleChop(1)">CHOP: <span id="chop-1">OFF</span></button>
             <button class="mini-btn" onclick="cycleBars(1)">BARS: <span id="bars-1">1</span></button>
             <button class="mini-btn" onclick="openSlider('nudge1')">NUDGE</button>
         </div>
-        <div style="display:flex; flex-direction:column; align-items:center; margin-top:12px;">
-            <div id="led-1" class="status-led"></div>
+        <div class="stomp-container">
             <div class="stomp-btn" onclick="handleStomp(1)"></div>
+            <div id="led-1" class="status-led"></div>
         </div>
     </div>
 </div>
@@ -94,10 +101,9 @@
 
 <script>
     let audioCtx, masterGain, clickGain, tempo=94, isRunning=false, currentStep=0;
-    let btMuteOffset = 250; // BT early mute in ms
     let tracks = [
-        { bars: 1, buffer: null, gain: 1.0, state: "IDLE", nudge: -0.200, muted: false, waitCycles: 0 },
-        { bars: 1, buffer: null, gain: 1.0, state: "IDLE", nudge: -0.200, muted: false, waitCycles: 0 }
+        { bars: 1, chop: 16, buffer: null, gain: 1.0, state: "IDLE", nudge: -0.200, muted: false, waitCycles: 0, activeGain: null },
+        { bars: 1, chop: 16, buffer: null, gain: 1.0, state: "IDLE", nudge: -0.200, muted: false, waitCycles: 0, activeGain: null }
     ];
     let clickMuted = false, recData = [], stream, processor, activeSliderTarget = '';
 
@@ -107,7 +113,6 @@
         masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
         clickGain = audioCtx.createGain(); clickGain.connect(masterGain);
         
-        // Catch and Release: Get permission, then immediately turn off mic to keep BT active
         try {
             let tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             tempStream.getTracks().forEach(track => track.stop());
@@ -119,29 +124,35 @@
         const btn = document.getElementById('start-btn');
         if(!isRunning) {
             audioCtx.resume(); isRunning = true;
-            btn.innerText = "STOP"; btn.style.background = "#e74c3c"; btn.style.boxShadow = "0 4px 0 #c0392b";
+            btn.innerText = "STOP"; btn.style.background = "#e74c3c"; btn.style.boxShadow = "0 3px 0 #c0392b";
             tick();
         } else {
-            isRunning = false; btn.innerText = "START"; btn.style.background = "#2ecc71"; btn.style.boxShadow = "0 4px 0 #27ae60";
+            isRunning = false; btn.innerText = "START"; btn.style.background = "#2ecc71"; btn.style.boxShadow = "0 3px 0 #27ae60";
             currentStep = 0; document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
         }
     }
 
-    async function handleStomp(i) {
+    function handleStomp(i) {
         if(!isRunning) return;
         let t = tracks[i];
+        
         if(t.state === "IDLE") {
             t.state = "WAITING"; t.waitCycles = 0;
             document.getElementById(`led-${i}`).className = 'status-led led-wait';
             
-            // Re-acquire Mic only when preparing to record
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-            } catch(e) { console.error("Mic error"); }
+            // NON-BLOCKING MIC REQUEST: Prevents the UI stall you were feeling!
+            navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } })
+                .then(s => stream = s).catch(e => console.error("Mic error"));
 
         } else if(t.state === "PLAYING" || t.state === "MUTED") {
-            t.muted = !t.muted; t.state = t.muted ? "MUTED" : "PLAYING";
+            // INSTANT LIVE CHOKE
+            t.muted = !t.muted; 
+            t.state = t.muted ? "MUTED" : "PLAYING";
             document.getElementById(`led-${i}`).className = 'status-led ' + (t.muted ? 'led-muted' : 'led-play');
+            
+            if (t.activeGain) {
+                t.activeGain.gain.setTargetAtTime(t.muted ? 0 : t.gain, audioCtx.currentTime, 0.015);
+            }
         }
     }
 
@@ -149,51 +160,54 @@
         if(!isRunning) return;
         const stepTime = (60/tempo)/4;
         
+        // TEMPO LED LOGIC
+        if (currentStep % 4 === 0) {
+            const tLed = document.getElementById('tempo-led');
+            tLed.style.background = '#ff3333'; tLed.style.boxShadow = '0 0 12px #ff0000';
+            setTimeout(() => { tLed.style.background = '#440000'; tLed.style.boxShadow = 'none'; }, 100);
+            if(!clickMuted) playClick(currentStep % 16 === 0 ? 1000 : 500);
+        }
+
         tracks.forEach((t, idx) => {
-            const loopSteps = t.bars * 16, sInL = currentStep % loopSteps;
+            // CHOP LOGIC: Overrides standard bars length if active
+            const loopSteps = (t.chop < 16) ? t.chop : t.bars * 16;
+            const sInL = currentStep % loopSteps;
+            
             const nodes = document.querySelectorAll(`#nodes-${idx} .node`);
             nodes.forEach(n => n.classList.remove('active'));
+            // Visual playhead loops over the shorter segment
             document.getElementById(`n-${idx}-${Math.floor(sInL/16)}-${sInL%16}`)?.classList.add('active');
 
-            // PRE-MUTE Logic for Bluetooth: If we are 1 full cycle away from recording, schedule the mute early!
-            if (sInL === 0 && t.state === "WAITING" && t.waitCycles === 1) {
-                let timeToRecord = t.bars * 16 * stepTime; // How long until the One
-                let muteTime = audioCtx.currentTime + timeToRecord - (btMuteOffset / 1000);
-                if (muteTime < audioCtx.currentTime) muteTime = audioCtx.currentTime;
-                masterGain.gain.setValueAtTime(0, muteTime);
-            }
-
-            // Zero-Gap Handover: Cut processor slightly early
             if (sInL === loopSteps - 1 && t.state === "RECORDING") {
                 setTimeout(() => stopRec(idx), (stepTime * 1000) - 45);
             }
 
-            // Standard "On the One" Logic
             if (sInL === 0) {
                 if(t.state === "WAITING") {
                     t.waitCycles++;
                     if(t.waitCycles >= 2) {
                         t.state = "RECORDING"; 
                         document.getElementById(`led-${idx}`).className = 'status-led led-rec';
-                        // Fallback mute just in case BT offset is 0
                         masterGain.gain.setValueAtTime(0, audioCtx.currentTime); 
                         if(stream) startRec();
                     }
                 } else if(t.state === "RECORDING") {
                     t.state = "PLAYING"; 
                     document.getElementById(`led-${idx}`).className = 'status-led led-play';
-                    masterGain.gain.setValueAtTime(1, audioCtx.currentTime); // Unmute!
+                    masterGain.gain.setValueAtTime(1, audioCtx.currentTime); 
                 }
                 
-                if(t.state === "PLAYING" && t.buffer && !t.muted) {
+                if((t.state === "PLAYING" || t.state === "MUTED") && t.buffer) {
                     const src = audioCtx.createBufferSource(); src.buffer = t.buffer;
-                    const g = audioCtx.createGain(); g.gain.value = t.gain;
-                    src.connect(g); g.connect(masterGain); src.start(audioCtx.currentTime + t.nudge);
+                    const g = audioCtx.createGain(); 
+                    g.gain.value = t.muted ? 0 : t.gain; // Start silenced if muted
+                    src.connect(g); g.connect(masterGain); 
+                    src.start(audioCtx.currentTime + t.nudge);
+                    t.activeGain = g; // Save reference for Live Choke
                 }
             }
         });
 
-        if(!clickMuted && currentStep % 4 === 0) playClick(currentStep % 16 === 0 ? 1000 : 500);
         currentStep = (currentStep + 1) % 64; setTimeout(tick, stepTime * 1000);
     }
 
@@ -216,7 +230,6 @@
             buffer.copyToChannel(flat, 0); tracks[idx].buffer = buffer;
         }
 
-        // Catch & Release: KILL THE MIC to restore Bluetooth A2DP quality!
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
             stream = null;
@@ -244,7 +257,23 @@
     }
 
     function clearTrack(i) { tracks[i].buffer = null; tracks[i].state = "IDLE"; tracks[i].muted = false; document.getElementById(`led-${i}`).className = 'status-led'; }
-    function cycleBars(idx) { tracks[idx].bars = [1, 2, 4][([1, 2, 4].indexOf(tracks[idx].bars) + 1) % 3]; document.getElementById(`bars-${idx}`).innerText = tracks[idx].bars; renderNodes(idx); }
+    
+    // THE DJ CHOPPER
+    function cycleChop(idx) {
+        let t = tracks[idx];
+        t.chop = (t.chop === 16 || t.chop === 4) ? 8 : 4; 
+        document.getElementById(`chop-${idx}`).innerText = t.chop === 8 ? '1/2' : '1/4';
+    }
+
+    function cycleBars(idx) { 
+        let t = tracks[idx];
+        t.chop = 16; // Reset chop when bars are adjusted
+        document.getElementById(`chop-${idx}`).innerText = 'OFF';
+        t.bars = [1, 2, 4][([1, 2, 4].indexOf(t.bars) + 1) % 3]; 
+        document.getElementById(`bars-${idx}`).innerText = t.bars; 
+        renderNodes(idx); 
+    }
+    
     function toggleMute(id) { if(id==='click') { clickMuted=!clickMuted; document.getElementById('mute-click').style.background = clickMuted ? "#666" : "#3a3a3a"; } }
     
     function openSlider(t) { 
@@ -252,8 +281,9 @@
         document.getElementById('sl-title').innerText = t.toUpperCase();
         let sl = document.getElementById('sl-input');
         if(t === 'tempo') { sl.min=40; sl.max=200; sl.value=tempo; }
-        else if(t === 'btOffset') { sl.min=0; sl.max=1000; sl.value=btMuteOffset; }
         else if(t.startsWith('nudge')) { sl.min=-500; sl.max=500; sl.value=tracks[t.slice(-1)].nudge*1000; }
+        // Volume scale increased to 300% to allow heavy driving
+        else if(t.startsWith('vol')) { sl.min=0; sl.max=300; sl.value=tracks[t.slice(-1)].gain*100; }
         else { sl.min=0; sl.max=100; sl.value=70; }
         updateSlider(sl.value);
     }
@@ -261,7 +291,6 @@
     function updateSlider(v) { 
         document.getElementById('sl-readout').innerText = v; 
         if(activeSliderTarget==='tempo') tempo=parseInt(v); 
-        else if(activeSliderTarget==='btOffset') btMuteOffset=parseInt(v);
         else if(activeSliderTarget==='clickVol') clickGain.gain.value=v/100; 
         else if(activeSliderTarget.startsWith('vol')) tracks[activeSliderTarget.slice(-1)].gain=v/100; 
         else if(activeSliderTarget.startsWith('nudge')) tracks[activeSliderTarget.slice(-1)].nudge=v/1000; 
