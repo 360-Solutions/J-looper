@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v2.09</title>
+    <title>J-looper v2.10</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -129,7 +129,7 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.09</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.10</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -172,7 +172,7 @@
             </div>
             <div>
                 <span class="slider-label" style="display:flex; justify-content:space-between; color: #222;">
-                    <span>Start Point Nudge</span>
+                    <span>Start Point Nudge (Mic Latency)</span>
                     <span id="modal-nudge-val">0ms</span>
                 </span>
                 <input type="range" id="modal-nudge" min="-400" max="100" value="0" step="5">
@@ -192,7 +192,7 @@
 </div>
 
 <script>
-    // Empty tracks now automatically compensate for your iPhone's exact 160ms roundtrip latency
+    // Drums firmly at true 0ms. Empty tracks default to -160ms. 
     const tracks = [
         { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
         { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
@@ -215,7 +215,6 @@
     let mediaRecorder = null, audioChunks = [];
     let targetBarLength = 16;
     
-    // Holy Grail Sync Variables
     let scheduleAheadTime = 0.5; 
     let sequenceStartTime = 0;
 
@@ -486,8 +485,8 @@
         if (isPlaying && audioCtx) {
             let secondsPerStep = (60 / document.getElementById('tempo').value) / 4;
             
-            // Delays visual playhead by 60ms so it perfectly aligns with your iPhone's speaker output latency
-            let elapsed = audioCtx.currentTime - sequenceStartTime - 0.060;
+            // Reverted back to the true audio zero! No more artificial visual delay.
+            let elapsed = audioCtx.currentTime - sequenceStartTime; 
             if (elapsed < 0) elapsed = 0;
             
             let visualStep = Math.floor(elapsed / secondsPerStep);
@@ -569,6 +568,7 @@
         tracks[activeTrackIdx].name = "EMPTY";
         tracks[activeTrackIdx].steps.fill(false); 
         
+        // Ensure reset clears to user track default
         tracks[activeTrackIdx].nudge = -160; 
         document.getElementById('modal-nudge').value = -160;
         document.getElementById('modal-nudge-val').innerText = '-160ms';
