@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v3.07</title>
+    <title>J-looper v3.08</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -147,7 +147,7 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.07</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.08</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -156,7 +156,7 @@
     <div class="transport-top">
         <div style="display:flex; gap:8px;">
             <button id="play-btn">INITIALIZE</button>
-            <button id="bt-mic-btn">🔊 BT MODE</button>
+            <button id="bt-mic-btn" class="bt-active">🔊 BT MODE</button>
         </div>
         <div class="sliders-group">
             <div style="display: flex; justify-content: space-between;">
@@ -214,13 +214,13 @@
 
 <script>
     const tracks = [
-        { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null, lastGain: null },
-        { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null, lastGain: null },
-        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, lastSource: null, lastGain: null }
+        { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null }
     ];
 
     const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
@@ -357,15 +357,31 @@
         
         const decodePromises = [];
         for (let i = 0; i < tracks.length; i++) {
-            if (tracks[i].name !== 'EMPTY' && preFetchedBuffers[tracks[i].name] && !tracks[i].buffer) {
-                const bufferCopy = preFetchedBuffers[tracks[i].name].slice(0);
-                const p = new Promise(resolve => {
-                    audioCtx.decodeAudioData(bufferCopy, decoded => { 
-                        tracks[i].buffer = decoded; 
-                        resolve();
-                    }, () => resolve()); 
-                });
-                decodePromises.push(p);
+            if (tracks[i].name !== 'EMPTY' && !tracks[i].buffer) {
+                let bufferToDecode = null;
+                let isUserSample = false;
+
+                // Load from stored user memory first, OR fallback to prefetched defaults
+                if (tracks[i].rawArrayBuffer) {
+                    bufferToDecode = tracks[i].rawArrayBuffer.slice(0);
+                    isUserSample = true;
+                } else if (preFetchedBuffers[tracks[i].name]) {
+                    bufferToDecode = preFetchedBuffers[tracks[i].name].slice(0);
+                }
+
+                if (bufferToDecode) {
+                    const p = new Promise(resolve => {
+                        audioCtx.decodeAudioData(bufferToDecode, decoded => { 
+                            if (isUserSample) {
+                                tracks[i].buffer = normalizeBuffer(decoded);
+                            } else {
+                                tracks[i].buffer = decoded; 
+                            }
+                            resolve();
+                        }, () => resolve()); 
+                    });
+                    decodePromises.push(p);
+                }
             }
         }
         await Promise.all(decodePromises);
@@ -403,6 +419,10 @@
             mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                 const arrayBuffer = await audioBlob.arrayBuffer();
+                
+                // SAVE RAW AUDIO DATA FOR WHEN CONTEXT REBOOTS
+                tracks[activeTrackIdx].rawArrayBuffer = arrayBuffer.slice(0); 
+                
                 audioCtx.decodeAudioData(arrayBuffer, (decoded) => {
                     userSampleCount++;
                     tracks[activeTrackIdx].buffer = normalizeBuffer(decoded);
@@ -424,7 +444,8 @@
         } catch (err) { console.error("Mic error: " + err); }
     }
 
-    function disableMic() {
+    function disableMicAndDestroyContext() {
+        // 1. Kill the physical microphone
         if (currentMicStream) {
             currentMicStream.getTracks().forEach(track => track.stop());
             currentMicStream = null;
@@ -432,6 +453,19 @@
         mediaRecorder = null;
         micEnabled = false;
         
+        // 2. BURN DOWN THE AUDIO ENGINE to release iOS Bluetooth Stranglehold
+        if (audioCtx) {
+            audioCtx.close();
+            audioCtx = null;
+        }
+        masterGain = null;
+        isInitialized = false;
+        isPlaying = false;
+        
+        // Clear all actively decoded buffers (they will rebuild from rawArrayBuffer on Initialize)
+        tracks.forEach(t => { t.buffer = null; t.lastSource = null; t.lastGain = null; });
+
+        // 3. Reset UI back to Initialization state
         const mb = document.getElementById('bt-mic-btn');
         mb.innerText = "🔊 BT MODE";
         mb.className = "bt-active";
@@ -439,13 +473,22 @@
         const recBtn = document.getElementById('rec-action-btn');
         recBtn.style.opacity = "0.3";
         recBtn.disabled = true;
+
+        const playBtn = document.getElementById('play-btn');
+        playBtn.innerText = "INITIALIZE";
+        playBtn.className = "";
+        playBtn.style.background = "";
+        playBtn.style.borderColor = "";
+        
+        document.querySelectorAll('.playhead').forEach(ph => ph.style.display = 'none');
     }
 
     document.getElementById('bt-mic-btn').onclick = async function() {
-        if (!isInitialized) return;
         if (micEnabled) {
-            disableMic();
+            // Revert to BT by destroying the active call context
+            disableMicAndDestroyContext();
         } else {
+            // Turn Mic on (We don't need to burn the context down here, but user must hit START if not playing)
             this.innerText = "WAIT...";
             await initMic();
         }
@@ -617,13 +660,7 @@
             this.style.borderColor = "#333";
             await initAudioContextAndDecode();
             
-            // DELIBERATELY DO NOT INIT MIC ON BOOT. 
-            // Default directly to Bluetooth Mode!
-            
             isInitialized = true;
-            
-            const mb = document.getElementById('bt-mic-btn');
-            mb.className = "bt-active";
             
             this.innerText = "STOP";
             this.className = "stopped";
@@ -641,7 +678,6 @@
 
         isPlaying = !isPlaying;
         if (isPlaying) { 
-            // FIX FOR SAFARI FREEZE: Force wake up suspended audio engine
             if (audioCtx.state === 'suspended') {
                 await audioCtx.resume();
             }
@@ -677,6 +713,7 @@
     
     document.getElementById('modal-clear-btn').onclick = () => {
         tracks[activeTrackIdx].buffer = null; 
+        tracks[activeTrackIdx].rawArrayBuffer = null; 
         tracks[activeTrackIdx].name = "EMPTY";
         tracks[activeTrackIdx].steps.fill(false); 
         
@@ -759,6 +796,7 @@
             const item = document.createElement('div'); item.className = 'sample-item'; item.innerText = file;
             item.onclick = () => { 
                 tracks[activeTrackIdx].name = file; 
+                tracks[activeTrackIdx].rawArrayBuffer = null; 
                 
                 tracks[activeTrackIdx].nudge = 0;
                 document.getElementById('modal-nudge').value = 0;
