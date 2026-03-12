@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>J-LOOPER v0.002</title>
+<title>J-LOOPER v0.003</title>
 <style>
     /* Global Reset & Typography */
     * {
@@ -37,7 +37,6 @@
         display: flex;
         flex-direction: column;
         position: relative;
-        /* Pulls everything down to avoid the iOS clock/notch */
         padding-top: 45px; 
     }
 
@@ -196,7 +195,7 @@
 <div id="pedal-chassis">
     <div id="header">
         <div id="title-area">
-            <div id="title">J-LOOPER v 0.002</div>
+            <div id="title">J-LOOPER v 0.003</div>
             <div id="subtitle">Created by Jeremiah Keller</div>
         </div>
         <div id="global-led" class="led"></div>
@@ -218,8 +217,8 @@
 
     <div id="slider-click" class="slider-container">
         <label>Click Vol:</label>
-        <input type="range" id="click-vol-range" min="0" max="300" value="150">
-        <span id="click-vol-val">150%</span>
+        <input type="range" id="click-vol-range" min="0" max="300" value="100">
+        <span id="click-vol-val">100%</span>
     </div>
 
     <div id="tracks"></div>
@@ -237,16 +236,16 @@
     let isPlaying = false;
     let isBTReady = false;
     let globalTempo = 94;
-    let clickVolume = 1.5;
+    let clickVolume = 1.0;
     let clickMuted = false;
     
     let nextNoteTime = 0.0;
-    let globalStep = 0; // Infinitely incrementing 16th note counter
+    let globalStep = 0; 
     let lookahead = 25.0; 
     let scheduleAheadTime = 0.1; 
     let timerID = null;
 
-    // Punchy Synthesized Click Track
+    // Smoother Synthesized Click Track
     function playClick(time, isQuarter) {
         if (clickMuted) return;
         
@@ -256,9 +255,8 @@
         osc.connect(clickGain);
         clickGain.connect(clickGainMaster);
         
-        // Square wave for punchier cut-through
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(isQuarter ? 800 : 400, time);
+        osc.type = 'sine'; // Changed from square to avoid distortion
+        osc.frequency.setValueAtTime(isQuarter ? 880 : 440, time);
         osc.frequency.exponentialRampToValueAtTime(100, time + 0.05);
         
         clickGain.gain.setValueAtTime(clickVolume, time);
@@ -271,16 +269,16 @@
     class Track {
         constructor(id) {
             this.id = id;
-            this.state = 'empty'; // empty, queued_warning, warning_cycle, recording, playing, muted
+            this.state = 'empty'; 
             this.bars = 1;
             this.volume = 1.0;
             this.nudgeMs = -200; 
             
             this.audioBuffer = null;
-            this.pcmBuffer = null; // Raw array for zero-latency capture
+            this.pcmBuffer = null; 
             this.recordIndex = 0;
             
-            this.sourceNodes = []; // Keep track of scheduled nodes to kill them on stop
+            this.sourceNodes = []; 
             this.gainNode = null;
             
             this.buildUI();
@@ -305,8 +303,8 @@
                 </div>
                 <div id="slider-nudge-${this.id}" class="slider-container">
                     <label>Nudge:</label>
-                    <input type="range" min="-350" max="350" value="-200">
-                    <span>-200ms</span>
+                    <input type="range" id="nudge-range-${this.id}" min="-350" max="350" value="-200">
+                    <span id="nudge-val-${this.id}">-200ms</span>
                 </div>
                 <div class="node-grid" id="grid-${this.id}">
                     ${Array(16).fill(0).map((_,i) => `<div class="node ${i%4===0 ? 'beat' : ''}" id="node-${this.id}-${i}"></div>`).join('')}
@@ -345,6 +343,12 @@
                     this.gainNode.gain.value = this.volume;
                 }
             });
+
+            // FIXED: Added missing event listener for NUDGE
+            document.getElementById(`nudge-range-${this.id}`).addEventListener('input', (e) => {
+                this.nudgeMs = parseInt(e.target.value);
+                document.getElementById(`nudge-val-${this.id}`).innerText = `${this.nudgeMs}ms`;
+            });
         }
 
         updateGridUI() {
@@ -358,7 +362,6 @@
             const totalNodes = 16 * this.bars;
             const localStep = stepIndex % totalNodes;
             
-            // Fixes the ghost node bug: explicitly remove class from all nodes in this track
             const allNodes = document.querySelectorAll(`#grid-${this.id} .node`);
             allNodes.forEach(n => n.classList.remove('active'));
             
@@ -376,7 +379,7 @@
             
             if (this.state === 'empty') {
                 this.state = 'queued_warning';
-                this.setLED('dim-red'); // Awaiting the full cycle
+                this.setLED('dim-red'); 
             } else if (this.state === 'playing') {
                 this.state = 'muted';
                 if(this.gainNode) this.gainNode.gain.value = 0;
@@ -401,7 +404,6 @@
             this.audioBuffer = audioCtx.createBuffer(1, this.pcmBuffer.length, audioCtx.sampleRate);
             this.audioBuffer.copyToChannel(this.pcmBuffer, 0);
             
-            // Normalization
             let data = this.audioBuffer.getChannelData(0);
             let max = 0;
             for (let i = 0; i < data.length; i++) {
@@ -412,7 +414,6 @@
                 for (let i = 0; i < data.length; i++) data[i] *= multiplier;
             }
 
-            // Micro tail fade (10ms) to prevent looping clicks
             let fadeSamples = Math.floor(0.01 * audioCtx.sampleRate);
             for (let i = 0; i < fadeSamples; i++) {
                 let index = data.length - fadeSamples + i;
@@ -421,10 +422,10 @@
 
             if(!this.gainNode) {
                 this.gainNode = audioCtx.createGain();
-                this.gainNode.connect(masterGain); // Connect to master out
+                this.gainNode.connect(masterGain); 
             }
             this.gainNode.gain.value = this.volume;
-            this.pcmBuffer = null; // Free memory
+            this.pcmBuffer = null; 
         }
 
         playLoop(time) {
@@ -434,13 +435,19 @@
             src.buffer = this.audioBuffer;
             src.connect(this.gainNode);
             
+            // Apply latency nudge. 
             let playTime = time + (this.nudgeMs / 1000);
-            if(playTime < audioCtx.currentTime) playTime = audioCtx.currentTime;
             
-            src.start(playTime);
+            if(playTime < audioCtx.currentTime) {
+                // If nudged into the past, start immediately but skip the beginning of the buffer
+                let offset = audioCtx.currentTime - playTime;
+                src.start(audioCtx.currentTime, offset);
+            } else {
+                src.start(playTime);
+            }
+
             this.sourceNodes.push(src);
             
-            // Clean up old nodes to save memory
             if(this.sourceNodes.length > 3) {
                 this.sourceNodes.shift(); 
             }
@@ -456,7 +463,6 @@
             led.classList.add('flash');
             setTimeout(() => led.classList.remove('flash'), 50);
             
-            // Only play click if we are NOT actively recording (Zero-Bleed)
             let isAnyRecording = tracks.some(t => t.state === 'recording');
             if(!isAnyRecording) {
                 playClick(time, step % 16 === 0);
@@ -466,15 +472,12 @@
         tracks.forEach(t => {
             let localStep = step % (16 * t.bars);
             
-            // Logic fires exclusively on the "One"
             if (localStep === 0) {
                 if (t.state === 'queued_warning') {
-                    // Start full cycle warning
                     t.state = 'warning_cycle';
-                    t.setLED('dim-red flash'); // Visually tell user warning has begun
+                    t.setLED('dim-red flash'); 
                 } 
                 else if (t.state === 'warning_cycle') {
-                    // Warning finished. Start actual recording phase
                     t.state = 'recording';
                     t.setLED('bright-red');
                     t.recordIndex = 0;
@@ -483,18 +486,15 @@
                     let loopDuration = secondsPerBeat * 4 * t.bars;
                     t.pcmBuffer = new Float32Array(Math.ceil(audioCtx.sampleRate * loopDuration));
                     
-                    // ZERO-BLEED: Mute master playback instantly
                     masterGain.gain.setValueAtTime(0, time);
                 } 
                 else if (t.state === 'recording') {
-                    // Recording finished. Instantly transition to playback
                     t.state = 'playing';
                     t.setLED('green');
                     
                     t.finalizeRecording();
                     t.playLoop(time);
                     
-                    // UNMUTE master playback instantly
                     masterGain.gain.setValueAtTime(1, time);
                 } 
                 else if (t.state === 'playing') {
@@ -531,11 +531,8 @@
             clickGainMaster = audioCtx.createGain();
             clickGainMaster.connect(masterGain);
 
-            // Raw PCM Capture Setup
             processorNode = audioCtx.createScriptProcessor(4096, 1, 1);
             
-            // Prevent feedback loop by routing mic data to a dead end 
-            // We only need it to trigger onaudioprocess
             let dumpGain = audioCtx.createGain();
             dumpGain.gain.value = 0;
             processorNode.connect(dumpGain);
@@ -558,7 +555,6 @@
         
         if (audioCtx.state === 'suspended') await audioCtx.resume();
 
-        // Get Mic with explicit constraints to disable iOS voice-processing limits
         if (!micStream && !isBTReady) {
             try {
                 micStream = await navigator.mediaDevices.getUserMedia({
@@ -595,7 +591,6 @@
             
             window.clearTimeout(timerID);
             
-            // Instant kill audio
             if(audioCtx) audioCtx.suspend();
         }
     });
