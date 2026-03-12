@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v3.06</title>
+    <title>J-looper v3.07</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -60,14 +60,25 @@
         #play-btn.ready { background: #28a745; border-color: #1e7e34; }
         #play-btn.stopped { background: #dc3545; border-color: #a71d2a; }
         
-        #mic-btn {
-            background: var(--rec-red); border: 1px solid #900; color: #fff; 
+        #bt-mic-btn {
+            background: #555; border: 1px solid #333; color: #fff; 
             font-weight: 900; border-radius: 6px; cursor: pointer;
-            padding: 15px 10px; font-size: 11px; display: none; min-width: 80px;
+            padding: 15px 10px; font-size: 11px; min-width: 90px;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        #bt-mic-btn.bt-active {
+            background: #87CEEB; /* Baby Blue */
+            border-color: #5b9ebf;
+            color: #111;
+        }
+        #bt-mic-btn.mic-active {
+            background: var(--rec-red);
+            border-color: #900;
+            color: #fff;
         }
         
-        #play-btn:active, .action-sm-btn:active, .action-btn:active, #mic-btn:active { transform: translateY(1px); }
+        #play-btn:active, .action-sm-btn:active, .action-btn:active, #bt-mic-btn:active { transform: translateY(1px); }
 
         .sliders-group { flex-grow: 1; display: flex; flex-direction: column; gap: 6px;}
         .slider-label { font-size: 10px; text-transform: uppercase; color: var(--accent-color); display: block; margin-bottom: 2px; font-weight: bold;}
@@ -136,7 +147,7 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.06</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.07</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -145,7 +156,7 @@
     <div class="transport-top">
         <div style="display:flex; gap:8px;">
             <button id="play-btn">INITIALIZE</button>
-            <button id="mic-btn">MIC: ON</button>
+            <button id="bt-mic-btn">🔊 BT MODE</button>
         </div>
         <div class="sliders-group">
             <div style="display: flex; justify-content: space-between;">
@@ -191,7 +202,7 @@
 
         <div class="modal-header-btns">
             <button class="action-btn" id="modal-clear-btn">DELETE</button>
-            <button class="rec-btn" id="rec-action-btn">● RECORD</button>
+            <button class="rec-btn" id="rec-action-btn" style="opacity:0.3;" disabled>● RECORD</button>
         </div>
 
         <button id="toggle-samples-btn" class="action-btn" style="width:100%; margin-bottom: 10px; padding: 12px;">PRELOADED SAMPLES</button>
@@ -222,7 +233,7 @@
     let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false, isSecretlyRecording = false;
     let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
     
-    // New Mic Routing Variables
+    // Mic Routing
     let mediaRecorder = null, audioChunks = [];
     let currentMicStream = null;
     let micEnabled = false;
@@ -402,10 +413,9 @@
             };
             
             micEnabled = true;
-            const mb = document.getElementById('mic-btn');
-            mb.innerText = "MIC: ON";
-            mb.style.background = "var(--rec-red)";
-            mb.style.borderColor = "#900";
+            const mb = document.getElementById('bt-mic-btn');
+            mb.innerText = "🎤 MIC ON";
+            mb.className = "mic-active";
             
             const recBtn = document.getElementById('rec-action-btn');
             recBtn.style.opacity = "1";
@@ -422,17 +432,16 @@
         mediaRecorder = null;
         micEnabled = false;
         
-        const mb = document.getElementById('mic-btn');
-        mb.innerText = "BT LISTEN";
-        mb.style.background = "#555";
-        mb.style.borderColor = "#333";
+        const mb = document.getElementById('bt-mic-btn');
+        mb.innerText = "🔊 BT MODE";
+        mb.className = "bt-active";
         
         const recBtn = document.getElementById('rec-action-btn');
         recBtn.style.opacity = "0.3";
         recBtn.disabled = true;
     }
 
-    document.getElementById('mic-btn').onclick = async function() {
+    document.getElementById('bt-mic-btn').onclick = async function() {
         if (!isInitialized) return;
         if (micEnabled) {
             disableMic();
@@ -607,9 +616,14 @@
             this.style.background = "#555";
             this.style.borderColor = "#333";
             await initAudioContextAndDecode();
-            await initMic();
+            
+            // DELIBERATELY DO NOT INIT MIC ON BOOT. 
+            // Default directly to Bluetooth Mode!
+            
             isInitialized = true;
-            document.getElementById('mic-btn').style.display = "block";
+            
+            const mb = document.getElementById('bt-mic-btn');
+            mb.className = "bt-active";
             
             this.innerText = "STOP";
             this.className = "stopped";
@@ -627,6 +641,11 @@
 
         isPlaying = !isPlaying;
         if (isPlaying) { 
+            // FIX FOR SAFARI FREEZE: Force wake up suspended audio engine
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
+            
             sequenceStartTime = audioCtx.currentTime + 0.1;
             nextStepTime = sequenceStartTime;
             currentStep = 0; 
