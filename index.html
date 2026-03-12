@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v2.02</title>
+    <title>J-looper v2.03</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -28,7 +28,14 @@
         header { display: flex; justify-content: space-between; align-items: center; padding: 5px 0 10px 0; }
         .version-info { font-size: 10px; text-align: right; opacity: 0.8; color: #333; }
         
-        #app-title { color: var(--bt-blue); font-size: 20px; font-weight:900; text-shadow: 0px 1px 2px rgba(0,0,0,0.2);}
+        #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 8px;}
+        
+        .title-box {
+            background: var(--bt-blue); color: white; padding: 4px 8px; 
+            border-radius: 6px; border: 1px solid #005bb5;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
+            letter-spacing: 0.5px;
+        }
 
         .transport {
             background: var(--panel-color); padding: 10px; border-radius: 10px;
@@ -38,13 +45,20 @@
 
         .transport-top { display: flex; align-items: center; gap: 15px; width: 100%; }
         
-        #play-btn, .action-sm-btn, .action-btn, #toggle-samples-btn, .modal-content > button:last-child {
+        .action-sm-btn, .action-btn, #toggle-samples-btn, .modal-content > button:last-child {
             background: #222; border: 1px solid #000; color: #fff; 
             font-weight: 600; border-radius: 5px; cursor: pointer;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
         }
         
-        #play-btn { padding: 15px 25px; font-size: 14px; }
+        #play-btn { 
+            background: #28a745; border: 1px solid #1e7e34; color: #fff; 
+            font-weight: 900; border-radius: 6px; cursor: pointer;
+            padding: 15px 20px; font-size: 14px; min-width: 85px;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2);
+        }
+        #play-btn.stopped { background: #dc3545; border-color: #a71d2a; }
+        
         #play-btn:active, .action-sm-btn:active, .action-btn:active { transform: translateY(1px); }
 
         .sliders-group { flex-grow: 1; display: flex; flex-direction: column; gap: 6px;}
@@ -71,7 +85,7 @@
         .center-controls { display:flex; align-items:center; gap:4px; flex-grow:1; margin: 0 4px; justify-content: space-between;}
         
         .action-sm-btn { font-size: 9px; padding: 6px 4px; text-align: center; }
-        .ms-btn { flex-grow: 1; font-weight: bold; font-size: 11px; padding: 6px 0;}
+        .ms-btn { flex-grow: 1; font-weight: bold; font-size: 10px; padding: 6px 0;}
         
         .active-choke { color: #fff; border-color: #fff; background: #555; }
         .active-mute { background-color: #cc0000 !important; color: #ffffff !important; border-color: #ff3333 !important; }
@@ -113,13 +127,16 @@
 <body>
 
 <header>
-    <div id="app-title">J-looper <span style="font-size: 12px; opacity:0.6; color: var(--accent-color); text-shadow: none;">v2.02</span></div>
+    <div id="app-title">
+        <span class="title-box">J-looper</span> 
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.03</span>
+    </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
 
 <div class="transport">
     <div class="transport-top">
-        <button id="play-btn">PLAY</button>
+        <button id="play-btn">START</button>
         <div class="sliders-group">
             <div style="display: flex; justify-content: space-between;">
                 <span class="slider-label">Master Vol</span>
@@ -190,7 +207,6 @@
     let mediaRecorder = null, audioChunks = [];
     let targetBarLength = 16;
     
-    // Global setting for record mode: 'INSTANT' or 'FULL'
     let currentRecMode = 'INSTANT';
 
     tracks.forEach(t => { 
@@ -224,8 +240,8 @@
                 
                 <div class="center-controls">
                     <button class="action-sm-btn" onclick="toggleDropdown('vol-panel-${tIdx}')" style="min-width:32px;">VOL</button>
-                    <button class="action-sm-btn ms-btn ${track.mute ? 'active-mute' : ''}" onclick="toggleMute(${tIdx})">M</button>
-                    <button class="action-sm-btn ms-btn ${track.solo ? 'active-solo' : ''}" onclick="toggleSolo(${tIdx})">S</button>
+                    <button class="action-sm-btn ms-btn ${track.mute ? 'active-mute' : ''}" onclick="toggleMute(${tIdx})">MUTE</button>
+                    <button class="action-sm-btn ms-btn ${track.solo ? 'active-solo' : ''}" onclick="toggleSolo(${tIdx})">SOLO</button>
                 </div>
 
                 <div class="controls-right">
@@ -373,9 +389,9 @@
                         // Stop one node early to allow immediate decode and playback
                         shouldStop = (recordCounter >= targetBarLength && laneRelative === targetBarLength - 1);
                     } else {
-                        // FULL CYCLE: Stop exactly on the next 0 (which is step 16). 
-                        // It will sit out for 1 cycle while decoding, then play perfectly on the next loop.
-                        shouldStop = (recordCounter > targetBarLength && laneRelative === 0);
+                        // FULL CYCLE: Let it bleed 3 nodes into the next cycle. 
+                        // This absolutely guarantees the real-world tail is captured before the mic shuts off.
+                        shouldStop = (recordCounter > targetBarLength && laneRelative === 2);
                     }
 
                     if (shouldStop) {
@@ -422,7 +438,6 @@
         const gain = audioCtx.createGain();
         source.buffer = buffer; 
         
-        // Volume allows up to 300% (multiplier of 3.0) for overdrive
         gain.gain.value = (vol / 100) * document.getElementById('master-vol').value; 
         source.connect(gain); gain.connect(masterGain);
         
@@ -482,13 +497,16 @@
         isPlaying = !isPlaying;
         if (isPlaying) { 
             currentStep = 0; nextStepTime = audioCtx.currentTime + 0.1; scheduler(); 
+            this.innerText = "STOP";
+            this.classList.add('stopped');
         } else { 
             document.querySelectorAll('.playhead').forEach(ph => ph.style.display = 'none'); 
             masterMuted = false;
             if(masterGain) masterGain.gain.setValueAtTime(1, audioCtx.currentTime);
             updateRecBtnUI(); 
+            this.innerText = "START";
+            this.classList.remove('stopped');
         }
-        this.innerText = isPlaying ? "STOP" : "PLAY";
     };
 
     document.getElementById('rec-action-btn').onclick = () => { 
@@ -533,7 +551,6 @@
         }
     };
 
-    // Rec Mode Toggle Logic
     document.getElementById('modal-rec-mode').onclick = function() {
         if (currentRecMode === 'INSTANT') {
             currentRecMode = 'FULL';
