@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v3.03</title>
+    <title>J-looper v3.04</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -129,7 +129,7 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.03</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.04</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -407,7 +407,6 @@
                     if (cycleCounter >= targetBarLength && laneRelative === targetBarLength - 1) {
                         isWaitingFullCycle = false; isRecordingNow = true; masterMuted = true;
                         
-                        // DE-CLICK: Smoothly fade master out over 10ms to prevent speaker pop
                         masterGain.gain.setValueAtTime(masterGain.gain.value, nextStepTime);
                         masterGain.gain.linearRampToValueAtTime(0, nextStepTime + 0.01);
                         
@@ -435,7 +434,6 @@
                         isSecretlyRecording = false;
                         masterMuted = false;
                         
-                        // DE-CLICK: Smoothly fade master back in over 10ms
                         masterGain.gain.setValueAtTime(masterGain.gain.value, nextStepTime);
                         masterGain.gain.linearRampToValueAtTime(1, nextStepTime + 0.01);
                         
@@ -482,34 +480,36 @@
         
         const targetVol = (vol / 100) * document.getElementById('master-vol').value; 
         
-        // DE-CLICK: Start gain at 0 to prevent harsh attack transients
         gainNode.gain.value = 0;
         source.connect(gainNode); gainNode.connect(masterGain);
         
         let startTime = time + (nudgeMs / 1000);
+        let actualPlayTime = startTime;
         
-        if (startTime < audioCtx.currentTime) startTime = audioCtx.currentTime;
+        if (startTime < audioCtx.currentTime) actualPlayTime = audioCtx.currentTime;
         
-        // DE-CLICK: Apply a micro 3-millisecond fade-in. 
-        gainNode.gain.setValueAtTime(0, startTime);
-        gainNode.gain.linearRampToValueAtTime(targetVol, startTime + 0.003);
+        gainNode.gain.setValueAtTime(0, actualPlayTime);
+        gainNode.gain.linearRampToValueAtTime(targetVol, actualPlayTime + 0.005);
         
         if (trackObj && trackObj.choke) {
             if (trackObj.lastSource && trackObj.lastGain) {
                 try { 
-                    // DE-CLICK: Apply a micro 5-millisecond fade-out when choked
+                    // THE MAGIC MATH FIX: The Baton Pass.
+                    // If nudge is negative, wait until the physical grid hits the One to fade out the old loop.
+                    let chokeTime = Math.max(time, actualPlayTime); 
+                    
                     const prevGain = trackObj.lastGain;
-                    prevGain.gain.cancelScheduledValues(startTime);
-                    prevGain.gain.setValueAtTime(prevGain.gain.value, startTime);
-                    prevGain.gain.linearRampToValueAtTime(0, startTime + 0.005);
-                    trackObj.lastSource.stop(startTime + 0.005); 
+                    prevGain.gain.cancelScheduledValues(chokeTime);
+                    prevGain.gain.setValueAtTime(targetVol, chokeTime);
+                    prevGain.gain.linearRampToValueAtTime(0, chokeTime + 0.015);
+                    trackObj.lastSource.stop(chokeTime + 0.015); 
                 } catch (e) {}
             }
             trackObj.lastSource = source;
             trackObj.lastGain = gainNode;
         }
 
-        source.start(startTime);
+        source.start(actualPlayTime);
     }
 
     function uiLoop() {
@@ -544,7 +544,7 @@
                 const activeMph = document.getElementById(`modal-ph-bar-${Math.floor(laneStep/16)}`);
                 if (activeMph) {
                     activeMph.style.display = 'block';
-                    activeMph.style.left = `${(laneStep%16) * 6.25}%`;
+                    activeMph.style.left = `${(lane:step%16) * 6.25}%`;
                 }
             }
             requestAnimationFrame(uiLoop);
@@ -581,7 +581,6 @@
             document.querySelectorAll('.playhead').forEach(ph => ph.style.display = 'none'); 
             masterMuted = false;
             
-            // Clean un-mute on Stop
             if(masterGain) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
                 masterGain.gain.setValueAtTime(1, audioCtx.currentTime);
