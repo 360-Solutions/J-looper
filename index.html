@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v2.08</title>
+    <title>J-looper v2.09</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -129,7 +129,7 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.08</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.09</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -192,15 +192,15 @@
 </div>
 
 <script>
-    // All tracks now default to exactly 0ms so visual and audio perfectly align at the start
+    // Empty tracks now automatically compensate for your iPhone's exact 160ms roundtrip latency
     const tracks = [
         { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
         { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
         { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null }
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -160, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -160, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -160, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -160, choke: true, mute: false, solo: false, buffer: null, lastSource: null }
     ];
 
     const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
@@ -256,7 +256,7 @@
 
                 <div class="controls-right">
                     <button class="action-sm-btn" onclick="toggleDropdown('nudge-panel-${tIdx}')">NUDGE</button>
-                    <button class="action-sm-btn ${track.choke ? 'active-choke' : ''}" onclick="toggleChoke(${tIdx})">CHK</button>
+                    <button class="action-sm-btn ${track.choke ? 'active-choke' : ''}" onclick="toggleChoke(${tIdx})">CHOKE</button>
                     <button class="action-sm-btn" onclick="cycleBars(${tIdx})" style="min-width:24px;">${track.bars}B</button>
                 </div>
             </div>
@@ -418,7 +418,6 @@
                 
                 if (isRecordingNow) {
                     recordCounter++;
-                    // FULL CYCLE Only: Always bleed 3 nodes into the next cycle to capture the true decay tail
                     let shouldStop = (recordCounter > targetBarLength && laneRelative === 2);
 
                     if (shouldStop) {
@@ -486,7 +485,9 @@
     function uiLoop() {
         if (isPlaying && audioCtx) {
             let secondsPerStep = (60 / document.getElementById('tempo').value) / 4;
-            let elapsed = audioCtx.currentTime - sequenceStartTime;
+            
+            // Delays visual playhead by 60ms so it perfectly aligns with your iPhone's speaker output latency
+            let elapsed = audioCtx.currentTime - sequenceStartTime - 0.060;
             if (elapsed < 0) elapsed = 0;
             
             let visualStep = Math.floor(elapsed / secondsPerStep);
@@ -568,9 +569,9 @@
         tracks[activeTrackIdx].name = "EMPTY";
         tracks[activeTrackIdx].steps.fill(false); 
         
-        tracks[activeTrackIdx].nudge = 0; 
-        document.getElementById('modal-nudge').value = 0;
-        document.getElementById('modal-nudge-val').innerText = '0ms';
+        tracks[activeTrackIdx].nudge = -160; 
+        document.getElementById('modal-nudge').value = -160;
+        document.getElementById('modal-nudge-val').innerText = '-160ms';
         document.getElementById('modal-track-name').innerText = "READY";
         
         renderSequencer(); renderModalLane();
