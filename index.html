@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v2.06</title>
+    <title>J-looper v2.07</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -52,11 +52,12 @@
         }
         
         #play-btn { 
-            background: #28a745; border: 1px solid #1e7e34; color: #fff; 
+            background: #6f42c1; border: 1px solid #59339d; color: #fff; 
             font-weight: 900; border-radius: 6px; cursor: pointer;
-            padding: 15px 20px; font-size: 14px; min-width: 85px;
+            padding: 15px 20px; font-size: 14px; min-width: 100px;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2);
         }
+        #play-btn.ready { background: #28a745; border-color: #1e7e34; }
         #play-btn.stopped { background: #dc3545; border-color: #a71d2a; }
         
         #play-btn:active, .action-sm-btn:active, .action-btn:active { transform: translateY(1px); }
@@ -128,14 +129,14 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.06</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.07</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
 
 <div class="transport">
     <div class="transport-top">
-        <button id="play-btn">START</button>
+        <button id="play-btn">INITIALIZE</button>
         <div class="sliders-group">
             <div style="display: flex; justify-content: space-between;">
                 <span class="slider-label">Master Vol</span>
@@ -168,9 +169,9 @@
             </div>
             <span class="slider-label" style="display:flex; justify-content:space-between; color: #222;">
                 <span>Start Point Nudge (Latency)</span>
-                <span id="modal-nudge-val">-200ms</span>
+                <span id="modal-nudge-val">0ms</span>
             </span>
-            <input type="range" id="modal-nudge" min="-400" max="100" value="-200" step="5">
+            <input type="range" id="modal-nudge" min="-400" max="100" value="0" step="5">
         </div>
 
         <div class="modal-header-btns">
@@ -186,10 +187,11 @@
 </div>
 
 <script>
+    // Drums default to 0ms (no mic latency). Empty tracks default to -200ms (mic latency comp)
     const tracks = [
-        { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
-        { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
-        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
         { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
         { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
         { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
@@ -201,6 +203,7 @@
 
     let audioCtx = null;
     let masterGain = null;
+    let isInitialized = false;
     let isPlaying = false, currentStep = 0, nextStepTime = 0, masterMuted = false, activeTrackIdx = null;
     let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false;
     let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
@@ -208,7 +211,7 @@
     let targetBarLength = 16;
     
     // Holy Grail Sync Variables
-    let scheduleAheadTime = 0.5; // Allows deep negative nudging without clipping
+    let scheduleAheadTime = 0.5; 
     let sequenceStartTime = 0;
     
     let currentRecMode = 'FULL';
@@ -296,7 +299,6 @@
         document.getElementById(`lane-vol-val-${tIdx}`).innerText = val + '%';
     }
 
-    // Resolves Race Condition for initial fetch
     let fetchPromise = preFetchAll();
 
     async function preFetchAll() {
@@ -317,7 +319,7 @@
         }
         if (audioCtx.state === 'suspended') await audioCtx.resume();
         
-        await fetchPromise; // Wait securely for files to finish downloading
+        await fetchPromise; 
         
         const decodePromises = [];
         for (let i = 0; i < tracks.length; i++) {
@@ -327,7 +329,7 @@
                     audioCtx.decodeAudioData(bufferCopy, decoded => { 
                         tracks[i].buffer = decoded; 
                         resolve();
-                    }, () => resolve()); // Resolve safely even if decode fails
+                    }, () => resolve()); 
                 });
                 decodePromises.push(p);
             }
@@ -398,7 +400,6 @@
                         masterGain.gain.setValueAtTime(0, nextStepTime);
                         recordCounter = 0; audioChunks = []; 
                         
-                        // Hardware-precise delay for mic
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
                         setTimeout(() => { if(isPlaying) mediaRecorder.start(); updateRecBtnUI(); }, delay); 
                     }
@@ -461,10 +462,8 @@
         gain.gain.value = (vol / 100) * document.getElementById('master-vol').value; 
         source.connect(gain); gain.connect(masterGain);
         
-        // Pure unchopped scheduling
         let startTime = time + (nudgeMs / 1000);
         
-        // Safety lock: if pushed extremely early on the very first loop, it plays immediately without crashing
         if (startTime < audioCtx.currentTime) startTime = audioCtx.currentTime;
         
         if (trackObj && trackObj.choke) {
@@ -483,7 +482,6 @@
             let elapsed = audioCtx.currentTime - sequenceStartTime;
             if (elapsed < 0) elapsed = 0;
             
-            // Holy Grail Sync: completely decoupled from audio scheduler loop
             let visualStep = Math.floor(elapsed / secondsPerStep);
             
             tracks.forEach((track, tIdx) => {
@@ -517,10 +515,20 @@
     }
 
     document.getElementById('play-btn').onclick = async function() {
-        this.innerText = "LOADING..."; // Brief feedback while fetching
-        await initAudioContextAndDecode();
-        await initMic(); 
-        
+        if (!isInitialized) {
+            this.innerText = "WAIT...";
+            this.style.background = "#555";
+            this.style.borderColor = "#333";
+            await initAudioContextAndDecode();
+            await initMic();
+            isInitialized = true;
+            this.innerText = "START";
+            this.className = "ready";
+            this.style.background = ""; // let css take over
+            this.style.borderColor = "";
+            return;
+        }
+
         isPlaying = !isPlaying;
         if (isPlaying) { 
             sequenceStartTime = audioCtx.currentTime + 0.1;
@@ -530,6 +538,7 @@
             uiLoop();
             
             this.innerText = "STOP";
+            this.classList.remove('ready');
             this.classList.add('stopped');
         } else { 
             document.querySelectorAll('.playhead').forEach(ph => ph.style.display = 'none'); 
@@ -538,6 +547,7 @@
             updateRecBtnUI(); 
             this.innerText = "START";
             this.classList.remove('stopped');
+            this.classList.add('ready');
         }
     };
 
@@ -551,6 +561,7 @@
         tracks[activeTrackIdx].name = "EMPTY";
         tracks[activeTrackIdx].steps.fill(false); 
         
+        // Reset to default -200 for user tracks when cleared
         tracks[activeTrackIdx].nudge = -200; 
         document.getElementById('modal-nudge').value = -200;
         document.getElementById('modal-nudge-val').innerText = '-200ms';
