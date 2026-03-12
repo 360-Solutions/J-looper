@@ -1,642 +1,563 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>J-LOOPER v0.003</title>
-<style>
-    /* Global Reset & Typography */
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        user-select: none;
-        -webkit-user-select: none;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>dum-Sampler v2.0</title>
+    <style>
+        :root {
+            --bg-color: #dcedc8; /* Light pedal green */
+            --panel-color: #c5e1a5; /* Slightly darker green for panels */
+            --accent-color: #333333; /* Dark text/accents */
+            --text-color: #111111;
+            --node-off: #666666; /* Dark gray */
+            --node-on: #e0e0e0; /* Light gray */
+            --rec-red: #cc0000;
+            --the-one: #ff3333;
+        }
 
-    body {
-        background-color: #111;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        height: 100vh;
-        overflow: hidden;
-    }
+        body {
+            background-color: var(--bg-color); color: var(--text-color);
+            font-family: -apple-system, sans-serif; margin: 0; padding: 10px;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; 
+        }
 
-    /* Pedal Chassis */
-    #pedal-chassis {
-        width: 100%;
-        max-width: 420px;
-        height: 100vh;
-        background: linear-gradient(135deg, #ffffff 0%, #d0d0d0 100%);
-        border-left: 8px solid #999;
-        border-right: 8px solid #777;
-        border-radius: 16px;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        padding-top: 45px; 
-    }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 5px 0 10px 0; }
+        .version-info { font-size: 10px; text-align: right; opacity: 0.8; color: #333; }
 
-    /* Top Section */
-    #header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 16px 10px 16px;
-        border-bottom: 2px solid rgba(0,0,0,0.1);
-    }
+        .transport {
+            background: var(--panel-color); padding: 10px; border-radius: 10px;
+            display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;
+            box-shadow: inset 0 1px 3px rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.1);
+        }
 
-    #title-area {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.2;
-    }
+        .transport-top { display: flex; align-items: center; gap: 15px; width: 100%; }
+        
+        /* Black Rubber Buttons */
+        #play-btn, .action-sm-btn, .action-btn, #toggle-samples-btn, .modal-content > button:last-child {
+            background: #222; border: 1px solid #000; color: #fff; 
+            font-weight: 600; border-radius: 5px; cursor: pointer;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+        }
+        
+        #play-btn { padding: 15px 25px; font-size: 14px; }
+        #play-btn:active, .action-sm-btn:active, .action-btn:active { transform: translateY(1px); }
 
-    #title { font-size: 18px; font-weight: 900; color: #000; letter-spacing: 1px;}
-    #subtitle { font-size: 11px; color: #333; font-weight: 600;}
+        .sliders-group { flex-grow: 1; display: flex; flex-direction: column; gap: 6px;}
+        .slider-label { font-size: 10px; text-transform: uppercase; color: var(--accent-color); display: block; margin-bottom: 2px; font-weight: bold;}
+        input[type=range] { width: 100%; accent-color: #222; height: 20px; margin:0; }
 
-    /* LEDs */
-    .led {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background-color: #444;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
-        border: 1px solid rgba(0,0,0,0.8);
-        transition: background-color 0.05s;
-    }
-    .led.flash { background-color: #ff3333; box-shadow: 0 0 12px #ff3333; }
-    .led.dim-red { background-color: #8b0000; box-shadow: 0 0 6px #8b0000; }
-    .led.bright-red { background-color: #ff0000; box-shadow: 0 0 15px #ff0000; }
-    .led.green { background-color: #00ff00; box-shadow: 0 0 15px #00ff00; }
+        .track-lane { background: rgba(0,0,0,0.05); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid rgba(0,0,0,0.1); }
+        .track-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 4px; }
 
-    /* Global Controls */
-    #global-controls {
-        display: flex;
-        justify-content: space-around;
-        padding: 10px 6px;
-        background: rgba(0,0,0,0.05);
-        border-bottom: 2px solid rgba(0,0,0,0.1);
-    }
+        .sample-name {
+            background: #222; padding: 4px 8px; border-radius: 4px; border: 1px solid #000;
+            font-size: 10px; min-width: 65px; max-width: 65px; color: #fff; cursor: pointer;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
+        }
 
-    .btn {
-        padding: 8px 4px;
-        font-size: 12px;
-        font-weight: bold;
-        border-radius: 4px;
-        border: 1px solid #000;
-        text-align: center;
-        flex: 1;
-        margin: 0 3px;
-        touch-action: manipulation;
-    }
-    .btn:active { transform: translateY(2px); }
+        .controls-right { display: flex; gap: 4px; flex-wrap: nowrap; justify-content: flex-end; }
+        .action-sm-btn { font-size: 9px; padding: 4px 6px; text-align: center; }
+        
+        .active-choke { color: #fff; border-color: #fff; background: #555; }
+        .active-mute { background-color: #cc0000 !important; color: #ffffff !important; border-color: #ff3333 !important; }
+        .active-solo { background-color: #ccaa00 !important; color: #ffffff !important; border-color: #ffaa00 !important; }
+        
+        .nudge-panel { background: rgba(0,0,0,0.1); padding: 8px; border-radius: 6px; margin-bottom: 6px; display: none; }
+        
+        .bar-row { display: flex; width: 100%; justify-content: space-between; position: relative; margin-bottom: 3px; height: 20px; }
+        .node-wrapper { position: relative; width: 100%; display: flex; justify-content: space-between; }
+        .node { width: 6%; height: 20px; background: var(--node-off); border-radius: 2px; cursor: pointer; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
+        .node.active { background: var(--node-on); box-shadow: 0 0 6px rgba(255,255,255,0.8), inset 0 1px 2px rgba(255,255,255,0.8); }
+        
+        .playhead { position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: #222; box-shadow: 0 0 4px rgba(0,0,0,0.5); pointer-events: none; z-index: 10; display: none; height: 100%; margin-left: 1px;}
 
-    .btn-start { background: #4caf50; color: white; }
-    .btn-start.active { background: #f44336; }
-    .btn-rubber { background: #222; color: #fff; box-shadow: inset 0 1px 3px rgba(255,255,255,0.3); }
-    .btn-bt { background: #2196F3; color: #000; }
-    .btn-bt.active { background: #0b5b9e; color: #fff; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
+        .modal-content { background: var(--panel-color); width: 90%; max-height: 92%; padding: 15px; border-radius: 12px; border: 3px solid #222; display: flex; flex-direction: column; }
 
-    /* Sliders */
-    .slider-container { display: none; padding: 8px 16px; background: #ddd; font-size: 12px; border-bottom: 1px solid #bbb;}
-    .slider-container.active { display: flex; align-items: center; justify-content: space-between; }
-    input[type=range] { flex: 1; margin: 0 12px; }
+        .rec-visualizer-zone { background: rgba(0,0,0,0.1); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.2); position: relative; }
+        .modal-header-btns { display: flex; justify-content: space-around; align-items: center; margin-bottom: 12px; gap: 10px; }
 
-    /* Track Lanes */
-    #tracks {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        padding: 4px 0;
-        overflow-y: auto;
-    }
+        .rec-btn { background: var(--rec-red); color: white; border: 2px solid #600; padding: 15px 25px; border-radius: 40px; font-weight: 600; font-size: 13px; min-width: 120px; cursor: pointer; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3); }
+        .rec-btn.waiting { background: #aaaaaa; color: #000; border-color: #666; }
+        .rec-btn.recording { background: #fff; color: #ff0000; border-color: #ff0000; animation: pulse 1s infinite; }
+        
+        .action-btn { padding: 12px; font-size: 11px; min-width: 90px;}
 
-    .track {
-        display: flex;
-        flex-direction: column;
-        border-bottom: 3px solid #aaa;
-        padding: 8px 12px;
-    }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
 
-    .track-controls {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-    }
-
-    .track-btn {
-        background: #222;
-        color: #fff;
-        border: 1px solid #000;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: bold;
-        padding: 6px 2px;
-        flex: 1;
-        text-align: center;
-        margin: 0 3px;
-        box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
-        touch-action: manipulation;
-    }
-    .track-btn:active { transform: translateY(1px); }
-
-    /* Node Grid */
-    .node-grid {
-        display: grid;
-        grid-template-columns: repeat(16, 1fr);
-        gap: 3px;
-        margin-bottom: 12px;
-        background: #999;
-        padding: 4px;
-        border-radius: 4px;
-        border: 1px inset #777;
-    }
-    .node {
-        height: 14px;
-        background: #666;
-        border-radius: 2px;
-    }
-    .node.beat { background: #888; } 
-    .node.active { background: #fff; box-shadow: 0 0 6px #fff; }
-
-    /* Huge Stomp Pedal */
-    .stomp-area {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-    }
-
-    .stomp-pedal {
-        flex-grow: 1;
-        height: 60px;
-        margin-right: 20px;
-        background: linear-gradient(to bottom, #eee, #aaa);
-        border: 3px solid #444;
-        border-radius: 6px;
-        box-shadow: 0 6px 10px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.9);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        touch-action: manipulation;
-    }
-    .stomp-pedal:active {
-        transform: translateY(4px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.5);
-    }
-</style>
+        .sample-list { overflow-y: auto; background: rgba(0,0,0,0.1); border-radius: 5px; max-height: 150px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.2); }
+        .sample-item { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.1); font-size: 14px; color: #222; font-weight: bold; cursor: pointer; }
+        
+        .modal-node { width: 6%; height: 20px; background: var(--node-off); border-radius: 1px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
+        .modal-node.the-only-one { background: var(--the-one) !important; box-shadow: 0 0 8px var(--the-one); }
+    </style>
 </head>
 <body>
 
-<div id="pedal-chassis">
-    <div id="header">
-        <div id="title-area">
-            <div id="title">J-LOOPER v 0.003</div>
-            <div id="subtitle">Created by Jeremiah Keller</div>
+<header>
+    <div style="color: var(--accent-color); font-size: 20px; font-weight:900;">dum-Sampler <span style="font-size: 12px; opacity:0.6;">v2.0</span></div>
+    <div class="version-info">Created by Jeremiah Keller</div>
+</header>
+
+<div class="transport">
+    <div class="transport-top">
+        <button id="play-btn">PLAY</button>
+        <div class="sliders-group">
+            <div style="display: flex; justify-content: space-between;">
+                <span class="slider-label">Master Vol</span>
+                <span class="slider-label">Tempo: <span id="bpm-text">150 BPM</span></span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="range" id="master-vol" min="0" max="1" step="0.05" value="0.8" style="width:40%;">
+                <input type="range" id="tempo" min="40" max="220" value="150" oninput="document.getElementById('bpm-text').innerText = this.value + ' BPM'" style="width:60%;">
+            </div>
         </div>
-        <div id="global-led" class="led"></div>
     </div>
+</div>
 
-    <div id="global-controls">
-        <div id="btn-start" class="btn btn-start">START</div>
-        <div id="btn-tempo" class="btn btn-rubber">TEMPO</div>
-        <div id="btn-click" class="btn btn-rubber">CLICK</div>
-        <div id="btn-mute" class="btn btn-rubber">MUTE</div>
-        <div id="btn-bt" class="btn btn-bt">BT</div>
+<div id="main-grid"></div>
+
+<div id="sample-modal" class="modal">
+    <div class="modal-content">
+        <div class="rec-visualizer-zone">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span id="modal-track-name" style="font-size:12px; color:var(--accent-color); font-weight:900;">READY</span>
+                <button class="action-sm-btn" id="modal-bar-cycle" style="min-width: 60px; padding:8px;">1 BAR</button>
+            </div>
+            <div id="modal-bars-container"></div>
+        </div>
+        
+        <div style="margin-bottom: 15px; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.2);">
+            <span class="slider-label" style="display:flex; justify-content:space-between; color: #222;">
+                <span>Start Point Nudge (Latency)</span>
+                <span id="modal-nudge-val">0ms</span>
+            </span>
+            <input type="range" id="modal-nudge" min="-300" max="300" value="0" step="5">
+        </div>
+
+        <div class="modal-header-btns">
+            <button class="action-btn" id="modal-clear-btn">DELETE</button>
+            <button class="rec-btn" id="rec-action-btn">● RECORD</button>
+        </div>
+
+        <button id="toggle-samples-btn" class="action-btn" style="width:100%; margin-bottom: 10px; padding: 12px;">PRELOADED SAMPLES</button>
+        <div class="sample-list" id="modal-sample-list" style="display: none;"></div>
+        
+        <button onclick="closeModal()" style="margin-top:auto; padding:15px; font-size:14px;">BACK TO GRID</button>
     </div>
-
-    <div id="slider-tempo" class="slider-container">
-        <label>Tempo:</label>
-        <input type="range" id="tempo-range" min="40" max="200" value="94">
-        <span id="tempo-val">94</span>
-    </div>
-
-    <div id="slider-click" class="slider-container">
-        <label>Click Vol:</label>
-        <input type="range" id="click-vol-range" min="0" max="300" value="100">
-        <span id="click-vol-val">100%</span>
-    </div>
-
-    <div id="tracks"></div>
 </div>
 
 <script>
-    // System Constants & State
-    const TRACK_COUNT = 4;
+    const tracks = [
+        { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -200, choke: true, mute: false, solo: false, buffer: null, lastSource: null }
+    ];
+
+    const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
+    const preFetchedBuffers = {};
+
     let audioCtx = null;
     let masterGain = null;
-    let clickGainMaster = null;
-    let micStream = null;
-    let processorNode = null;
-    
-    let isPlaying = false;
-    let isBTReady = false;
-    let globalTempo = 94;
-    let clickVolume = 1.0;
-    let clickMuted = false;
-    
-    let nextNoteTime = 0.0;
-    let globalStep = 0; 
-    let lookahead = 25.0; 
-    let scheduleAheadTime = 0.1; 
-    let timerID = null;
+    let isPlaying = false, currentStep = 0, nextStepTime = 0, masterMuted = false, activeTrackIdx = null;
+    let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false;
+    let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
+    let mediaRecorder = null, audioChunks = [];
+    let targetBarLength = 16;
 
-    // Smoother Synthesized Click Track
-    function playClick(time, isQuarter) {
-        if (clickMuted) return;
-        
-        let osc = audioCtx.createOscillator();
-        let clickGain = audioCtx.createGain();
-        
-        osc.connect(clickGain);
-        clickGain.connect(clickGainMaster);
-        
-        osc.type = 'sine'; // Changed from square to avoid distortion
-        osc.frequency.setValueAtTime(isQuarter ? 880 : 440, time);
-        osc.frequency.exponentialRampToValueAtTime(100, time + 0.05);
-        
-        clickGain.gain.setValueAtTime(clickVolume, time);
-        clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-        
-        osc.start(time);
-        osc.stop(time + 0.1);
-    }
+    tracks.forEach(t => { 
+        let s = new Array(64).fill(false);
+        if(t.steps) t.steps.forEach(idx => s[idx] = true);
+        t.steps = s;
+    });
 
-    class Track {
-        constructor(id) {
-            this.id = id;
-            this.state = 'empty'; 
-            this.bars = 1;
-            this.volume = 1.0;
-            this.nudgeMs = -200; 
+    function renderSequencer() {
+        const mainGrid = document.getElementById('main-grid');
+        if (!mainGrid) return;
+        mainGrid.innerHTML = '';
+        tracks.forEach((track, tIdx) => {
+            const lane = document.createElement('div');
+            lane.className = 'track-lane';
             
-            this.audioBuffer = null;
-            this.pcmBuffer = null; 
-            this.recordIndex = 0;
+            let barHtml = '';
+            for(let b=0; b < track.bars; b++) {
+                barHtml += `<div class="bar-row">
+                    <div class="playhead" id="ph-${tIdx}-bar-${b}"></div>
+                    <div class="node-wrapper">
+                    ${Array.from({length: 16}).map((_, s) => `<div class="node ${track.steps[(b*16)+s]?'active':''}" onclick="tglNode(${tIdx},${(b*16)+s},this)"></div>`).join('')}
+                    </div>
+                </div>`;
+            }
             
-            this.sourceNodes = []; 
-            this.gainNode = null;
-            
-            this.buildUI();
-        }
-
-        buildUI() {
-            const container = document.getElementById('tracks');
-            const trackDiv = document.createElement('div');
-            trackDiv.className = 'track';
-            
-            trackDiv.innerHTML = `
-                <div class="track-controls">
-                    <div class="track-btn" id="clear-${this.id}">CLEAR</div>
-                    <div class="track-btn" id="vol-${this.id}">VOL</div>
-                    <div class="track-btn" id="bars-${this.id}">BARS: 1</div>
-                    <div class="track-btn" id="nudge-${this.id}">NUDGE</div>
+            lane.innerHTML = `
+            <div class="track-controls">
+                <div class="sample-name" onclick="openModal(${tIdx})">${track.name}</div>
+                <div style="display:flex; align-items:center; gap:4px; flex-grow:1; margin: 0 4px;">
+                    <button class="action-sm-btn ${track.mute ? 'active-mute' : ''}" style="padding:6px 4px; font-weight:bold; min-width:26px;" onclick="toggleMute(${tIdx})">M</button>
+                    <input type="range" min="0" max="100" step="1" value="${track.volume}" oninput="tracks[${tIdx}].volume=this.value" style="width:100%; min-width:30px;">
+                    <button class="action-sm-btn ${track.solo ? 'active-solo' : ''}" style="padding:6px 4px; font-weight:bold; min-width:26px;" onclick="toggleSolo(${tIdx})">S</button>
                 </div>
-                <div id="slider-vol-${this.id}" class="slider-container">
-                    <label>Vol:</label>
-                    <input type="range" id="vol-range-${this.id}" min="0" max="300" value="100">
-                    <span id="vol-val-${this.id}">100%</span>
+                <div class="controls-right">
+                    <button class="action-sm-btn" onclick="toggleNudgePanel(${tIdx})">SYNC</button>
+                    <button class="action-sm-btn ${track.choke ? 'active-choke' : ''}" onclick="toggleChoke(${tIdx})">CHK</button>
+                    <button class="action-sm-btn" onclick="cycleBars(${tIdx})" style="min-width:24px;">${track.bars}B</button>
                 </div>
-                <div id="slider-nudge-${this.id}" class="slider-container">
-                    <label>Nudge:</label>
-                    <input type="range" id="nudge-range-${this.id}" min="-350" max="350" value="-200">
-                    <span id="nudge-val-${this.id}">-200ms</span>
-                </div>
-                <div class="node-grid" id="grid-${this.id}">
-                    ${Array(16).fill(0).map((_,i) => `<div class="node ${i%4===0 ? 'beat' : ''}" id="node-${this.id}-${i}"></div>`).join('')}
-                </div>
-                <div class="stomp-area">
-                    <div class="stomp-pedal" id="stomp-${this.id}"></div>
-                    <div class="led stomp-led" id="led-${this.id}"></div>
-                </div>
-            `;
-            container.appendChild(trackDiv);
+            </div>
+            <div class="nudge-panel" id="nudge-panel-${tIdx}">
+                <span class="slider-label" style="display:flex; justify-content:space-between;">
+                    <span>Track Nudge</span>
+                    <span id="lane-nudge-val-${tIdx}" style="color:#222;">${track.nudge}ms</span>
+                </span>
+                <input type="range" min="-300" max="300" value="${track.nudge}" step="5" oninput="updateLaneNudge(${tIdx}, this.value)">
+            </div>
+            <div class="bars-container">${barHtml}</div>`;
             
-            document.getElementById(`stomp-${this.id}`).addEventListener('pointerdown', () => this.handleStomp());
-            document.getElementById(`clear-${this.id}`).addEventListener('pointerdown', () => this.clearTrack());
-            
-            const barsBtn = document.getElementById(`bars-${this.id}`);
-            barsBtn.addEventListener('pointerdown', () => {
-                if(this.state !== 'empty') return; 
-                this.bars = this.bars === 1 ? 2 : (this.bars === 2 ? 4 : 1);
-                barsBtn.innerText = `BARS: ${this.bars}`;
-                this.updateGridUI();
-            });
-
-            const bindSliderToggle = (btnId, sliderId) => {
-                document.getElementById(btnId).addEventListener('pointerdown', () => {
-                    document.getElementById(sliderId).classList.toggle('active');
-                });
-            };
-            bindSliderToggle(`vol-${this.id}`, `slider-vol-${this.id}`);
-            bindSliderToggle(`nudge-${this.id}`, `slider-nudge-${this.id}`);
-
-            // Bind individual volume
-            document.getElementById(`vol-range-${this.id}`).addEventListener('input', (e) => {
-                this.volume = e.target.value / 100;
-                document.getElementById(`vol-val-${this.id}`).innerText = `${e.target.value}%`;
-                if(this.gainNode && this.state === 'playing') {
-                    this.gainNode.gain.value = this.volume;
-                }
-            });
-
-            // FIXED: Added missing event listener for NUDGE
-            document.getElementById(`nudge-range-${this.id}`).addEventListener('input', (e) => {
-                this.nudgeMs = parseInt(e.target.value);
-                document.getElementById(`nudge-val-${this.id}`).innerText = `${this.nudgeMs}ms`;
-            });
-        }
-
-        updateGridUI() {
-            const grid = document.getElementById(`grid-${this.id}`);
-            grid.innerHTML = Array(16 * this.bars).fill(0).map((_,i) => 
-                `<div class="node ${i%4===0 ? 'beat' : ''}" id="node-${this.id}-${i}"></div>`
-            ).join('');
-        }
-
-        updateVisualNode(stepIndex) {
-            const totalNodes = 16 * this.bars;
-            const localStep = stepIndex % totalNodes;
-            
-            const allNodes = document.querySelectorAll(`#grid-${this.id} .node`);
-            allNodes.forEach(n => n.classList.remove('active'));
-            
-            const el = document.getElementById(`node-${this.id}-${localStep}`);
-            if(el) el.classList.add('active');
-        }
-
-        setLED(colorClass) {
-            const led = document.getElementById(`led-${this.id}`);
-            led.className = `led stomp-led ${colorClass}`;
-        }
-
-        handleStomp() {
-            if (!isPlaying) return;
-            
-            if (this.state === 'empty') {
-                this.state = 'queued_warning';
-                this.setLED('dim-red'); 
-            } else if (this.state === 'playing') {
-                this.state = 'muted';
-                if(this.gainNode) this.gainNode.gain.value = 0;
-                this.setLED('dim-red');
-            } else if (this.state === 'muted') {
-                this.state = 'playing';
-                if(this.gainNode) this.gainNode.gain.value = this.volume;
-                this.setLED('green');
-            }
-        }
-
-        clearTrack() {
-            this.sourceNodes.forEach(src => { try { src.stop(); } catch(e){} });
-            this.sourceNodes = [];
-            this.audioBuffer = null;
-            this.pcmBuffer = null;
-            this.state = 'empty';
-            this.setLED('');
-        }
-
-        finalizeRecording() {
-            this.audioBuffer = audioCtx.createBuffer(1, this.pcmBuffer.length, audioCtx.sampleRate);
-            this.audioBuffer.copyToChannel(this.pcmBuffer, 0);
-            
-            let data = this.audioBuffer.getChannelData(0);
-            let max = 0;
-            for (let i = 0; i < data.length; i++) {
-                if (Math.abs(data[i]) > max) max = Math.abs(data[i]);
-            }
-            if (max > 0) {
-                let multiplier = 1 / max;
-                for (let i = 0; i < data.length; i++) data[i] *= multiplier;
-            }
-
-            let fadeSamples = Math.floor(0.01 * audioCtx.sampleRate);
-            for (let i = 0; i < fadeSamples; i++) {
-                let index = data.length - fadeSamples + i;
-                if(index >= 0) data[index] *= (1 - (i / fadeSamples));
-            }
-
-            if(!this.gainNode) {
-                this.gainNode = audioCtx.createGain();
-                this.gainNode.connect(masterGain); 
-            }
-            this.gainNode.gain.value = this.volume;
-            this.pcmBuffer = null; 
-        }
-
-        playLoop(time) {
-            if(!this.audioBuffer || this.state !== 'playing') return;
-            
-            let src = audioCtx.createBufferSource();
-            src.buffer = this.audioBuffer;
-            src.connect(this.gainNode);
-            
-            // Apply latency nudge. 
-            let playTime = time + (this.nudgeMs / 1000);
-            
-            if(playTime < audioCtx.currentTime) {
-                // If nudged into the past, start immediately but skip the beginning of the buffer
-                let offset = audioCtx.currentTime - playTime;
-                src.start(audioCtx.currentTime, offset);
-            } else {
-                src.start(playTime);
-            }
-
-            this.sourceNodes.push(src);
-            
-            if(this.sourceNodes.length > 3) {
-                this.sourceNodes.shift(); 
-            }
-        }
-    }
-
-    const tracks = [];
-    for(let i=1; i<=TRACK_COUNT; i++) tracks.push(new Track(i));
-
-    function scheduleNote(step, time) {
-        if (step % 4 === 0) {
-            const led = document.getElementById('global-led');
-            led.classList.add('flash');
-            setTimeout(() => led.classList.remove('flash'), 50);
-            
-            let isAnyRecording = tracks.some(t => t.state === 'recording');
-            if(!isAnyRecording) {
-                playClick(time, step % 16 === 0);
-            }
-        }
-
-        tracks.forEach(t => {
-            let localStep = step % (16 * t.bars);
-            
-            if (localStep === 0) {
-                if (t.state === 'queued_warning') {
-                    t.state = 'warning_cycle';
-                    t.setLED('dim-red flash'); 
-                } 
-                else if (t.state === 'warning_cycle') {
-                    t.state = 'recording';
-                    t.setLED('bright-red');
-                    t.recordIndex = 0;
-                    
-                    let secondsPerBeat = 60.0 / globalTempo;
-                    let loopDuration = secondsPerBeat * 4 * t.bars;
-                    t.pcmBuffer = new Float32Array(Math.ceil(audioCtx.sampleRate * loopDuration));
-                    
-                    masterGain.gain.setValueAtTime(0, time);
-                } 
-                else if (t.state === 'recording') {
-                    t.state = 'playing';
-                    t.setLED('green');
-                    
-                    t.finalizeRecording();
-                    t.playLoop(time);
-                    
-                    masterGain.gain.setValueAtTime(1, time);
-                } 
-                else if (t.state === 'playing') {
-                    t.playLoop(time);
-                }
-            }
-            
-            t.updateVisualNode(step);
+            mainGrid.appendChild(lane);
         });
     }
 
-    function nextNote() {
-        const secondsPerBeat = 60.0 / globalTempo;
-        nextNoteTime += 0.25 * secondsPerBeat; 
-        globalStep++;
+    function toggleNudgePanel(tIdx) {
+        const panel = document.getElementById(`nudge-panel-${tIdx}`);
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function toggleChoke(tIdx) { tracks[tIdx].choke = !tracks[tIdx].choke; renderSequencer(); }
+    function toggleMute(tIdx) { tracks[tIdx].mute = !tracks[tIdx].mute; renderSequencer(); }
+    function toggleSolo(tIdx) { tracks[tIdx].solo = !tracks[tIdx].solo; renderSequencer(); }
+
+    function updateLaneNudge(tIdx, val) {
+        tracks[tIdx].nudge = parseInt(val);
+        document.getElementById(`lane-nudge-val-${tIdx}`).innerText = val + 'ms';
+    }
+
+    async function preFetchAll() {
+        for (let file of sampleFiles) {
+            if (!preFetchedBuffers[file]) {
+                try {
+                    const res = await fetch(`samples/${file}`);
+                    if(res.ok) preFetchedBuffers[file] = await res.arrayBuffer();
+                } catch (e) { console.warn("Missing file or offline:", file); }
+            }
+        }
+    }
+
+    async function initAudioContextAndDecode() {
+        if (!audioCtx) { 
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+            masterGain = audioCtx.createGain();
+            masterGain.connect(audioCtx.destination);
+        }
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        for (let i = 0; i < tracks.length; i++) {
+            if (tracks[i].name !== 'EMPTY' && preFetchedBuffers[tracks[i].name] && !tracks[i].buffer) {
+                const bufferCopy = preFetchedBuffers[tracks[i].name].slice(0);
+                audioCtx.decodeAudioData(bufferCopy, (decoded) => { tracks[i].buffer = decoded; });
+            }
+        }
+    }
+
+    function normalizeBuffer(buffer) {
+        let maxPeak = 0;
+        for (let c = 0; c < buffer.numberOfChannels; c++) {
+            const data = buffer.getChannelData(c);
+            for (let i = 0; i < data.length; i++) {
+                if (Math.abs(data[i]) > maxPeak) maxPeak = Math.abs(data[i]);
+            }
+        }
+        if (maxPeak > 0 && maxPeak < 1.0) {
+            const multiplier = 1.0 / maxPeak; 
+            for (let c = 0; c < buffer.numberOfChannels; c++) {
+                const data = buffer.getChannelData(c);
+                for (let i = 0; i < data.length; i++) {
+                    data[i] *= multiplier;
+                }
+            }
+        }
+        return buffer;
+    }
+
+    async function initMic() {
+        if (mediaRecorder) return;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } 
+            });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                audioCtx.decodeAudioData(arrayBuffer, (decoded) => {
+                    userSampleCount++;
+                    tracks[activeTrackIdx].buffer = normalizeBuffer(decoded);
+                    tracks[activeTrackIdx].name = `USER_${userSampleCount}`;
+                    document.getElementById('modal-track-name').innerText = tracks[activeTrackIdx].name.toUpperCase();
+                    renderSequencer();
+                });
+            };
+        } catch (err) { console.error("Mic error: " + err); }
     }
 
     function scheduler() {
-        while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
-            scheduleNote(globalStep, nextNoteTime);
-            nextNote();
-        }
-        timerID = window.setTimeout(scheduler, lookahead);
-    }
-
-    async function initAudio() {
-        if (!audioCtx) {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-            
-            masterGain = audioCtx.createGain();
-            masterGain.connect(audioCtx.destination);
-            
-            clickGainMaster = audioCtx.createGain();
-            clickGainMaster.connect(masterGain);
-
-            processorNode = audioCtx.createScriptProcessor(4096, 1, 1);
-            
-            let dumpGain = audioCtx.createGain();
-            dumpGain.gain.value = 0;
-            processorNode.connect(dumpGain);
-            dumpGain.connect(audioCtx.destination);
-
-            processorNode.onaudioprocess = function(e) {
-                let input = e.inputBuffer.getChannelData(0);
-                for(let i=0; i<tracks.length; i++) {
-                    let t = tracks[i];
-                    if(t.state === 'recording' && t.pcmBuffer) {
-                        for(let s=0; s<input.length; s++) {
-                            if(t.recordIndex < t.pcmBuffer.length) {
-                                t.pcmBuffer[t.recordIndex++] = input[s];
-                            }
-                        }
+        while (nextStepTime < audioCtx.currentTime + 0.1) {
+            if (activeTrackIdx !== null) {
+                targetBarLength = tracks[activeTrackIdx].bars * 16;
+                const laneRelative = currentStep % targetBarLength;
+                
+                if (isWaitingForFirstOne && laneRelative === 0) {
+                    isWaitingForFirstOne = false; isWaitingFullCycle = true; cycleCounter = 0; updateRecBtnUI();
+                }
+                if (isWaitingFullCycle) {
+                    cycleCounter++;
+                    if (cycleCounter >= targetBarLength && laneRelative === targetBarLength - 1) {
+                        isWaitingFullCycle = false; isRecordingNow = true; masterMuted = true;
+                        
+                        masterGain.gain.setValueAtTime(0, nextStepTime);
+                        
+                        recordCounter = 0; audioChunks = []; 
+                        setTimeout(() => mediaRecorder.start(), 0); updateRecBtnUI();
                     }
                 }
-            };
-        }
-        
-        if (audioCtx.state === 'suspended') await audioCtx.resume();
-
-        if (!micStream && !isBTReady) {
-            try {
-                micStream = await navigator.mediaDevices.getUserMedia({
-                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-                });
-                let micSource = audioCtx.createMediaStreamSource(micStream);
-                micSource.connect(processorNode);
-            } catch(e) {
-                alert("Mic access required to record loops.");
-                return false;
+                if (isRecordingNow) {
+                    recordCounter++;
+                    if (recordCounter >= targetBarLength && laneRelative === targetBarLength - 1) {
+                        isRecordingNow = false; masterMuted = false; 
+                        
+                        masterGain.gain.setValueAtTime(1, nextStepTime);
+                        
+                        setTimeout(() => mediaRecorder.stop(), 0); updateRecBtnUI();
+                    }
+                }
+                
+                if (!isRecordingNow && laneRelative === 0) {
+                    const track = tracks[activeTrackIdx];
+                    if (track.buffer && !track.steps[0]) {
+                        playSample(track.buffer, nextStepTime, track.volume, track.nudge, track); 
+                    }
+                }
             }
+
+            if (!masterMuted) {
+                const isAnySolo = tracks.some(t => t.solo);
+                tracks.forEach((track) => {
+                    if (track.steps[currentStep % (track.bars * 16)]) { 
+                        let shouldPlay = false;
+                        if (isAnySolo) {
+                            if (track.solo) shouldPlay = true;
+                        } else {
+                            if (!track.mute) shouldPlay = true;
+                        }
+                        if (shouldPlay) {
+                            playSample(track.buffer, nextStepTime, track.volume, track.nudge, track); 
+                        }
+                    }
+                });
+            }
+            nextStepTime += (60 / document.getElementById('tempo').value) / 4;
+            currentStep++; 
         }
-        return true;
+        if (isPlaying) { setTimeout(scheduler, 25); requestAnimationFrame(updateUI); }
     }
 
-    document.getElementById('btn-start').addEventListener('pointerdown', async function() {
-        if (!isPlaying) {
-            let ready = await initAudio();
-            if(!ready) return;
-
-            isPlaying = true;
-            this.innerText = "STOP";
-            this.classList.add('active');
-            
-            globalStep = 0;
-            nextNoteTime = audioCtx.currentTime + 0.05;
-            masterGain.gain.value = 1.0;
-            
-            scheduler();
-        } else {
-            isPlaying = false;
-            this.innerText = "START";
-            this.classList.remove('active');
-            
-            window.clearTimeout(timerID);
-            
-            if(audioCtx) audioCtx.suspend();
+    function playSample(buffer, time, vol, nudgeMs = 0, trackObj = null) {
+        if (!buffer || !audioCtx) return;
+        const source = audioCtx.createBufferSource();
+        const gain = audioCtx.createGain();
+        source.buffer = buffer; 
+        
+        gain.gain.value = (vol / 100) * document.getElementById('master-vol').value; 
+        source.connect(gain); gain.connect(masterGain);
+        
+        let startTime = time;
+        let offsetInFile = 0;
+        
+        if (nudgeMs < 0) {
+            offsetInFile = Math.abs(nudgeMs) / 1000;
+        } else if (nudgeMs > 0) {
+            startTime += (nudgeMs / 1000);
         }
-    });
-
-    document.getElementById('btn-tempo').addEventListener('pointerdown', () => {
-        document.getElementById('slider-tempo').classList.toggle('active');
-    });
-    
-    document.getElementById('tempo-range').addEventListener('input', (e) => {
-        globalTempo = e.target.value;
-        document.getElementById('tempo-val').innerText = globalTempo;
-    });
-
-    document.getElementById('btn-click').addEventListener('pointerdown', () => {
-        document.getElementById('slider-click').classList.toggle('active');
-    });
-
-    document.getElementById('click-vol-range').addEventListener('input', (e) => {
-        clickVolume = e.target.value / 100;
-        document.getElementById('click-vol-val').innerText = `${e.target.value}%`;
-    });
-
-    document.getElementById('btn-mute').addEventListener('pointerdown', function() {
-        clickMuted = !clickMuted;
-        this.style.background = clickMuted ? "#ff3333" : "#222";
-    });
-
-    document.getElementById('btn-bt').addEventListener('pointerdown', function() {
-        isBTReady = !isBTReady;
-        if(isBTReady) {
-            this.classList.add('active');
-            if(micStream) {
-                micStream.getTracks().forEach(track => track.stop());
-                micStream = null;
-                alert("Mic Released. iOS should now allow Bluetooth routing. You cannot record new loops in this mode.");
+        
+        if (trackObj && trackObj.choke) {
+            if (trackObj.lastSource) {
+                try { trackObj.lastSource.stop(startTime); } catch (e) {}
             }
-        } else {
-            this.classList.remove('active');
-            alert("Bluetooth mode off. Hit START to re-engage the microphone.");
-            isPlaying = false;
-            document.getElementById('btn-start').innerText = "START";
-            document.getElementById('btn-start').classList.remove('active');
-            window.clearTimeout(timerID);
-            if(audioCtx) audioCtx.suspend();
+            trackObj.lastSource = source;
         }
-    });
+
+        source.start(startTime, offsetInFile);
+    }
+
+    function updateUI() {
+        const step = currentStep - 1;
+        
+        tracks.forEach((track, tIdx) => {
+            const laneStep = step % (track.bars * 16);
+            for(let b=0; b<4; b++) { 
+                const ph = document.getElementById(`ph-${tIdx}-bar-${b}`); 
+                if(ph) ph.style.display = 'none'; 
+            }
+            
+            const mainPh = document.getElementById(`ph-${tIdx}-bar-${Math.floor(laneStep/16)}`);
+            if (mainPh && isPlaying) { 
+                mainPh.style.display = 'block'; 
+                mainPh.style.left = `${(laneStep%16) * 6.25}%`; 
+            }
+        });
+
+        if (activeTrackIdx !== null && isPlaying) {
+            const laneStep = step % (tracks[activeTrackIdx].bars * 16);
+            for(let b=0; b<4; b++) {
+                const mph = document.getElementById(`modal-ph-bar-${b}`);
+                if (mph) mph.style.display = 'none';
+            }
+            const activeMph = document.getElementById(`modal-ph-bar-${Math.floor(laneStep/16)}`);
+            if (activeMph) {
+                activeMph.style.display = 'block';
+                activeMph.style.left = `${(laneStep%16) * 6.25}%`;
+            }
+        }
+    }
+
+    document.getElementById('play-btn').onclick = async function() {
+        await initAudioContextAndDecode();
+        await initMic(); 
+        isPlaying = !isPlaying;
+        if (isPlaying) { 
+            currentStep = 0; nextStepTime = audioCtx.currentTime + 0.1; scheduler(); 
+        } else { 
+            document.querySelectorAll('.playhead').forEach(ph => ph.style.display = 'none'); 
+            masterMuted = false;
+            if(masterGain) masterGain.gain.setValueAtTime(1, audioCtx.currentTime);
+            updateRecBtnUI(); 
+        }
+        this.innerText = isPlaying ? "STOP" : "PLAY";
+    };
+
+    document.getElementById('rec-action-btn').onclick = () => { 
+        if(!isPlaying) return; 
+        isWaitingForFirstOne = true; updateRecBtnUI(); 
+    };
+    
+    document.getElementById('modal-clear-btn').onclick = () => {
+        tracks[activeTrackIdx].buffer = null; 
+        tracks[activeTrackIdx].name = "EMPTY";
+        tracks[activeTrackIdx].steps.fill(false); 
+        
+        tracks[activeTrackIdx].nudge = -200; 
+        document.getElementById('modal-nudge').value = -200;
+        document.getElementById('modal-nudge-val').innerText = '-200ms';
+        document.getElementById('modal-track-name').innerText = "READY";
+        
+        renderSequencer(); renderModalLane();
+    };
+
+    document.getElementById('modal-bar-cycle').onclick = () => {
+        if(activeTrackIdx !== null) cycleBars(activeTrackIdx);
+    };
+
+    document.getElementById('modal-nudge').oninput = function() {
+        if(activeTrackIdx !== null) {
+            tracks[activeTrackIdx].nudge = parseInt(this.value);
+            document.getElementById('modal-nudge-val').innerText = this.value + 'ms';
+            const mainNudgeDisplay = document.getElementById(`lane-nudge-val-${activeTrackIdx}`);
+            if(mainNudgeDisplay) mainNudgeDisplay.innerText = this.value + 'ms';
+        }
+    };
+
+    // Toggle Logic for Preloaded Samples
+    document.getElementById('toggle-samples-btn').onclick = function() {
+        const list = document.getElementById('modal-sample-list');
+        if (list.style.display === 'none') {
+            list.style.display = 'block';
+            this.innerText = "HIDE SAMPLES";
+        } else {
+            list.style.display = 'none';
+            this.innerText = "PRELOADED SAMPLES";
+        }
+    };
+
+    function updateRecBtnUI() {
+        const btn = document.getElementById('rec-action-btn');
+        if (isWaitingForFirstOne || isWaitingFullCycle) { btn.innerText = "WAITING..."; btn.className = "rec-btn waiting"; }
+        else if (isRecordingNow) { btn.innerText = "RECORDING!"; btn.className = "rec-btn recording"; }
+        else { btn.innerText = "● RECORD"; btn.className = "rec-btn"; }
+    }
+
+    function tglNode(t, s, el) { tracks[t].steps[s] = !tracks[t].steps[s]; el.classList.toggle('active'); }
+    
+    function openModal(i) { 
+        activeTrackIdx = i; 
+        
+        document.getElementById('modal-nudge').value = tracks[i].nudge || 0;
+        document.getElementById('modal-nudge-val').innerText = (tracks[i].nudge || 0) + 'ms';
+        
+        // Reset toggle state when modal opens
+        document.getElementById('modal-sample-list').style.display = 'none';
+        document.getElementById('toggle-samples-btn').innerText = "PRELOADED SAMPLES";
+        
+        renderModalLane(); populateSampleList(); document.getElementById('sample-modal').style.display = 'flex'; 
+    }
+    
+    function closeModal() { 
+        renderSequencer();
+        activeTrackIdx = null; 
+        document.getElementById('sample-modal').style.display = 'none'; 
+    }
+    
+    function populateSampleList() {
+        const list = document.getElementById('modal-sample-list'); list.innerHTML = '';
+        sampleFiles.forEach(file => {
+            const item = document.createElement('div'); item.className = 'sample-item'; item.innerText = file;
+            item.onclick = () => { 
+                tracks[activeTrackIdx].name = file; 
+                
+                tracks[activeTrackIdx].nudge = 0;
+                document.getElementById('modal-nudge').value = 0;
+                document.getElementById('modal-nudge-val').innerText = '0ms';
+                
+                if(preFetchedBuffers[file]) {
+                    const bufferCopy = preFetchedBuffers[file].slice(0);
+                    audioCtx.decodeAudioData(bufferCopy, (decoded) => { tracks[activeTrackIdx].buffer = decoded; });
+                } else { tracks[activeTrackIdx].buffer = null; }
+                renderSequencer(); renderModalLane(); 
+            };
+            list.appendChild(item);
+        });
+    }
+    
+    function renderModalLane() {
+        if(activeTrackIdx === null) return;
+        const track = tracks[activeTrackIdx];
+        const container = document.getElementById('modal-bars-container');
+        document.getElementById('modal-track-name').innerText = track.name.toUpperCase();
+        document.getElementById('modal-bar-cycle').innerText = `${track.bars} BAR`;
+        container.innerHTML = '';
+        for(let b=0; b < track.bars; b++) {
+            const row = document.createElement('div'); row.className = 'bar-row';
+            row.innerHTML = `<div class="playhead" id="modal-ph-bar-${b}"></div>` + 
+                `<div class="node-wrapper">` +
+                Array.from({length: 16}).map((_, s) => `<div class="modal-node ${(b===0&&s===0)?'the-only-one':''}"></div>`).join('') +
+                `</div>`;
+            container.appendChild(row);
+        }
+    }
+    
+    function cycleBars(i) { 
+        tracks[i].bars = [1, 2, 4][([1, 2, 4].indexOf(tracks[i].bars) + 1) % 3]; 
+        renderSequencer(); 
+        if(activeTrackIdx === i) renderModalLane(); 
+    }
+
+    renderSequencer();
+    preFetchAll();
 </script>
 </body>
 </html>
