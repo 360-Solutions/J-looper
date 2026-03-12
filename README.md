@@ -1,2 +1,2 @@
 # J-looper
-Emulates a cheap guitar guitar looper pedal, but uses a click track, first philosophy and mute all background so that you don’t have to have an interface or headphones.
+sample sequence, and looper recorder that mutes all sounds at the moment of recording your next layer, so you don't have to buy wired headphones or audio interface.
