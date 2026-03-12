@@ -3,119 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>J-LOOPER v0.001</title>
+<title>J-LOOPER v0.002</title>
 <style>
     /* Global Reset & Typography */
     * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-        user-select: none; /* Prevents text selection on long presses */
+        user-select: none;
         -webkit-user-select: none;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     body {
-        background-color: #222;
+        background-color: #111;
         display: flex;
         justify-content: center;
         align-items: flex-start;
         height: 100vh;
-        overflow: hidden; /* Prevents bounce scroll on iOS */
+        overflow: hidden;
     }
 
     /* Pedal Chassis */
     #pedal-chassis {
         width: 100%;
-        max-width: 420px; /* Fits iPhone 11 Pro Max nicely */
+        max-width: 420px;
         height: 100vh;
-        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
-        border-left: 8px solid #bbb;
-        border-right: 8px solid #999;
-        border-radius: 12px;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.1), 0 15px 30px rgba(0,0,0,0.5);
+        background: linear-gradient(135deg, #ffffff 0%, #d0d0d0 100%);
+        border-left: 8px solid #999;
+        border-right: 8px solid #777;
+        border-radius: 16px;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
         display: flex;
         flex-direction: column;
         position: relative;
+        /* Pulls everything down to avoid the iOS clock/notch */
+        padding-top: 45px; 
     }
-
-    /* Fake Cables */
-    .cable {
-        position: absolute;
-        top: 20px;
-        width: 15px;
-        height: 40px;
-        background: #333;
-        border-radius: 4px;
-    }
-    .cable.left { left: -15px; border-radius: 4px 0 0 4px; box-shadow: inset 0 5px 5px #111; }
-    .cable.right { right: -15px; border-radius: 0 4px 4px 0; box-shadow: inset 0 5px 5px #111; }
 
     /* Top Section */
     #header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 8px 12px;
+        padding: 0 16px 10px 16px;
         border-bottom: 2px solid rgba(0,0,0,0.1);
     }
 
     #title-area {
         display: flex;
         flex-direction: column;
-        line-height: 1.1;
+        line-height: 1.2;
     }
 
-    #title { font-size: 16px; font-weight: 900; color: #000; letter-spacing: 1px;}
-    #subtitle { font-size: 10px; color: #333; font-weight: 600;}
+    #title { font-size: 18px; font-weight: 900; color: #000; letter-spacing: 1px;}
+    #subtitle { font-size: 11px; color: #333; font-weight: 600;}
 
     /* LEDs */
     .led {
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
-        background-color: #555;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+        background-color: #444;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
         border: 1px solid rgba(0,0,0,0.8);
         transition: background-color 0.05s;
     }
-    .led.flash { background-color: #ff3333; box-shadow: 0 0 8px #ff3333, inset 0 1px 2px rgba(255,255,255,0.4); }
-    .led.dim-red { background-color: #8b0000; box-shadow: 0 0 4px #8b0000; }
-    .led.bright-red { background-color: #ff0000; box-shadow: 0 0 10px #ff0000; }
-    .led.green { background-color: #00ff00; box-shadow: 0 0 10px #00ff00; }
+    .led.flash { background-color: #ff3333; box-shadow: 0 0 12px #ff3333; }
+    .led.dim-red { background-color: #8b0000; box-shadow: 0 0 6px #8b0000; }
+    .led.bright-red { background-color: #ff0000; box-shadow: 0 0 15px #ff0000; }
+    .led.green { background-color: #00ff00; box-shadow: 0 0 15px #00ff00; }
 
     /* Global Controls */
     #global-controls {
         display: flex;
         justify-content: space-around;
-        padding: 8px 4px;
+        padding: 10px 6px;
         background: rgba(0,0,0,0.05);
         border-bottom: 2px solid rgba(0,0,0,0.1);
     }
 
     .btn {
-        padding: 6px 4px;
-        font-size: 11px;
+        padding: 8px 4px;
+        font-size: 12px;
         font-weight: bold;
         border-radius: 4px;
         border: 1px solid #000;
         text-align: center;
         flex: 1;
-        margin: 0 2px;
+        margin: 0 3px;
         touch-action: manipulation;
     }
-    .btn:active { transform: translateY(1px); }
+    .btn:active { transform: translateY(2px); }
 
     .btn-start { background: #4caf50; color: white; }
     .btn-start.active { background: #f44336; }
-    .btn-rubber { background: #222; color: #fff; box-shadow: inset 0 2px 4px rgba(255,255,255,0.2); }
+    .btn-rubber { background: #222; color: #fff; box-shadow: inset 0 1px 3px rgba(255,255,255,0.3); }
     .btn-bt { background: #2196F3; color: #000; }
-    .btn-bt.active { background: #0b5b9e; color: #fff; box-shadow: 0 0 8px #2196F3; }
+    .btn-bt.active { background: #0b5b9e; color: #fff; }
 
-    /* Sliders container (hidden by default) */
-    .slider-container { display: none; padding: 4px 12px; background: #eee; font-size: 11px; }
+    /* Sliders */
+    .slider-container { display: none; padding: 8px 16px; background: #ddd; font-size: 12px; border-bottom: 1px solid #bbb;}
     .slider-container.active { display: flex; align-items: center; justify-content: space-between; }
-    input[type=range] { flex: 1; margin: 0 8px; }
+    input[type=range] { flex: 1; margin: 0 12px; }
 
     /* Track Lanes */
     #tracks {
@@ -129,83 +119,84 @@
     .track {
         display: flex;
         flex-direction: column;
-        border-bottom: 2px solid #ccc;
-        padding: 6px 8px;
+        border-bottom: 3px solid #aaa;
+        padding: 8px 12px;
     }
 
     .track-controls {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
 
     .track-btn {
-        background: #ddd;
-        border: 1px solid #888;
-        border-radius: 3px;
-        font-size: 10px;
-        padding: 4px;
-        color: #000;
+        background: #222;
+        color: #fff;
+        border: 1px solid #000;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        padding: 6px 2px;
         flex: 1;
-        margin: 0 2px;
+        text-align: center;
+        margin: 0 3px;
+        box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
         touch-action: manipulation;
     }
+    .track-btn:active { transform: translateY(1px); }
 
     /* Node Grid */
     .node-grid {
         display: grid;
         grid-template-columns: repeat(16, 1fr);
-        gap: 2px;
-        margin-bottom: 8px;
-        background: #bbb;
-        padding: 2px;
-        border-radius: 2px;
+        gap: 3px;
+        margin-bottom: 12px;
+        background: #999;
+        padding: 4px;
+        border-radius: 4px;
+        border: 1px inset #777;
     }
     .node {
-        height: 12px;
-        background: #888;
-        border-radius: 1px;
+        height: 14px;
+        background: #666;
+        border-radius: 2px;
     }
-    .node.beat { background: #a0a0a0; } /* Quarter notes slightly lighter */
-    .node.active { background: #fff; box-shadow: 0 0 4px #fff; }
+    .node.beat { background: #888; } 
+    .node.active { background: #fff; box-shadow: 0 0 6px #fff; }
 
-    /* Stomp Pedal */
+    /* Huge Stomp Pedal */
     .stomp-area {
         display: flex;
         align-items: center;
-        justify-content: flex-start;
-        padding-left: 10px;
+        justify-content: space-between;
+        width: 100%;
     }
 
     .stomp-pedal {
-        width: 80px;
-        height: 35px;
-        background: linear-gradient(to bottom, #f0f0f0, #a0a0a0);
-        border: 2px solid #555;
-        border-radius: 4px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 2px 2px rgba(255,255,255,0.8);
+        flex-grow: 1;
+        height: 60px;
+        margin-right: 20px;
+        background: linear-gradient(to bottom, #eee, #aaa);
+        border: 3px solid #444;
+        border-radius: 6px;
+        box-shadow: 0 6px 10px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.9);
         display: flex;
         justify-content: center;
         align-items: center;
         touch-action: manipulation;
     }
     .stomp-pedal:active {
-        transform: translateY(2px);
-        box-shadow: 0 1px 2px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.4);
+        transform: translateY(4px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.5);
     }
-    .stomp-led { margin-left: 20px; }
-
 </style>
 </head>
 <body>
 
 <div id="pedal-chassis">
-    <div class="cable left"></div>
-    <div class="cable right"></div>
-
     <div id="header">
         <div id="title-area">
-            <div id="title">J-LOOPER v 0.001</div>
+            <div id="title">J-LOOPER v 0.002</div>
             <div id="subtitle">Created by Jeremiah Keller</div>
         </div>
         <div id="global-led" class="led"></div>
@@ -227,64 +218,70 @@
 
     <div id="slider-click" class="slider-container">
         <label>Click Vol:</label>
-        <input type="range" id="click-vol-range" min="0" max="300" value="80">
-        <span id="click-vol-val">80%</span>
+        <input type="range" id="click-vol-range" min="0" max="300" value="150">
+        <span id="click-vol-val">150%</span>
     </div>
 
-    <div id="tracks">
-        </div>
+    <div id="tracks"></div>
 </div>
 
 <script>
     // System Constants & State
     const TRACK_COUNT = 4;
     let audioCtx = null;
+    let masterGain = null;
+    let clickGainMaster = null;
+    let micStream = null;
+    let processorNode = null;
+    
     let isPlaying = false;
     let isBTReady = false;
     let globalTempo = 94;
-    let clickVolume = 0.8;
+    let clickVolume = 1.5;
     let clickMuted = false;
     
     let nextNoteTime = 0.0;
-    let current16thNote = 0;
-    let lookahead = 25.0; // ms
-    let scheduleAheadTime = 0.1; // s
+    let globalStep = 0; // Infinitely incrementing 16th note counter
+    let lookahead = 25.0; 
+    let scheduleAheadTime = 0.1; 
     let timerID = null;
 
-    let micStream = null;
-    let micNode = null;
-    
-    // Future drum/click samples go here. Using synthesis for now.
+    // Punchy Synthesized Click Track
     function playClick(time, isQuarter) {
         if (clickMuted) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
         
-        osc.frequency.value = isQuarter ? 880 : 440;
-        gain.gain.value = clickVolume;
+        let osc = audioCtx.createOscillator();
+        let clickGain = audioCtx.createGain();
+        
+        osc.connect(clickGain);
+        clickGain.connect(clickGainMaster);
+        
+        // Square wave for punchier cut-through
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(isQuarter ? 800 : 400, time);
+        osc.frequency.exponentialRampToValueAtTime(100, time + 0.05);
+        
+        clickGain.gain.setValueAtTime(clickVolume, time);
+        clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
         
         osc.start(time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
         osc.stop(time + 0.1);
     }
 
     class Track {
         constructor(id) {
             this.id = id;
-            this.state = 'empty'; // empty, waiting_record, recording, playing, muted
+            this.state = 'empty'; // empty, queued_warning, warning_cycle, recording, playing, muted
             this.bars = 1;
-            this.chop = 'OFF';
-            this.volume = 0.8;
-            this.nudgeMs = -200; // default hardware latency compensation
+            this.volume = 1.0;
+            this.nudgeMs = -200; 
             
             this.audioBuffer = null;
-            this.sourceNode = null;
-            this.gainNode = null;
+            this.pcmBuffer = null; // Raw array for zero-latency capture
+            this.recordIndex = 0;
             
-            this.mediaRecorder = null;
-            this.recordedChunks = [];
+            this.sourceNodes = []; // Keep track of scheduled nodes to kill them on stop
+            this.gainNode = null;
             
             this.buildUI();
         }
@@ -298,14 +295,13 @@
                 <div class="track-controls">
                     <div class="track-btn" id="clear-${this.id}">CLEAR</div>
                     <div class="track-btn" id="vol-${this.id}">VOL</div>
-                    <div class="track-btn" id="chop-${this.id}">CHOP: OFF</div>
                     <div class="track-btn" id="bars-${this.id}">BARS: 1</div>
                     <div class="track-btn" id="nudge-${this.id}">NUDGE</div>
                 </div>
                 <div id="slider-vol-${this.id}" class="slider-container">
                     <label>Vol:</label>
-                    <input type="range" min="0" max="300" value="80">
-                    <span>80%</span>
+                    <input type="range" id="vol-range-${this.id}" min="0" max="300" value="100">
+                    <span id="vol-val-${this.id}">100%</span>
                 </div>
                 <div id="slider-nudge-${this.id}" class="slider-container">
                     <label>Nudge:</label>
@@ -322,20 +318,17 @@
             `;
             container.appendChild(trackDiv);
             
-            // UI Bindings
             document.getElementById(`stomp-${this.id}`).addEventListener('pointerdown', () => this.handleStomp());
             document.getElementById(`clear-${this.id}`).addEventListener('pointerdown', () => this.clearTrack());
             
-            // Toggles
             const barsBtn = document.getElementById(`bars-${this.id}`);
             barsBtn.addEventListener('pointerdown', () => {
-                if(this.state !== 'empty') return; // Can't change bars if recorded
+                if(this.state !== 'empty') return; 
                 this.bars = this.bars === 1 ? 2 : (this.bars === 2 ? 4 : 1);
                 barsBtn.innerText = `BARS: ${this.bars}`;
                 this.updateGridUI();
             });
 
-            // Sliders Toggle visibility
             const bindSliderToggle = (btnId, sliderId) => {
                 document.getElementById(btnId).addEventListener('pointerdown', () => {
                     document.getElementById(sliderId).classList.toggle('active');
@@ -343,6 +336,15 @@
             };
             bindSliderToggle(`vol-${this.id}`, `slider-vol-${this.id}`);
             bindSliderToggle(`nudge-${this.id}`, `slider-nudge-${this.id}`);
+
+            // Bind individual volume
+            document.getElementById(`vol-range-${this.id}`).addEventListener('input', (e) => {
+                this.volume = e.target.value / 100;
+                document.getElementById(`vol-val-${this.id}`).innerText = `${e.target.value}%`;
+                if(this.gainNode && this.state === 'playing') {
+                    this.gainNode.gain.value = this.volume;
+                }
+            });
         }
 
         updateGridUI() {
@@ -350,19 +352,16 @@
             grid.innerHTML = Array(16 * this.bars).fill(0).map((_,i) => 
                 `<div class="node ${i%4===0 ? 'beat' : ''}" id="node-${this.id}-${i}"></div>`
             ).join('');
-            grid.style.gridTemplateColumns = `repeat(16, 1fr)`;
         }
 
         updateVisualNode(stepIndex) {
             const totalNodes = 16 * this.bars;
             const localStep = stepIndex % totalNodes;
             
-            // Clear previous
-            const prevStep = localStep === 0 ? totalNodes - 1 : localStep - 1;
-            const prevEl = document.getElementById(`node-${this.id}-${prevStep}`);
-            if(prevEl) prevEl.classList.remove('active');
+            // Fixes the ghost node bug: explicitly remove class from all nodes in this track
+            const allNodes = document.querySelectorAll(`#grid-${this.id} .node`);
+            allNodes.forEach(n => n.classList.remove('active'));
             
-            // Set active
             const el = document.getElementById(`node-${this.id}-${localStep}`);
             if(el) el.classList.add('active');
         }
@@ -376,8 +375,8 @@
             if (!isPlaying) return;
             
             if (this.state === 'empty') {
-                this.state = 'waiting_record';
-                this.setLED('dim-red');
+                this.state = 'queued_warning';
+                this.setLED('dim-red'); // Awaiting the full cycle
             } else if (this.state === 'playing') {
                 this.state = 'muted';
                 if(this.gainNode) this.gainNode.gain.value = 0;
@@ -390,201 +389,214 @@
         }
 
         clearTrack() {
-            if(this.sourceNode) this.sourceNode.stop();
+            this.sourceNodes.forEach(src => { try { src.stop(); } catch(e){} });
+            this.sourceNodes = [];
             this.audioBuffer = null;
+            this.pcmBuffer = null;
             this.state = 'empty';
             this.setLED('');
         }
 
-        startRecording() {
-            this.state = 'recording';
-            this.setLED('bright-red');
-            this.recordedChunks = [];
+        finalizeRecording() {
+            this.audioBuffer = audioCtx.createBuffer(1, this.pcmBuffer.length, audioCtx.sampleRate);
+            this.audioBuffer.copyToChannel(this.pcmBuffer, 0);
             
-            // Zero-bleed: mute all other tracks
-            tracks.forEach(t => {
-                if(t.id !== this.id && t.gainNode) t.gainNode.gain.value = 0;
-            });
-
-            this.mediaRecorder = new MediaRecorder(micStream);
-            this.mediaRecorder.ondataavailable = e => this.recordedChunks.push(e.data);
-            this.mediaRecorder.onstop = () => this.processRecording();
-            this.mediaRecorder.start();
-        }
-
-        stopRecording() {
-            if(this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-                this.mediaRecorder.stop();
+            // Normalization
+            let data = this.audioBuffer.getChannelData(0);
+            let max = 0;
+            for (let i = 0; i < data.length; i++) {
+                if (Math.abs(data[i]) > max) max = Math.abs(data[i]);
             }
-            this.state = 'playing';
-            this.setLED('green');
-            
-            // Restore volumes for all tracks
-            tracks.forEach(t => {
-                if(t.gainNode && t.state === 'playing') t.gainNode.gain.value = t.volume;
-            });
-        }
+            if (max > 0) {
+                let multiplier = 1 / max;
+                for (let i = 0; i < data.length; i++) data[i] *= multiplier;
+            }
 
-        async processRecording() {
-            const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
-            const arrayBuffer = await blob.arrayBuffer();
-            this.audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-            
-            this.normalizeBuffer(this.audioBuffer);
-            this.applyMicroscopicFade(this.audioBuffer);
-            
-            // Re-routing for playback
+            // Micro tail fade (10ms) to prevent looping clicks
+            let fadeSamples = Math.floor(0.01 * audioCtx.sampleRate);
+            for (let i = 0; i < fadeSamples; i++) {
+                let index = data.length - fadeSamples + i;
+                if(index >= 0) data[index] *= (1 - (i / fadeSamples));
+            }
+
             if(!this.gainNode) {
                 this.gainNode = audioCtx.createGain();
-                this.gainNode.connect(audioCtx.destination);
+                this.gainNode.connect(masterGain); // Connect to master out
             }
             this.gainNode.gain.value = this.volume;
-        }
-
-        normalizeBuffer(buffer) {
-            for (let c = 0; c < buffer.numberOfChannels; c++) {
-                let data = buffer.getChannelData(c);
-                let max = 0;
-                for (let i = 0; i < data.length; i++) {
-                    if (Math.abs(data[i]) > max) max = Math.abs(data[i]);
-                }
-                if (max > 0) {
-                    let multiplier = 1 / max;
-                    for (let i = 0; i < data.length; i++) data[i] *= multiplier;
-                }
-            }
-        }
-
-        applyMicroscopicFade(buffer) {
-            // Fades out the last 20ms to prevent clicks
-            const fadeTimeSec = 0.02; 
-            const sampleRate = buffer.sampleRate;
-            const fadeSamples = Math.floor(fadeTimeSec * sampleRate);
-            
-            for (let c = 0; c < buffer.numberOfChannels; c++) {
-                let data = buffer.getChannelData(c);
-                for (let i = 0; i < fadeSamples; i++) {
-                    let index = data.length - fadeSamples + i;
-                    if(index >= 0) {
-                        data[index] *= (1 - (i / fadeSamples));
-                    }
-                }
-            }
+            this.pcmBuffer = null; // Free memory
         }
 
         playLoop(time) {
             if(!this.audioBuffer || this.state !== 'playing') return;
             
-            this.sourceNode = audioCtx.createBufferSource();
-            this.sourceNode.buffer = this.audioBuffer;
-            this.sourceNode.connect(this.gainNode);
+            let src = audioCtx.createBufferSource();
+            src.buffer = this.audioBuffer;
+            src.connect(this.gainNode);
             
-            // Apply Latency pull-back
             let playTime = time + (this.nudgeMs / 1000);
-            if(playTime < audioCtx.currentTime) playTime = audioCtx.currentTime; // Safety
+            if(playTime < audioCtx.currentTime) playTime = audioCtx.currentTime;
             
-            this.sourceNode.start(playTime);
+            src.start(playTime);
+            this.sourceNodes.push(src);
+            
+            // Clean up old nodes to save memory
+            if(this.sourceNodes.length > 3) {
+                this.sourceNodes.shift(); 
+            }
         }
     }
 
     const tracks = [];
-    for(let i=1; i<=TRACK_COUNT; i++) {
-        tracks.push(new Track(i));
-    }
+    for(let i=1; i<=TRACK_COUNT; i++) tracks.push(new Track(i));
 
-    // Scheduling Logic
-    function nextNote() {
-        const secondsPerBeat = 60.0 / globalTempo;
-        nextNoteTime += 0.25 * secondsPerBeat; // 16th note timing
-        current16thNote++;
-        if (current16thNote === 16) {
-            current16thNote = 0;
-        }
-    }
-
-    function scheduleNote(beatNumber, time) {
-        // Global visual flash on quarters
-        if (beatNumber % 4 === 0) {
+    function scheduleNote(step, time) {
+        if (step % 4 === 0) {
             const led = document.getElementById('global-led');
             led.classList.add('flash');
             setTimeout(() => led.classList.remove('flash'), 50);
             
-            playClick(time, beatNumber === 0); // High click on the 1
-            
-            // Handle Downbeat Recording Logic
-            if(beatNumber === 0) {
-                tracks.forEach(track => {
-                    if(track.state === 'waiting_record') {
-                        track.startRecording();
-                    } else if (track.state === 'recording') {
-                        // Assuming 1 bar loop for basic state, scalable later via track.bars
-                        track.stopRecording();
-                        track.playLoop(time);
-                    } else if (track.state === 'playing') {
-                        track.playLoop(time);
-                    }
-                });
+            // Only play click if we are NOT actively recording (Zero-Bleed)
+            let isAnyRecording = tracks.some(t => t.state === 'recording');
+            if(!isAnyRecording) {
+                playClick(time, step % 16 === 0);
             }
         }
 
-        // Update traveling nodes
-        tracks.forEach(track => track.updateVisualNode(current16thNote));
+        tracks.forEach(t => {
+            let localStep = step % (16 * t.bars);
+            
+            // Logic fires exclusively on the "One"
+            if (localStep === 0) {
+                if (t.state === 'queued_warning') {
+                    // Start full cycle warning
+                    t.state = 'warning_cycle';
+                    t.setLED('dim-red flash'); // Visually tell user warning has begun
+                } 
+                else if (t.state === 'warning_cycle') {
+                    // Warning finished. Start actual recording phase
+                    t.state = 'recording';
+                    t.setLED('bright-red');
+                    t.recordIndex = 0;
+                    
+                    let secondsPerBeat = 60.0 / globalTempo;
+                    let loopDuration = secondsPerBeat * 4 * t.bars;
+                    t.pcmBuffer = new Float32Array(Math.ceil(audioCtx.sampleRate * loopDuration));
+                    
+                    // ZERO-BLEED: Mute master playback instantly
+                    masterGain.gain.setValueAtTime(0, time);
+                } 
+                else if (t.state === 'recording') {
+                    // Recording finished. Instantly transition to playback
+                    t.state = 'playing';
+                    t.setLED('green');
+                    
+                    t.finalizeRecording();
+                    t.playLoop(time);
+                    
+                    // UNMUTE master playback instantly
+                    masterGain.gain.setValueAtTime(1, time);
+                } 
+                else if (t.state === 'playing') {
+                    t.playLoop(time);
+                }
+            }
+            
+            t.updateVisualNode(step);
+        });
+    }
+
+    function nextNote() {
+        const secondsPerBeat = 60.0 / globalTempo;
+        nextNoteTime += 0.25 * secondsPerBeat; 
+        globalStep++;
     }
 
     function scheduler() {
         while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
-            scheduleNote(current16thNote, nextNoteTime);
+            scheduleNote(globalStep, nextNoteTime);
             nextNote();
         }
         timerID = window.setTimeout(scheduler, lookahead);
     }
 
-    // Global UI bindings
+    async function initAudio() {
+        if (!audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            
+            masterGain = audioCtx.createGain();
+            masterGain.connect(audioCtx.destination);
+            
+            clickGainMaster = audioCtx.createGain();
+            clickGainMaster.connect(masterGain);
+
+            // Raw PCM Capture Setup
+            processorNode = audioCtx.createScriptProcessor(4096, 1, 1);
+            
+            // Prevent feedback loop by routing mic data to a dead end 
+            // We only need it to trigger onaudioprocess
+            let dumpGain = audioCtx.createGain();
+            dumpGain.gain.value = 0;
+            processorNode.connect(dumpGain);
+            dumpGain.connect(audioCtx.destination);
+
+            processorNode.onaudioprocess = function(e) {
+                let input = e.inputBuffer.getChannelData(0);
+                for(let i=0; i<tracks.length; i++) {
+                    let t = tracks[i];
+                    if(t.state === 'recording' && t.pcmBuffer) {
+                        for(let s=0; s<input.length; s++) {
+                            if(t.recordIndex < t.pcmBuffer.length) {
+                                t.pcmBuffer[t.recordIndex++] = input[s];
+                            }
+                        }
+                    }
+                }
+            };
+        }
+        
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+        // Get Mic with explicit constraints to disable iOS voice-processing limits
+        if (!micStream && !isBTReady) {
+            try {
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+                });
+                let micSource = audioCtx.createMediaStreamSource(micStream);
+                micSource.connect(processorNode);
+            } catch(e) {
+                alert("Mic access required to record loops.");
+                return false;
+            }
+        }
+        return true;
+    }
+
     document.getElementById('btn-start').addEventListener('pointerdown', async function() {
         if (!isPlaying) {
-            if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-            }
-            if (audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
-
-            // Init Mic with constraints to avoid thin sound/processing
-            if (!micStream && !isBTReady) {
-                try {
-                    micStream = await navigator.mediaDevices.getUserMedia({
-                        audio: {
-                            echoCancellation: false,
-                            noiseSuppression: false,
-                            autoGainControl: false
-                        }
-                    });
-                } catch(e) {
-                    alert("Mic access required to loop.");
-                    return;
-                }
-            }
+            let ready = await initAudio();
+            if(!ready) return;
 
             isPlaying = true;
             this.innerText = "STOP";
             this.classList.add('active');
             
-            current16thNote = 0;
+            globalStep = 0;
             nextNoteTime = audioCtx.currentTime + 0.05;
+            masterGain.gain.value = 1.0;
+            
             scheduler();
         } else {
             isPlaying = false;
             this.innerText = "START";
             this.classList.remove('active');
+            
             window.clearTimeout(timerID);
             
             // Instant kill audio
-            tracks.forEach(t => {
-                if(t.sourceNode) {
-                    try { t.sourceNode.stop(); } catch(e){}
-                }
-            });
+            if(audioCtx) audioCtx.suspend();
         }
     });
 
@@ -615,14 +627,19 @@
         isBTReady = !isBTReady;
         if(isBTReady) {
             this.classList.add('active');
-            // Release Mic so iOS can switch audio routes to Bluetooth
             if(micStream) {
                 micStream.getTracks().forEach(track => track.stop());
                 micStream = null;
+                alert("Mic Released. iOS should now allow Bluetooth routing. You cannot record new loops in this mode.");
             }
         } else {
             this.classList.remove('active');
-            // Note: Would need to re-request getUserMedia here if switching back dynamically
+            alert("Bluetooth mode off. Hit START to re-engage the microphone.");
+            isPlaying = false;
+            document.getElementById('btn-start').innerText = "START";
+            document.getElementById('btn-start').classList.remove('active');
+            window.clearTimeout(timerID);
+            if(audioCtx) audioCtx.suspend();
         }
     });
 </script>
