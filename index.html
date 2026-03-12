@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v2.05</title>
+    <title>J-looper v2.06</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -128,7 +128,7 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.05</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.06</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -170,7 +170,7 @@
                 <span>Start Point Nudge (Latency)</span>
                 <span id="modal-nudge-val">-200ms</span>
             </span>
-            <input type="range" id="modal-nudge" min="-500" max="100" value="-200" step="5">
+            <input type="range" id="modal-nudge" min="-400" max="100" value="-200" step="5">
         </div>
 
         <div class="modal-header-btns">
@@ -207,8 +207,10 @@
     let mediaRecorder = null, audioChunks = [];
     let targetBarLength = 16;
     
-    // Stable engine defaults
-    let scheduleAheadTime = 0.1;
+    // Holy Grail Sync Variables
+    let scheduleAheadTime = 0.5; // Allows deep negative nudging without clipping
+    let sequenceStartTime = 0;
+    
     let currentRecMode = 'FULL';
 
     tracks.forEach(t => { 
@@ -263,10 +265,10 @@
 
             <div class="dropdown-panel" id="nudge-panel-${tIdx}">
                 <span class="slider-label" style="display:flex; justify-content:space-between;">
-                    <span>Track Nudge (-500ms to 100ms)</span>
+                    <span>Track Nudge (-400ms to 100ms)</span>
                     <span id="lane-nudge-val-${tIdx}" style="color:#222;">${track.nudge}ms</span>
                 </span>
-                <input type="range" min="-500" max="100" value="${track.nudge}" step="5" oninput="updateLaneNudge(${tIdx}, this.value)">
+                <input type="range" min="-400" max="100" value="${track.nudge}" step="5" oninput="updateLaneNudge(${tIdx}, this.value)">
             </div>
             
             <div class="bars-container">${barHtml}</div>`;
@@ -294,15 +296,17 @@
         document.getElementById(`lane-vol-val-${tIdx}`).innerText = val + '%';
     }
 
+    // Resolves Race Condition for initial fetch
+    let fetchPromise = preFetchAll();
+
     async function preFetchAll() {
-        for (let file of sampleFiles) {
-            if (!preFetchedBuffers[file]) {
-                try {
-                    const res = await fetch(`samples/${file}`);
-                    if(res.ok) preFetchedBuffers[file] = await res.arrayBuffer();
-                } catch (e) { console.warn("Missing file or offline:", file); }
-            }
-        }
+        const promises = sampleFiles.map(async (file) => {
+            try {
+                const res = await fetch(`samples/${file}`);
+                if(res.ok) preFetchedBuffers[file] = await res.arrayBuffer();
+            } catch (e) { console.warn("Missing file or offline:", file); }
+        });
+        await Promise.all(promises);
     }
 
     async function initAudioContextAndDecode() {
@@ -312,12 +316,23 @@
             masterGain.connect(audioCtx.destination);
         }
         if (audioCtx.state === 'suspended') await audioCtx.resume();
+        
+        await fetchPromise; // Wait securely for files to finish downloading
+        
+        const decodePromises = [];
         for (let i = 0; i < tracks.length; i++) {
             if (tracks[i].name !== 'EMPTY' && preFetchedBuffers[tracks[i].name] && !tracks[i].buffer) {
                 const bufferCopy = preFetchedBuffers[tracks[i].name].slice(0);
-                audioCtx.decodeAudioData(bufferCopy, (decoded) => { tracks[i].buffer = decoded; });
+                const p = new Promise(resolve => {
+                    audioCtx.decodeAudioData(bufferCopy, decoded => { 
+                        tracks[i].buffer = decoded; 
+                        resolve();
+                    }, () => resolve()); // Resolve safely even if decode fails
+                });
+                decodePromises.push(p);
             }
         }
+        await Promise.all(decodePromises);
     }
 
     function normalizeBuffer(buffer) {
@@ -364,29 +379,33 @@
     }
 
     function scheduler() {
+        let secondsPerStep = (60 / document.getElementById('tempo').value) / 4;
+        
         while (nextStepTime < audioCtx.currentTime + scheduleAheadTime) {
-            
             if (activeTrackIdx !== null) {
                 targetBarLength = tracks[activeTrackIdx].bars * 16;
                 const laneRelative = currentStep % targetBarLength;
                 
                 if (isWaitingForFirstOne && laneRelative === 0) {
-                    isWaitingForFirstOne = false; isWaitingFullCycle = true; cycleCounter = 0; updateRecBtnUI();
+                    isWaitingForFirstOne = false; isWaitingFullCycle = true; cycleCounter = 0; 
+                    setTimeout(updateRecBtnUI, (nextStepTime - audioCtx.currentTime) * 1000);
                 }
+                
                 if (isWaitingFullCycle) {
                     cycleCounter++;
                     if (cycleCounter >= targetBarLength && laneRelative === targetBarLength - 1) {
                         isWaitingFullCycle = false; isRecordingNow = true; masterMuted = true;
-                        
                         masterGain.gain.setValueAtTime(0, nextStepTime);
-                        
                         recordCounter = 0; audioChunks = []; 
-                        setTimeout(() => mediaRecorder.start(), 0); updateRecBtnUI();
+                        
+                        // Hardware-precise delay for mic
+                        let delay = (nextStepTime - audioCtx.currentTime) * 1000;
+                        setTimeout(() => { if(isPlaying) mediaRecorder.start(); updateRecBtnUI(); }, delay); 
                     }
                 }
+                
                 if (isRecordingNow) {
                     recordCounter++;
-                    
                     let shouldStop = false;
                     if (currentRecMode === 'INSTANT') {
                         shouldStop = (recordCounter >= targetBarLength && laneRelative === targetBarLength - 1);
@@ -396,9 +415,10 @@
 
                     if (shouldStop) {
                         isRecordingNow = false; masterMuted = false; 
-                        
                         masterGain.gain.setValueAtTime(1, nextStepTime);
-                        setTimeout(() => mediaRecorder.stop(), 0); updateRecBtnUI();
+                        
+                        let delay = (nextStepTime - audioCtx.currentTime) * 1000;
+                        setTimeout(() => { if(isPlaying && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
                     }
                 }
                 
@@ -426,10 +446,10 @@
                     }
                 });
             }
-            nextStepTime += (60 / document.getElementById('tempo').value) / 4;
+            nextStepTime += secondsPerStep;
             currentStep++; 
         }
-        if (isPlaying) { setTimeout(scheduler, 25); requestAnimationFrame(updateUI); }
+        if (isPlaying) { setTimeout(scheduler, 25); }
     }
 
     function playSample(buffer, time, vol, nudgeMs = 0, trackObj = null) {
@@ -441,15 +461,11 @@
         gain.gain.value = (vol / 100) * document.getElementById('master-vol').value; 
         source.connect(gain); gain.connect(masterGain);
         
-        // Stable scheduling logic (Tradeoff: tight sync, but chops negative offsets to keep time)
-        let startTime = time;
-        let offsetInFile = 0;
+        // Pure unchopped scheduling
+        let startTime = time + (nudgeMs / 1000);
         
-        if (nudgeMs < 0) {
-            offsetInFile = Math.abs(nudgeMs) / 1000;
-        } else if (nudgeMs > 0) {
-            startTime += (nudgeMs / 1000);
-        }
+        // Safety lock: if pushed extremely early on the very first loop, it plays immediately without crashing
+        if (startTime < audioCtx.currentTime) startTime = audioCtx.currentTime;
         
         if (trackObj && trackObj.choke) {
             if (trackObj.lastSource) {
@@ -458,46 +474,61 @@
             trackObj.lastSource = source;
         }
 
-        source.start(startTime, offsetInFile);
+        source.start(startTime);
     }
 
-    function updateUI() {
-        const step = currentStep - 1;
-        
-        tracks.forEach((track, tIdx) => {
-            const laneStep = step % (track.bars * 16);
-            for(let b=0; b<4; b++) { 
-                const ph = document.getElementById(`ph-${tIdx}-bar-${b}`); 
-                if(ph) ph.style.display = 'none'; 
-            }
+    function uiLoop() {
+        if (isPlaying && audioCtx) {
+            let secondsPerStep = (60 / document.getElementById('tempo').value) / 4;
+            let elapsed = audioCtx.currentTime - sequenceStartTime;
+            if (elapsed < 0) elapsed = 0;
             
-            const mainPh = document.getElementById(`ph-${tIdx}-bar-${Math.floor(laneStep/16)}`);
-            if (mainPh && isPlaying) { 
-                mainPh.style.display = 'block'; 
-                mainPh.style.left = `${(laneStep%16) * 6.25}%`; 
-            }
-        });
+            // Holy Grail Sync: completely decoupled from audio scheduler loop
+            let visualStep = Math.floor(elapsed / secondsPerStep);
+            
+            tracks.forEach((track, tIdx) => {
+                const laneStep = visualStep % (track.bars * 16);
+                for(let b=0; b<4; b++) { 
+                    const ph = document.getElementById(`ph-${tIdx}-bar-${b}`); 
+                    if(ph) ph.style.display = 'none'; 
+                }
+                
+                const mainPh = document.getElementById(`ph-${tIdx}-bar-${Math.floor(laneStep/16)}`);
+                if (mainPh) { 
+                    mainPh.style.display = 'block'; 
+                    mainPh.style.left = `${(laneStep%16) * 6.25}%`; 
+                }
+            });
 
-        if (activeTrackIdx !== null && isPlaying) {
-            const laneStep = step % (tracks[activeTrackIdx].bars * 16);
-            for(let b=0; b<4; b++) {
-                const mph = document.getElementById(`modal-ph-bar-${b}`);
-                if (mph) mph.style.display = 'none';
+            if (activeTrackIdx !== null) {
+                const laneStep = visualStep % (tracks[activeTrackIdx].bars * 16);
+                for(let b=0; b<4; b++) {
+                    const mph = document.getElementById(`modal-ph-bar-${b}`);
+                    if (mph) mph.style.display = 'none';
+                }
+                const activeMph = document.getElementById(`modal-ph-bar-${Math.floor(laneStep/16)}`);
+                if (activeMph) {
+                    activeMph.style.display = 'block';
+                    activeMph.style.left = `${(laneStep%16) * 6.25}%`;
+                }
             }
-            const activeMph = document.getElementById(`modal-ph-bar-${Math.floor(laneStep/16)}`);
-            if (activeMph) {
-                activeMph.style.display = 'block';
-                activeMph.style.left = `${(laneStep%16) * 6.25}%`;
-            }
+            requestAnimationFrame(uiLoop);
         }
     }
 
     document.getElementById('play-btn').onclick = async function() {
+        this.innerText = "LOADING..."; // Brief feedback while fetching
         await initAudioContextAndDecode();
         await initMic(); 
+        
         isPlaying = !isPlaying;
         if (isPlaying) { 
-            currentStep = 0; nextStepTime = audioCtx.currentTime + 0.1; scheduler(); 
+            sequenceStartTime = audioCtx.currentTime + 0.1;
+            nextStepTime = sequenceStartTime;
+            currentStep = 0; 
+            scheduler(); 
+            uiLoop();
+            
             this.innerText = "STOP";
             this.classList.add('stopped');
         } else { 
@@ -640,7 +671,6 @@
     }
 
     renderSequencer();
-    preFetchAll();
 </script>
 </body>
 </html>
