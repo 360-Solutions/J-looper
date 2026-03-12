@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v3.04</title>
+    <title>J-looper v3.05</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -129,7 +129,7 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.04</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.05</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -544,7 +544,7 @@
                 const activeMph = document.getElementById(`modal-ph-bar-${Math.floor(laneStep/16)}`);
                 if (activeMph) {
                     activeMph.style.display = 'block';
-                    activeMph.style.left = `${(lane:step%16) * 6.25}%`;
+                    activeMph.style.left = `${(laneStep%16) * 6.25}%`;
                 }
             }
             requestAnimationFrame(uiLoop);
