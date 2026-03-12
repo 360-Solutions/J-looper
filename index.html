@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v3.05</title>
+    <title>J-looper v3.06</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -43,7 +43,7 @@
             box-shadow: inset 0 1px 3px rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .transport-top { display: flex; align-items: center; gap: 15px; width: 100%; }
+        .transport-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
         
         .action-sm-btn, .action-btn, #toggle-samples-btn, .modal-content > button:last-child {
             background: #222; border: 1px solid #000; color: #fff; 
@@ -54,13 +54,20 @@
         #play-btn { 
             background: #6f42c1; border: 1px solid #59339d; color: #fff; 
             font-weight: 900; border-radius: 6px; cursor: pointer;
-            padding: 15px 20px; font-size: 14px; min-width: 100px;
+            padding: 15px 15px; font-size: 14px; min-width: 90px;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2);
         }
         #play-btn.ready { background: #28a745; border-color: #1e7e34; }
         #play-btn.stopped { background: #dc3545; border-color: #a71d2a; }
         
-        #play-btn:active, .action-sm-btn:active, .action-btn:active { transform: translateY(1px); }
+        #mic-btn {
+            background: var(--rec-red); border: 1px solid #900; color: #fff; 
+            font-weight: 900; border-radius: 6px; cursor: pointer;
+            padding: 15px 10px; font-size: 11px; display: none; min-width: 80px;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        #play-btn:active, .action-sm-btn:active, .action-btn:active, #mic-btn:active { transform: translateY(1px); }
 
         .sliders-group { flex-grow: 1; display: flex; flex-direction: column; gap: 6px;}
         .slider-label { font-size: 10px; text-transform: uppercase; color: var(--accent-color); display: block; margin-bottom: 2px; font-weight: bold;}
@@ -108,7 +115,7 @@
         .rec-visualizer-zone { background: rgba(0,0,0,0.1); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.2); position: relative; }
         .modal-header-btns { display: flex; justify-content: space-around; align-items: center; margin-bottom: 12px; gap: 10px; }
 
-        .rec-btn { background: var(--rec-red); color: white; border: 2px solid #600; padding: 15px 25px; border-radius: 40px; font-weight: 600; font-size: 13px; min-width: 120px; cursor: pointer; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3); }
+        .rec-btn { background: var(--rec-red); color: white; border: 2px solid #600; padding: 15px 25px; border-radius: 40px; font-weight: 600; font-size: 13px; min-width: 120px; cursor: pointer; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3); transition: opacity 0.2s; }
         .rec-btn.waiting { background: #aaaaaa; color: #000; border-color: #666; }
         .rec-btn.recording { background: #fff; color: #ff0000; border-color: #ff0000; animation: pulse 1s infinite; }
         
@@ -129,14 +136,17 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.05</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.06</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
 
 <div class="transport">
     <div class="transport-top">
-        <button id="play-btn">INITIALIZE</button>
+        <div style="display:flex; gap:8px;">
+            <button id="play-btn">INITIALIZE</button>
+            <button id="mic-btn">MIC: ON</button>
+        </div>
         <div class="sliders-group">
             <div style="display: flex; justify-content: space-between;">
                 <span class="slider-label">Master Vol</span>
@@ -211,9 +221,13 @@
     let isPlaying = false, currentStep = 0, nextStepTime = 0, masterMuted = false, activeTrackIdx = null;
     let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false, isSecretlyRecording = false;
     let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
-    let mediaRecorder = null, audioChunks = [];
-    let targetBarLength = 16;
     
+    // New Mic Routing Variables
+    let mediaRecorder = null, audioChunks = [];
+    let currentMicStream = null;
+    let micEnabled = false;
+
+    let targetBarLength = 16;
     let scheduleAheadTime = 0.5; 
     let sequenceStartTime = 0;
 
@@ -367,12 +381,12 @@
     }
 
     async function initMic() {
-        if (mediaRecorder) return;
+        if (mediaRecorder && micEnabled) return;
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
+            currentMicStream = await navigator.mediaDevices.getUserMedia({ 
                 audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } 
             });
-            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder = new MediaRecorder(currentMicStream);
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             
             mediaRecorder.onstop = async () => {
@@ -386,8 +400,47 @@
                     renderSequencer();
                 });
             };
+            
+            micEnabled = true;
+            const mb = document.getElementById('mic-btn');
+            mb.innerText = "MIC: ON";
+            mb.style.background = "var(--rec-red)";
+            mb.style.borderColor = "#900";
+            
+            const recBtn = document.getElementById('rec-action-btn');
+            recBtn.style.opacity = "1";
+            recBtn.disabled = false;
+            
         } catch (err) { console.error("Mic error: " + err); }
     }
+
+    function disableMic() {
+        if (currentMicStream) {
+            currentMicStream.getTracks().forEach(track => track.stop());
+            currentMicStream = null;
+        }
+        mediaRecorder = null;
+        micEnabled = false;
+        
+        const mb = document.getElementById('mic-btn');
+        mb.innerText = "BT LISTEN";
+        mb.style.background = "#555";
+        mb.style.borderColor = "#333";
+        
+        const recBtn = document.getElementById('rec-action-btn');
+        recBtn.style.opacity = "0.3";
+        recBtn.disabled = true;
+    }
+
+    document.getElementById('mic-btn').onclick = async function() {
+        if (!isInitialized) return;
+        if (micEnabled) {
+            disableMic();
+        } else {
+            this.innerText = "WAIT...";
+            await initMic();
+        }
+    };
 
     function scheduler() {
         let secondsPerStep = (60 / document.getElementById('tempo').value) / 4;
@@ -413,7 +466,7 @@
                         recordCounter = 0; audioChunks = []; 
                         
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
-                        setTimeout(() => { if(isPlaying) mediaRecorder.start(); updateRecBtnUI(); }, delay); 
+                        setTimeout(() => { if(isPlaying && mediaRecorder) mediaRecorder.start(); updateRecBtnUI(); }, delay); 
                     }
                 }
                 
@@ -438,7 +491,7 @@
                         masterGain.gain.linearRampToValueAtTime(1, nextStepTime + 0.01);
                         
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
-                        setTimeout(() => { if(isPlaying && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
+                        setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
                     }
                 }
                 
@@ -494,10 +547,7 @@
         if (trackObj && trackObj.choke) {
             if (trackObj.lastSource && trackObj.lastGain) {
                 try { 
-                    // THE MAGIC MATH FIX: The Baton Pass.
-                    // If nudge is negative, wait until the physical grid hits the One to fade out the old loop.
                     let chokeTime = Math.max(time, actualPlayTime); 
-                    
                     const prevGain = trackObj.lastGain;
                     prevGain.gain.cancelScheduledValues(chokeTime);
                     prevGain.gain.setValueAtTime(targetVol, chokeTime);
@@ -559,10 +609,19 @@
             await initAudioContextAndDecode();
             await initMic();
             isInitialized = true;
-            this.innerText = "START";
-            this.className = "ready";
+            document.getElementById('mic-btn').style.display = "block";
+            
+            this.innerText = "STOP";
+            this.className = "stopped";
             this.style.background = ""; 
             this.style.borderColor = "";
+            
+            isPlaying = true;
+            sequenceStartTime = audioCtx.currentTime + 0.1;
+            nextStepTime = sequenceStartTime;
+            currentStep = 0; 
+            scheduler(); 
+            uiLoop();
             return;
         }
 
@@ -593,7 +652,7 @@
     };
 
     document.getElementById('rec-action-btn').onclick = () => { 
-        if(!isPlaying) return; 
+        if(!isPlaying || !micEnabled) return; 
         isWaitingForFirstOne = true; updateRecBtnUI(); 
     };
     
@@ -645,6 +704,8 @@
 
     function updateRecBtnUI() {
         const btn = document.getElementById('rec-action-btn');
+        if (!micEnabled) { btn.innerText = "● RECORD"; btn.className = "rec-btn"; return; }
+        
         if (isWaitingForFirstOne || isWaitingFullCycle) { btn.innerText = "WAITING..."; btn.className = "rec-btn waiting"; }
         else if (isRecordingNow) { btn.innerText = "RECORDING!"; btn.className = "rec-btn recording"; }
         else { btn.innerText = "● RECORD"; btn.className = "rec-btn"; }
