@@ -1,307 +1,630 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-LOOPER v5.0</title>
-    <style>
-        :root {
-            --pedal-body: #fcfcfc;
-            --metal-silver: conic-gradient(from 180deg, #e0e0e0, #999, #e0e0e0, #999, #e0e0e0);
-            --rubber-gray: #3a3a3a;
-            --node-bg: #2a2a2a;
-            --node-dim: #444; 
-            --node-beat: #664444;
-            --node-active: #ffffff;
-            --rec-bright: #ff0000; --rec-prepare: #882222;
-            --play-green: #33ff33; --mute-grey: #666;
-        }
-        body { background-color: #1a1a1a; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; font-family: -apple-system, sans-serif; touch-action: manipulation; }
-        .pedal-body { width: 350px; background: var(--pedal-body); border-radius: 18px; margin: 8px 0; padding-bottom: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; border: 1px solid #eee; position: relative; }
-        .header-container { display: flex; justify-content: space-between; align-items: center; width: 92%; margin: 10px auto 4px auto; }
-        .tempo-indicator { width: 14px; height: 14px; border-radius: 50%; background: #440000; border: 2px solid #222; transition: background 0.05s; }
-        .section { width: 92%; border-radius: 10px; padding: 6px; margin-bottom: 6px; border: 1px solid #e0e0e0; background: #f9f9f9; }
-        .global-sec { background: #f0f0f0; }
-        .btn-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-        .btn-row-global { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-        .mini-btn { background: var(--rubber-gray); color: #fff; border: none; padding: 8px 0; border-radius: 5px; font-size: 8px; font-weight: 800; box-shadow: 0 3px 0 #1a1a1a; text-transform: uppercase; cursor: pointer; }
-        .mini-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1a1a1a; }
-        .display-area { background: var(--node-bg); border-radius: 6px; padding: 6px 4px; margin: 4px 0; box-shadow: inset 0 3px 6px rgba(0,0,0,0.6); }
-        .node-row { display: flex; justify-content: space-around; margin-bottom: 3px; }
-        .node { width: 9px; height: 9px; border-radius: 2px; background: var(--node-dim); }
-        .node.beat { background: var(--node-beat); }
-        .node.active { background: var(--node-active); box-shadow: 0 0 10px #fff; }
-        .stomp-container { display: flex; justify-content: center; align-items: center; margin-top: 4px; gap: 15px; }
-        .stomp-btn { width: 60px; height: 60px; background: var(--metal-silver); border-radius: 50%; border: 3px solid #999; box-shadow: 0 5px 0 #666, 0 8px 12px rgba(0,0,0,0.4); cursor: pointer; }
-        .status-led { width: 16px; height: 16px; border-radius: 50%; background: #222; border: 2px solid #666; transition: all 0.1s; }
-        .led-wait { background: var(--rec-prepare); }
-        .led-rec { background: var(--rec-bright); box-shadow: 0 0 20px var(--rec-bright); }
-        .led-play { background: var(--play-green); box-shadow: 0 0 15px var(--play-green); }
-        .led-muted { background: var(--mute-grey); }
-        .slider-pop { position: fixed; top: 15%; width: 270px; background: white; border: 2px solid #222; padding: 20px; border-radius: 20px; display: none; flex-direction: column; align-items: center; z-index: 1000; box-shadow: 0 25px 60px rgba(0,0,0,0.6); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>J-LOOPER v0.001</title>
+<style>
+    /* Global Reset & Typography */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none; /* Prevents text selection on long presses */
+        -webkit-user-select: none;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+        background-color: #222;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        height: 100vh;
+        overflow: hidden; /* Prevents bounce scroll on iOS */
+    }
+
+    /* Pedal Chassis */
+    #pedal-chassis {
+        width: 100%;
+        max-width: 420px; /* Fits iPhone 11 Pro Max nicely */
+        height: 100vh;
+        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+        border-left: 8px solid #bbb;
+        border-right: 8px solid #999;
+        border-radius: 12px;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.1), 0 15px 30px rgba(0,0,0,0.5);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    /* Fake Cables */
+    .cable {
+        position: absolute;
+        top: 20px;
+        width: 15px;
+        height: 40px;
+        background: #333;
+        border-radius: 4px;
+    }
+    .cable.left { left: -15px; border-radius: 4px 0 0 4px; box-shadow: inset 0 5px 5px #111; }
+    .cable.right { right: -15px; border-radius: 0 4px 4px 0; box-shadow: inset 0 5px 5px #111; }
+
+    /* Top Section */
+    #header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+
+    #title-area {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+    }
+
+    #title { font-size: 16px; font-weight: 900; color: #000; letter-spacing: 1px;}
+    #subtitle { font-size: 10px; color: #333; font-weight: 600;}
+
+    /* LEDs */
+    .led {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #555;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+        border: 1px solid rgba(0,0,0,0.8);
+        transition: background-color 0.05s;
+    }
+    .led.flash { background-color: #ff3333; box-shadow: 0 0 8px #ff3333, inset 0 1px 2px rgba(255,255,255,0.4); }
+    .led.dim-red { background-color: #8b0000; box-shadow: 0 0 4px #8b0000; }
+    .led.bright-red { background-color: #ff0000; box-shadow: 0 0 10px #ff0000; }
+    .led.green { background-color: #00ff00; box-shadow: 0 0 10px #00ff00; }
+
+    /* Global Controls */
+    #global-controls {
+        display: flex;
+        justify-content: space-around;
+        padding: 8px 4px;
+        background: rgba(0,0,0,0.05);
+        border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+
+    .btn {
+        padding: 6px 4px;
+        font-size: 11px;
+        font-weight: bold;
+        border-radius: 4px;
+        border: 1px solid #000;
+        text-align: center;
+        flex: 1;
+        margin: 0 2px;
+        touch-action: manipulation;
+    }
+    .btn:active { transform: translateY(1px); }
+
+    .btn-start { background: #4caf50; color: white; }
+    .btn-start.active { background: #f44336; }
+    .btn-rubber { background: #222; color: #fff; box-shadow: inset 0 2px 4px rgba(255,255,255,0.2); }
+    .btn-bt { background: #2196F3; color: #000; }
+    .btn-bt.active { background: #0b5b9e; color: #fff; box-shadow: 0 0 8px #2196F3; }
+
+    /* Sliders container (hidden by default) */
+    .slider-container { display: none; padding: 4px 12px; background: #eee; font-size: 11px; }
+    .slider-container.active { display: flex; align-items: center; justify-content: space-between; }
+    input[type=range] { flex: 1; margin: 0 8px; }
+
+    /* Track Lanes */
+    #tracks {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        padding: 4px 0;
+        overflow-y: auto;
+    }
+
+    .track {
+        display: flex;
+        flex-direction: column;
+        border-bottom: 2px solid #ccc;
+        padding: 6px 8px;
+    }
+
+    .track-controls {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .track-btn {
+        background: #ddd;
+        border: 1px solid #888;
+        border-radius: 3px;
+        font-size: 10px;
+        padding: 4px;
+        color: #000;
+        flex: 1;
+        margin: 0 2px;
+        touch-action: manipulation;
+    }
+
+    /* Node Grid */
+    .node-grid {
+        display: grid;
+        grid-template-columns: repeat(16, 1fr);
+        gap: 2px;
+        margin-bottom: 8px;
+        background: #bbb;
+        padding: 2px;
+        border-radius: 2px;
+    }
+    .node {
+        height: 12px;
+        background: #888;
+        border-radius: 1px;
+    }
+    .node.beat { background: #a0a0a0; } /* Quarter notes slightly lighter */
+    .node.active { background: #fff; box-shadow: 0 0 4px #fff; }
+
+    /* Stomp Pedal */
+    .stomp-area {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding-left: 10px;
+    }
+
+    .stomp-pedal {
+        width: 80px;
+        height: 35px;
+        background: linear-gradient(to bottom, #f0f0f0, #a0a0a0);
+        border: 2px solid #555;
+        border-radius: 4px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3), inset 0 2px 2px rgba(255,255,255,0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        touch-action: manipulation;
+    }
+    .stomp-pedal:active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.4);
+    }
+    .stomp-led { margin-left: 20px; }
+
+</style>
 </head>
 <body>
-<div class="pedal-body">
-    <div class="header-container">
-        <div style="text-align:left;">
-            <h1 style="font-size:16px; margin:0; letter-spacing:1px; color:#222; font-weight:900;">J-LOOPER</h1>
-            <p style="font-size:8px; opacity:0.6; color:#222; font-weight:bold; margin-top:2px;">v5.0 | CLEAN FOUNDATION</p>
+
+<div id="pedal-chassis">
+    <div class="cable left"></div>
+    <div class="cable right"></div>
+
+    <div id="header">
+        <div id="title-area">
+            <div id="title">J-LOOPER v 0.001</div>
+            <div id="subtitle">Created by Jeremiah Keller</div>
         </div>
-        <div id="tempo-led" class="tempo-indicator"></div>
-    </div>
-    
-    <div class="section global-sec">
-        <div class="btn-row-global">
-            <button id="start-btn" class="mini-btn" style="background:#2ecc71;" onclick="toggleEngine()">START</button>
-            <button class="mini-btn" onclick="openSlider('tempo')">TEMPO</button>
-            <button class="mini-btn" onclick="openSlider('clickVol')">CLICK</button>
-            <button id="mute-click" class="mini-btn" onclick="toggleMute('click')">MUTE</button>
-        </div>
+        <div id="global-led" class="led"></div>
     </div>
 
-    <div class="section">
-        <div style="font-size:9px; font-weight:900; color:#444;">TRACK 1</div>
-        <div class="display-area" id="nodes-0"></div>
-        <div class="btn-row">
-            <button class="mini-btn" onclick="clearTrack(0)">CLEAR</button>
-            <button class="mini-btn" onclick="openSlider('vol0')">VOL</button>
-            <button class="mini-btn" onclick="cycleChop(0)">CHOP: <span id="chop-0">OFF</span></button>
-            <button class="mini-btn" onclick="cycleBars(0)">BARS: <span id="bars-0">1</span></button>
-            <button class="mini-btn" onclick="openSlider('nudge0')">NUDGE</button>
-        </div>
-        <div class="stomp-container">
-            <div class="stomp-btn" onclick="handleStomp(0)"></div>
-            <div id="led-0" class="status-led"></div>
-        </div>
+    <div id="global-controls">
+        <div id="btn-start" class="btn btn-start">START</div>
+        <div id="btn-tempo" class="btn btn-rubber">TEMPO</div>
+        <div id="btn-click" class="btn btn-rubber">CLICK</div>
+        <div id="btn-mute" class="btn btn-rubber">MUTE</div>
+        <div id="btn-bt" class="btn btn-bt">BT</div>
     </div>
 
-    <div class="section">
-        <div style="font-size:9px; font-weight:900; color:#444;">TRACK 2</div>
-        <div class="display-area" id="nodes-1"></div>
-        <div class="btn-row">
-            <button class="mini-btn" onclick="clearTrack(1)">CLEAR</button>
-            <button class="mini-btn" onclick="openSlider('vol1')">VOL</button>
-            <button class="mini-btn" onclick="cycleChop(1)">CHOP: <span id="chop-1">OFF</span></button>
-            <button class="mini-btn" onclick="cycleBars(1)">BARS: <span id="bars-1">1</span></button>
-            <button class="mini-btn" onclick="openSlider('nudge1')">NUDGE</button>
-        </div>
-        <div class="stomp-container">
-            <div class="stomp-btn" onclick="handleStomp(1)"></div>
-            <div id="led-1" class="status-led"></div>
-        </div>
+    <div id="slider-tempo" class="slider-container">
+        <label>Tempo:</label>
+        <input type="range" id="tempo-range" min="40" max="200" value="94">
+        <span id="tempo-val">94</span>
     </div>
 
-    <div class="section">
-        <div style="font-size:9px; font-weight:900; color:#444;">TRACK 3</div>
-        <div class="display-area" id="nodes-2"></div>
-        <div class="btn-row">
-            <button class="mini-btn" onclick="clearTrack(2)">CLEAR</button>
-            <button class="mini-btn" onclick="openSlider('vol2')">VOL</button>
-            <button class="mini-btn" onclick="cycleChop(2)">CHOP: <span id="chop-2">OFF</span></button>
-            <button class="mini-btn" onclick="cycleBars(2)">BARS: <span id="bars-2">1</span></button>
-            <button class="mini-btn" onclick="openSlider('nudge2')">NUDGE</button>
-        </div>
-        <div class="stomp-container">
-            <div class="stomp-btn" onclick="handleStomp(2)"></div>
-            <div id="led-2" class="status-led"></div>
-        </div>
+    <div id="slider-click" class="slider-container">
+        <label>Click Vol:</label>
+        <input type="range" id="click-vol-range" min="0" max="300" value="80">
+        <span id="click-vol-val">80%</span>
     </div>
-</div>
 
-<div id="slider-overlay" class="slider-pop">
-    <b id="sl-title">TEMPO</b> <h1 id="sl-readout">94</h1>
-    <input type="range" id="sl-input" style="width:100%;" oninput="updateSlider(this.value)">
-    <button class="mini-btn" style="width:120px; margin-top:15px;" onclick="closeSlider()">DONE</button>
+    <div id="tracks">
+        </div>
 </div>
 
 <script>
-    let audioCtx, masterGain, clickGain, tempo=94, isRunning=false, currentStep=0;
-    let stream, globalProcessor;
-    let activeRecTrack = -1; 
-    let recData = [];
+    // System Constants & State
+    const TRACK_COUNT = 4;
+    let audioCtx = null;
+    let isPlaying = false;
+    let isBTReady = false;
+    let globalTempo = 94;
+    let clickVolume = 0.8;
+    let clickMuted = false;
     
-    let tracks = [
-        { bars:1, chop:16, buffer:null, gain:1.0, state:"IDLE", nudge:-0.200, muted:false, waitCycles:0, activeGain:null, activeSource:null },
-        { bars:1, chop:16, buffer:null, gain:1.0, state:"IDLE", nudge:-0.200, muted:false, waitCycles:0, activeGain:null, activeSource:null },
-        { bars:1, chop:16, buffer:null, gain:1.0, state:"IDLE", nudge:-0.200, muted:false, waitCycles:0, activeGain:null, activeSource:null }
-    ];
+    let nextNoteTime = 0.0;
+    let current16thNote = 0;
+    let lookahead = 25.0; // ms
+    let scheduleAheadTime = 0.1; // s
+    let timerID = null;
 
-    async function toggleEngine() {
-        const btn = document.getElementById('start-btn');
+    let micStream = null;
+    let micNode = null;
+    
+    // Future drum/click samples go here. Using synthesis for now.
+    function playClick(time, isQuarter) {
+        if (clickMuted) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
         
-        if(!isRunning) {
-            // STEP 1: Core Setup
-            if(!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-                masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
-                clickGain = audioCtx.createGain(); clickGain.connect(masterGain);
-            }
-            
-            // Resume context immediately on user tap
-            if(audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
-            
-            // STEP 2: Mic & Processor Setup
-            if(!stream) {
-                try { 
-                    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); 
-                    const src = audioCtx.createMediaStreamSource(stream);
-                    globalProcessor = audioCtx.createScriptProcessor(4096, 1, 1);
-                    src.connect(globalProcessor);
-                    globalProcessor.connect(audioCtx.destination);
-                    
-                    globalProcessor.onaudioprocess = e => {
-                        // iOS BUG FIX: We MUST feed silence to the output buffer to keep the engine from freezing
-                        const out = e.outputBuffer.getChannelData(0);
-                        for(let i = 0; i < out.length; i++) out[i] = 0;
-
-                        // Capture audio if a track is active
-                        if (activeRecTrack !== -1) {
-                            recData.push(new Float32Array(e.inputBuffer.getChannelData(0)));
-                        }
-                    };
-                } catch(e) { 
-                    alert("Microphone access is required to run the looper."); 
-                    return; 
-                }
-            }
-
-            isRunning = true;
-            currentStep = 0;
-            btn.innerText = "STOP"; btn.style.background = "#e74c3c";
-            tick();
-        } else {
-            isRunning = false;
-            activeRecTrack = -1;
-            btn.innerText = "START"; btn.style.background = "#2ecc71";
-            if(audioCtx) audioCtx.suspend();
-            document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
-        }
+        osc.frequency.value = isQuarter ? 880 : 440;
+        gain.gain.value = clickVolume;
+        
+        osc.start(time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+        osc.stop(time + 0.1);
     }
 
-    function handleStomp(i) {
-        if(!isRunning) return;
-        let t = tracks[i];
-        if(t.state === "IDLE") {
-            t.state = "WAITING"; t.waitCycles = 0;
-            document.getElementById(`led-${i}`).className = 'status-led led-wait';
-        } else if(t.state === "PLAYING" || t.state === "MUTED") {
-            t.muted = !t.muted; t.state = t.muted ? "MUTED" : "PLAYING";
-            document.getElementById(`led-${i}`).className = 'status-led ' + (t.muted ? 'led-muted' : 'led-play');
-            if (t.activeGain) t.activeGain.gain.setTargetAtTime(t.muted ? 0 : t.gain, audioCtx.currentTime, 0.015);
-        }
-    }
-
-    function tick() {
-        if(!isRunning) return;
-        const stepTime = (60/tempo)/4;
-        
-        if (currentStep % 4 === 0) {
-            const tLed = document.getElementById('tempo-led');
-            tLed.style.background = '#ff3333'; setTimeout(() => tLed.style.background = '#440000', 100);
-            if(!clickMuted) playClick(currentStep % 16 === 0 ? 1000 : 500);
-        }
-
-        tracks.forEach((t, idx) => {
-            const loopSteps = (t.chop < 16) ? t.chop : t.bars * 16;
-            const sInL = currentStep % loopSteps;
+    class Track {
+        constructor(id) {
+            this.id = id;
+            this.state = 'empty'; // empty, waiting_record, recording, playing, muted
+            this.bars = 1;
+            this.chop = 'OFF';
+            this.volume = 0.8;
+            this.nudgeMs = -200; // default hardware latency compensation
             
-            document.querySelectorAll(`#nodes-${idx} .node`).forEach(n => n.classList.remove('active'));
-            document.getElementById(`n-${idx}-${Math.floor(sInL/16)}-${sInL%16}`)?.classList.add('active');
+            this.audioBuffer = null;
+            this.sourceNode = null;
+            this.gainNode = null;
+            
+            this.mediaRecorder = null;
+            this.recordedChunks = [];
+            
+            this.buildUI();
+        }
 
-            if (sInL === 0) {
-                if(t.state === "RECORDING") {
-                    // Stop compiling audio
-                    activeRecTrack = -1;
-                    processBuffer(idx);
-                    
-                    t.state = "PLAYING"; 
-                    document.getElementById(`led-${idx}`).className = 'status-led led-play';
-                    masterGain.gain.setValueAtTime(1, audioCtx.currentTime); 
+        buildUI() {
+            const container = document.getElementById('tracks');
+            const trackDiv = document.createElement('div');
+            trackDiv.className = 'track';
+            
+            trackDiv.innerHTML = `
+                <div class="track-controls">
+                    <div class="track-btn" id="clear-${this.id}">CLEAR</div>
+                    <div class="track-btn" id="vol-${this.id}">VOL</div>
+                    <div class="track-btn" id="chop-${this.id}">CHOP: OFF</div>
+                    <div class="track-btn" id="bars-${this.id}">BARS: 1</div>
+                    <div class="track-btn" id="nudge-${this.id}">NUDGE</div>
+                </div>
+                <div id="slider-vol-${this.id}" class="slider-container">
+                    <label>Vol:</label>
+                    <input type="range" min="0" max="300" value="80">
+                    <span>80%</span>
+                </div>
+                <div id="slider-nudge-${this.id}" class="slider-container">
+                    <label>Nudge:</label>
+                    <input type="range" min="-350" max="350" value="-200">
+                    <span>-200ms</span>
+                </div>
+                <div class="node-grid" id="grid-${this.id}">
+                    ${Array(16).fill(0).map((_,i) => `<div class="node ${i%4===0 ? 'beat' : ''}" id="node-${this.id}-${i}"></div>`).join('')}
+                </div>
+                <div class="stomp-area">
+                    <div class="stomp-pedal" id="stomp-${this.id}"></div>
+                    <div class="led stomp-led" id="led-${this.id}"></div>
+                </div>
+            `;
+            container.appendChild(trackDiv);
+            
+            // UI Bindings
+            document.getElementById(`stomp-${this.id}`).addEventListener('pointerdown', () => this.handleStomp());
+            document.getElementById(`clear-${this.id}`).addEventListener('pointerdown', () => this.clearTrack());
+            
+            // Toggles
+            const barsBtn = document.getElementById(`bars-${this.id}`);
+            barsBtn.addEventListener('pointerdown', () => {
+                if(this.state !== 'empty') return; // Can't change bars if recorded
+                this.bars = this.bars === 1 ? 2 : (this.bars === 2 ? 4 : 1);
+                barsBtn.innerText = `BARS: ${this.bars}`;
+                this.updateGridUI();
+            });
+
+            // Sliders Toggle visibility
+            const bindSliderToggle = (btnId, sliderId) => {
+                document.getElementById(btnId).addEventListener('pointerdown', () => {
+                    document.getElementById(sliderId).classList.toggle('active');
+                });
+            };
+            bindSliderToggle(`vol-${this.id}`, `slider-vol-${this.id}`);
+            bindSliderToggle(`nudge-${this.id}`, `slider-nudge-${this.id}`);
+        }
+
+        updateGridUI() {
+            const grid = document.getElementById(`grid-${this.id}`);
+            grid.innerHTML = Array(16 * this.bars).fill(0).map((_,i) => 
+                `<div class="node ${i%4===0 ? 'beat' : ''}" id="node-${this.id}-${i}"></div>`
+            ).join('');
+            grid.style.gridTemplateColumns = `repeat(16, 1fr)`;
+        }
+
+        updateVisualNode(stepIndex) {
+            const totalNodes = 16 * this.bars;
+            const localStep = stepIndex % totalNodes;
+            
+            // Clear previous
+            const prevStep = localStep === 0 ? totalNodes - 1 : localStep - 1;
+            const prevEl = document.getElementById(`node-${this.id}-${prevStep}`);
+            if(prevEl) prevEl.classList.remove('active');
+            
+            // Set active
+            const el = document.getElementById(`node-${this.id}-${localStep}`);
+            if(el) el.classList.add('active');
+        }
+
+        setLED(colorClass) {
+            const led = document.getElementById(`led-${this.id}`);
+            led.className = `led stomp-led ${colorClass}`;
+        }
+
+        handleStomp() {
+            if (!isPlaying) return;
+            
+            if (this.state === 'empty') {
+                this.state = 'waiting_record';
+                this.setLED('dim-red');
+            } else if (this.state === 'playing') {
+                this.state = 'muted';
+                if(this.gainNode) this.gainNode.gain.value = 0;
+                this.setLED('dim-red');
+            } else if (this.state === 'muted') {
+                this.state = 'playing';
+                if(this.gainNode) this.gainNode.gain.value = this.volume;
+                this.setLED('green');
+            }
+        }
+
+        clearTrack() {
+            if(this.sourceNode) this.sourceNode.stop();
+            this.audioBuffer = null;
+            this.state = 'empty';
+            this.setLED('');
+        }
+
+        startRecording() {
+            this.state = 'recording';
+            this.setLED('bright-red');
+            this.recordedChunks = [];
+            
+            // Zero-bleed: mute all other tracks
+            tracks.forEach(t => {
+                if(t.id !== this.id && t.gainNode) t.gainNode.gain.value = 0;
+            });
+
+            this.mediaRecorder = new MediaRecorder(micStream);
+            this.mediaRecorder.ondataavailable = e => this.recordedChunks.push(e.data);
+            this.mediaRecorder.onstop = () => this.processRecording();
+            this.mediaRecorder.start();
+        }
+
+        stopRecording() {
+            if(this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                this.mediaRecorder.stop();
+            }
+            this.state = 'playing';
+            this.setLED('green');
+            
+            // Restore volumes for all tracks
+            tracks.forEach(t => {
+                if(t.gainNode && t.state === 'playing') t.gainNode.gain.value = t.volume;
+            });
+        }
+
+        async processRecording() {
+            const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
+            const arrayBuffer = await blob.arrayBuffer();
+            this.audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            
+            this.normalizeBuffer(this.audioBuffer);
+            this.applyMicroscopicFade(this.audioBuffer);
+            
+            // Re-routing for playback
+            if(!this.gainNode) {
+                this.gainNode = audioCtx.createGain();
+                this.gainNode.connect(audioCtx.destination);
+            }
+            this.gainNode.gain.value = this.volume;
+        }
+
+        normalizeBuffer(buffer) {
+            for (let c = 0; c < buffer.numberOfChannels; c++) {
+                let data = buffer.getChannelData(c);
+                let max = 0;
+                for (let i = 0; i < data.length; i++) {
+                    if (Math.abs(data[i]) > max) max = Math.abs(data[i]);
                 }
-                
-                if(t.state === "WAITING") {
-                    t.waitCycles++;
-                    if(t.waitCycles >= 2) {
-                        recData = []; 
-                        activeRecTrack = idx;
-                        t.state = "RECORDING"; 
-                        document.getElementById(`led-${idx}`).className = 'status-led led-rec';
-                        masterGain.gain.setValueAtTime(0, audioCtx.currentTime); 
+                if (max > 0) {
+                    let multiplier = 1 / max;
+                    for (let i = 0; i < data.length; i++) data[i] *= multiplier;
+                }
+            }
+        }
+
+        applyMicroscopicFade(buffer) {
+            // Fades out the last 20ms to prevent clicks
+            const fadeTimeSec = 0.02; 
+            const sampleRate = buffer.sampleRate;
+            const fadeSamples = Math.floor(fadeTimeSec * sampleRate);
+            
+            for (let c = 0; c < buffer.numberOfChannels; c++) {
+                let data = buffer.getChannelData(c);
+                for (let i = 0; i < fadeSamples; i++) {
+                    let index = data.length - fadeSamples + i;
+                    if(index >= 0) {
+                        data[index] *= (1 - (i / fadeSamples));
                     }
                 }
-                
-                if((t.state === "PLAYING" || t.state === "MUTED") && t.buffer) {
-                    if (t.activeSource) { try { t.activeSource.stop(audioCtx.currentTime); } catch(e){} }
-                    const src = audioCtx.createBufferSource(); src.buffer = t.buffer;
-                    const g = audioCtx.createGain(); g.gain.value = t.muted ? 0 : t.gain; 
-                    src.connect(g); g.connect(masterGain); 
-                    src.start(audioCtx.currentTime + t.nudge);
-                    t.activeSource = src; t.activeGain = g;
+            }
+        }
+
+        playLoop(time) {
+            if(!this.audioBuffer || this.state !== 'playing') return;
+            
+            this.sourceNode = audioCtx.createBufferSource();
+            this.sourceNode.buffer = this.audioBuffer;
+            this.sourceNode.connect(this.gainNode);
+            
+            // Apply Latency pull-back
+            let playTime = time + (this.nudgeMs / 1000);
+            if(playTime < audioCtx.currentTime) playTime = audioCtx.currentTime; // Safety
+            
+            this.sourceNode.start(playTime);
+        }
+    }
+
+    const tracks = [];
+    for(let i=1; i<=TRACK_COUNT; i++) {
+        tracks.push(new Track(i));
+    }
+
+    // Scheduling Logic
+    function nextNote() {
+        const secondsPerBeat = 60.0 / globalTempo;
+        nextNoteTime += 0.25 * secondsPerBeat; // 16th note timing
+        current16thNote++;
+        if (current16thNote === 16) {
+            current16thNote = 0;
+        }
+    }
+
+    function scheduleNote(beatNumber, time) {
+        // Global visual flash on quarters
+        if (beatNumber % 4 === 0) {
+            const led = document.getElementById('global-led');
+            led.classList.add('flash');
+            setTimeout(() => led.classList.remove('flash'), 50);
+            
+            playClick(time, beatNumber === 0); // High click on the 1
+            
+            // Handle Downbeat Recording Logic
+            if(beatNumber === 0) {
+                tracks.forEach(track => {
+                    if(track.state === 'waiting_record') {
+                        track.startRecording();
+                    } else if (track.state === 'recording') {
+                        // Assuming 1 bar loop for basic state, scalable later via track.bars
+                        track.stopRecording();
+                        track.playLoop(time);
+                    } else if (track.state === 'playing') {
+                        track.playLoop(time);
+                    }
+                });
+            }
+        }
+
+        // Update traveling nodes
+        tracks.forEach(track => track.updateVisualNode(current16thNote));
+    }
+
+    function scheduler() {
+        while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+            scheduleNote(current16thNote, nextNoteTime);
+            nextNote();
+        }
+        timerID = window.setTimeout(scheduler, lookahead);
+    }
+
+    // Global UI bindings
+    document.getElementById('btn-start').addEventListener('pointerdown', async function() {
+        if (!isPlaying) {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
+
+            // Init Mic with constraints to avoid thin sound/processing
+            if (!micStream && !isBTReady) {
+                try {
+                    micStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        }
+                    });
+                } catch(e) {
+                    alert("Mic access required to loop.");
+                    return;
                 }
             }
-        });
 
-        currentStep++; setTimeout(tick, stepTime * 1000);
-    }
-
-    function processBuffer(idx) {
-        if(recData.length === 0) return;
-        
-        // Flatten the array exactly as we caught it
-        const flat = new Float32Array(recData.length * 4096);
-        for(let i=0; i<recData.length; i++) flat.set(recData[i], i*4096);
-        
-        const buffer = audioCtx.createBuffer(1, flat.length, audioCtx.sampleRate);
-        const channelData = buffer.getChannelData(0);
-        
-        // Dum-sampler tail fade (prevents end-pop, keeps attack 100% natural)
-        const fadeSamples = Math.floor(audioCtx.sampleRate * 0.005);
-        let maxVal = 0;
-        
-        for(let i=0; i<flat.length; i++) {
-            let val = flat[i] || 0;
-            if (i > flat.length - fadeSamples) val *= ((flat.length - i) / fadeSamples);
-            channelData[i] = val;
-            if(Math.abs(val) > maxVal) maxVal = Math.abs(val);
+            isPlaying = true;
+            this.innerText = "STOP";
+            this.classList.add('active');
+            
+            current16thNote = 0;
+            nextNoteTime = audioCtx.currentTime + 0.05;
+            scheduler();
+        } else {
+            isPlaying = false;
+            this.innerText = "START";
+            this.classList.remove('active');
+            window.clearTimeout(timerID);
+            
+            // Instant kill audio
+            tracks.forEach(t => {
+                if(t.sourceNode) {
+                    try { t.sourceNode.stop(); } catch(e){}
+                }
+            });
         }
-        
-        // Normalize volume automatically
-        if (maxVal > 0) { for (let i = 0; i < flat.length; i++) channelData[i] /= maxVal; }
-        tracks[idx].buffer = buffer;
-    }
+    });
 
-    function playClick(f) {
-        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-        o.frequency.value = f; g.gain.setValueAtTime(0.35, audioCtx.currentTime); 
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-        o.connect(g); g.connect(clickGain); o.start(); o.stop(audioCtx.currentTime + 0.06);
-    }
+    document.getElementById('btn-tempo').addEventListener('pointerdown', () => {
+        document.getElementById('slider-tempo').classList.toggle('active');
+    });
+    
+    document.getElementById('tempo-range').addEventListener('input', (e) => {
+        globalTempo = e.target.value;
+        document.getElementById('tempo-val').innerText = globalTempo;
+    });
 
-    function renderNodes(idx) {
-        const c = document.getElementById(`nodes-${idx}`); c.innerHTML = '';
-        for(let b=0; b < tracks[idx].bars; b++) {
-            const r = document.createElement('div'); r.className = 'node-row';
-            for(let s=0; s<16; s++) {
-                const n = document.createElement('div'); n.className = 'node';
-                if(s%4===0) n.classList.add('beat');
-                n.id = `n-${idx}-${b}-${s}`; r.appendChild(n);
+    document.getElementById('btn-click').addEventListener('pointerdown', () => {
+        document.getElementById('slider-click').classList.toggle('active');
+    });
+
+    document.getElementById('click-vol-range').addEventListener('input', (e) => {
+        clickVolume = e.target.value / 100;
+        document.getElementById('click-vol-val').innerText = `${e.target.value}%`;
+    });
+
+    document.getElementById('btn-mute').addEventListener('pointerdown', function() {
+        clickMuted = !clickMuted;
+        this.style.background = clickMuted ? "#ff3333" : "#222";
+    });
+
+    document.getElementById('btn-bt').addEventListener('pointerdown', function() {
+        isBTReady = !isBTReady;
+        if(isBTReady) {
+            this.classList.add('active');
+            // Release Mic so iOS can switch audio routes to Bluetooth
+            if(micStream) {
+                micStream.getTracks().forEach(track => track.stop());
+                micStream = null;
             }
-            c.appendChild(r);
+        } else {
+            this.classList.remove('active');
+            // Note: Would need to re-request getUserMedia here if switching back dynamically
         }
-    }
-
-    function clearTrack(i) { tracks[i].buffer = null; tracks[i].state = "IDLE"; tracks[i].muted = false; document.getElementById(`led-${i}`).className = 'status-led'; }
-    function cycleChop(idx) { let t = tracks[idx]; t.chop = (t.chop === 16 || t.chop === 4) ? 8 : 4; document.getElementById(`chop-${idx}`).innerText = t.chop === 8 ? '1/2' : '1/4'; }
-    function cycleBars(idx) { let t = tracks[idx]; t.chop = 16; document.getElementById(`chop-${idx}`).innerText = 'OFF'; t.bars = [1, 2, 4][([1, 2, 4].indexOf(t.bars) + 1) % 3]; document.getElementById(`bars-${idx}`).innerText = t.bars; renderNodes(idx); }
-    function toggleMute(id) { if(id==='click') { clickMuted=!clickMuted; document.getElementById('mute-click').style.background = clickMuted ? "#666" : "#3a3a3a"; } }
-    function openSlider(t) { activeSliderTarget = t; document.getElementById('slider-overlay').style.display = 'flex'; let sl = document.getElementById('sl-input'); if(t === 'tempo') { sl.min=40; sl.max=200; sl.value=tempo; } else if(t.startsWith('nudge')) { sl.min=-500; sl.max=500; sl.value=tracks[t.slice(-1)].nudge*1000; } else if(t.startsWith('vol')) { sl.min=0; sl.max=300; sl.value=tracks[t.slice(-1)].gain*100; } else { sl.min=0; sl.max=100; sl.value=70; } updateSlider(sl.value); }
-    function updateSlider(v) { document.getElementById('sl-readout').innerText = v; if(activeSliderTarget==='tempo') tempo=v; else if(activeSliderTarget==='clickVol') clickGain.gain.value=v/100; else if(activeSliderTarget.startsWith('vol')) { let trkIdx = activeSliderTarget.slice(-1); tracks[trkIdx].gain = v/100; if(tracks[trkIdx].activeGain && !tracks[trkIdx].muted) tracks[trkIdx].activeGain.gain.setTargetAtTime(tracks[trkIdx].gain, audioCtx.currentTime, 0.015); } else if(activeSliderTarget.startsWith('nudge')) tracks[activeSliderTarget.slice(-1)].nudge=v/1000; }
-    function closeSlider() { document.getElementById('slider-overlay').style.display='none'; }
-    renderNodes(0); renderNodes(1); renderNodes(2);
+    });
 </script>
 </body>
 </html>
