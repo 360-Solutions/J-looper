@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v3.00</title>
+    <title>J-looper v3.02</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -129,7 +129,7 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.00</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.02</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -173,9 +173,9 @@
             <div>
                 <span class="slider-label" style="display:flex; justify-content:space-between; color: #222;">
                     <span>Start Point Nudge (Mic Latency)</span>
-                    <span id="modal-nudge-val">0ms</span>
+                    <span id="modal-nudge-val">-120ms</span>
                 </span>
-                <input type="range" id="modal-nudge" min="-400" max="100" value="0" step="5">
+                <input type="range" id="modal-nudge" min="-400" max="100" value="-120" step="5">
             </div>
         </div>
 
@@ -192,7 +192,6 @@
 </div>
 
 <script>
-    // Drums at true 0ms. Empty tracks default to dialed-in -120ms. 
     const tracks = [
         { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
         { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, lastSource: null },
@@ -210,7 +209,7 @@
     let masterGain = null;
     let isInitialized = false;
     let isPlaying = false, currentStep = 0, nextStepTime = 0, masterMuted = false, activeTrackIdx = null;
-    let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false;
+    let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false, isSecretlyRecording = false;
     let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
     let mediaRecorder = null, audioChunks = [];
     let targetBarLength = 16;
@@ -417,10 +416,24 @@
                 
                 if (isRecordingNow) {
                     recordCounter++;
-                    let shouldStop = (recordCounter > targetBarLength && laneRelative === 2);
-
-                    if (shouldStop) {
-                        isRecordingNow = false; masterMuted = false; 
+                    
+                    // Visually stop on the One. Master stays muted to avoid bleed into the tail!
+                    if (recordCounter > 10 && laneRelative === 0) {
+                        isRecordingNow = false; 
+                        isSecretlyRecording = true; 
+                        
+                        let delay = (nextStepTime - audioCtx.currentTime) * 1000;
+                        setTimeout(updateRecBtnUI, delay); 
+                    }
+                } else if (isSecretlyRecording) {
+                    recordCounter++;
+                    
+                    // Secretly record 2 extra nodes for a natural tail, then unmute
+                    if (laneRelative === 2) {
+                        isSecretlyRecording = false;
+                        
+                        // NOW unmute the master output so playback returns
+                        masterMuted = false;
                         masterGain.gain.setValueAtTime(1, nextStepTime);
                         
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
@@ -428,7 +441,8 @@
                     }
                 }
                 
-                if (!isRecordingNow && laneRelative === 0) {
+                // Audio Scheduling logic
+                if (!isRecordingNow && !isSecretlyRecording && laneRelative === 0) {
                     const track = tracks[activeTrackIdx];
                     if (track.buffer && !track.steps[0]) {
                         playSample(track.buffer, nextStepTime, track.volume, track.nudge, track); 
@@ -567,7 +581,6 @@
         tracks[activeTrackIdx].name = "EMPTY";
         tracks[activeTrackIdx].steps.fill(false); 
         
-        // Reset defaults back to -120
         tracks[activeTrackIdx].nudge = -120; 
         document.getElementById('modal-nudge').value = -120;
         document.getElementById('modal-nudge-val').innerText = '-120ms';
