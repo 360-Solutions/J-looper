@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v2.04</title>
+    <title>J-looper v2.05</title>
     <style>
         :root {
             --bg-color: #dcedc8; 
@@ -128,7 +128,7 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.04</span>
+        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v2.05</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -207,11 +207,8 @@
     let mediaRecorder = null, audioChunks = [];
     let targetBarLength = 16;
     
-    // Increased lookahead to securely schedule heavy negative nudges (-500ms) without truncating audio
-    let scheduleAheadTime = 0.6; 
-    let uiQueue = [];
-    let currentVisualStep = 0;
-    
+    // Stable engine defaults
+    let scheduleAheadTime = 0.1;
     let currentRecMode = 'FULL';
 
     tracks.forEach(t => { 
@@ -369,9 +366,6 @@
     function scheduler() {
         while (nextStepTime < audioCtx.currentTime + scheduleAheadTime) {
             
-            // Sync UI playhead to actual hardware scheduling time
-            uiQueue.push({ time: nextStepTime, step: currentStep });
-
             if (activeTrackIdx !== null) {
                 targetBarLength = tracks[activeTrackIdx].bars * 16;
                 const laneRelative = currentStep % targetBarLength;
@@ -447,13 +441,14 @@
         gain.gain.value = (vol / 100) * document.getElementById('master-vol').value; 
         source.connect(gain); gain.connect(masterGain);
         
-        // Accurate scheduling logic without truncating the file
-        let startTime = time + (nudgeMs / 1000);
+        // Stable scheduling logic (Tradeoff: tight sync, but chops negative offsets to keep time)
+        let startTime = time;
+        let offsetInFile = 0;
         
-        // Safety constraint: If heavily nudged into the past on the very first cycle,
-        // it will just fire immediately rather than failing to play. Subsequent cycles will schedule perfectly early.
-        if (startTime < audioCtx.currentTime) {
-            startTime = audioCtx.currentTime;
+        if (nudgeMs < 0) {
+            offsetInFile = Math.abs(nudgeMs) / 1000;
+        } else if (nudgeMs > 0) {
+            startTime += (nudgeMs / 1000);
         }
         
         if (trackObj && trackObj.choke) {
@@ -463,22 +458,11 @@
             trackObj.lastSource = source;
         }
 
-        source.start(startTime);
+        source.start(startTime, offsetInFile);
     }
 
     function updateUI() {
-        if (!audioCtx) return;
-        
-        let currTime = audioCtx.currentTime;
-        
-        // Pop the UI queue to find the step that strictly matches the hardware playback time
-        while (uiQueue.length > 0 && uiQueue[0].time <= currTime) {
-            currentVisualStep = uiQueue[0].step;
-            uiQueue.shift();
-        }
-
-        const step = currentVisualStep - 1;
-        if (step < 0) return;
+        const step = currentStep - 1;
         
         tracks.forEach((track, tIdx) => {
             const laneStep = step % (track.bars * 16);
@@ -513,17 +497,12 @@
         await initMic(); 
         isPlaying = !isPlaying;
         if (isPlaying) { 
-            currentStep = 0; 
-            currentVisualStep = 0;
-            uiQueue = [];
-            nextStepTime = audioCtx.currentTime + 0.1; 
-            scheduler(); 
+            currentStep = 0; nextStepTime = audioCtx.currentTime + 0.1; scheduler(); 
             this.innerText = "STOP";
             this.classList.add('stopped');
         } else { 
             document.querySelectorAll('.playhead').forEach(ph => ph.style.display = 'none'); 
             masterMuted = false;
-            uiQueue = [];
             if(masterGain) masterGain.gain.setValueAtTime(1, audioCtx.currentTime);
             updateRecBtnUI(); 
             this.innerText = "START";
