@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-LOOPER v4.0</title>
+    <title>J-LOOPER v5.0</title>
     <style>
         :root {
             --pedal-body: #fcfcfc;
@@ -23,6 +23,7 @@
         .section { width: 92%; border-radius: 10px; padding: 6px; margin-bottom: 6px; border: 1px solid #e0e0e0; background: #f9f9f9; }
         .global-sec { background: #f0f0f0; }
         .btn-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .btn-row-global { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
         .mini-btn { background: var(--rubber-gray); color: #fff; border: none; padding: 8px 0; border-radius: 5px; font-size: 8px; font-weight: 800; box-shadow: 0 3px 0 #1a1a1a; text-transform: uppercase; cursor: pointer; }
         .mini-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1a1a1a; }
         .display-area { background: var(--node-bg); border-radius: 6px; padding: 6px 4px; margin: 4px 0; box-shadow: inset 0 3px 6px rgba(0,0,0,0.6); }
@@ -45,18 +46,17 @@
     <div class="header-container">
         <div style="text-align:left;">
             <h1 style="font-size:16px; margin:0; letter-spacing:1px; color:#222; font-weight:900;">J-LOOPER</h1>
-            <p style="font-size:8px; opacity:0.6; color:#222; font-weight:bold; margin-top:2px;">v4.0 | CLEAN SLATE DUM-SAMPLER ENGINE</p>
+            <p style="font-size:8px; opacity:0.6; color:#222; font-weight:bold; margin-top:2px;">v5.0 | CLEAN FOUNDATION</p>
         </div>
         <div id="tempo-led" class="tempo-indicator"></div>
     </div>
     
     <div class="section global-sec">
-        <div class="btn-row">
+        <div class="btn-row-global">
             <button id="start-btn" class="mini-btn" style="background:#2ecc71;" onclick="toggleEngine()">START</button>
             <button class="mini-btn" onclick="openSlider('tempo')">TEMPO</button>
             <button class="mini-btn" onclick="openSlider('clickVol')">CLICK</button>
             <button id="mute-click" class="mini-btn" onclick="toggleMute('click')">MUTE</button>
-            <button id="bt-jam-btn" class="mini-btn" onclick="toggleBTMode()">BT JAM: OFF</button>
         </div>
     </div>
 
@@ -117,7 +117,7 @@
 
 <script>
     let audioCtx, masterGain, clickGain, tempo=94, isRunning=false, currentStep=0;
-    let btJamMode = false, stream, globalProcessor;
+    let stream, globalProcessor;
     let activeRecTrack = -1; 
     let recData = [];
     
@@ -131,18 +131,20 @@
         const btn = document.getElementById('start-btn');
         
         if(!isRunning) {
-            // STEP 1: Synchronous AudioContext creation and immediate resume
+            // STEP 1: Core Setup
             if(!audioCtx) {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 audioCtx = new AudioContext();
                 masterGain = audioCtx.createGain(); masterGain.connect(audioCtx.destination);
                 clickGain = audioCtx.createGain(); clickGain.connect(masterGain);
             }
+            
+            // Resume context immediately on user tap
             if(audioCtx.state === 'suspended') {
                 await audioCtx.resume();
             }
             
-            // STEP 2: Setup Continuous Mic Processor (Like dum-sampler)
+            // STEP 2: Mic & Processor Setup
             if(!stream) {
                 try { 
                     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); 
@@ -152,12 +154,19 @@
                     globalProcessor.connect(audioCtx.destination);
                     
                     globalProcessor.onaudioprocess = e => {
-                        // Secretly dump audio into array ONLY if a track is actively recording
+                        // iOS BUG FIX: We MUST feed silence to the output buffer to keep the engine from freezing
+                        const out = e.outputBuffer.getChannelData(0);
+                        for(let i = 0; i < out.length; i++) out[i] = 0;
+
+                        // Capture audio if a track is active
                         if (activeRecTrack !== -1) {
                             recData.push(new Float32Array(e.inputBuffer.getChannelData(0)));
                         }
                     };
-                } catch(e) { alert("Microphone needed to loop!"); return; }
+                } catch(e) { 
+                    alert("Microphone access is required to run the looper."); 
+                    return; 
+                }
             }
 
             isRunning = true;
@@ -173,28 +182,10 @@
         }
     }
 
-    async function toggleBTMode() {
-        btJamMode = !btJamMode;
-        document.getElementById('bt-jam-btn').innerText = btJamMode ? "BT JAM: ON" : "BT JAM: OFF";
-        if (btJamMode && stream) { 
-            stream.getTracks().forEach(t => t.stop()); 
-            stream = null; 
-            if(globalProcessor) globalProcessor.disconnect();
-        } else if (!btJamMode) { 
-            try { 
-                stream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-                const src = audioCtx.createMediaStreamSource(stream);
-                src.connect(globalProcessor);
-            } catch(e){} 
-        }
-        if (isRunning && audioCtx) { await audioCtx.suspend(); setTimeout(() => audioCtx.resume(), 50); }
-    }
-
     function handleStomp(i) {
         if(!isRunning) return;
         let t = tracks[i];
         if(t.state === "IDLE") {
-            if(btJamMode) toggleBTMode();
             t.state = "WAITING"; t.waitCycles = 0;
             document.getElementById(`led-${i}`).className = 'status-led led-wait';
         } else if(t.state === "PLAYING" || t.state === "MUTED") {
@@ -221,19 +212,9 @@
             document.querySelectorAll(`#nodes-${idx} .node`).forEach(n => n.classList.remove('active'));
             document.getElementById(`n-${idx}-${Math.floor(sInL/16)}-${sInL%16}`)?.classList.add('active');
 
-            // SECRET PRE-ROLL: Start capturing audio 50ms before the actual "One"
-            if (sInL === loopSteps - 1 && t.state === "WAITING" && t.waitCycles >= 1) {
-                setTimeout(() => { 
-                    if(t.state === "WAITING") {
-                        recData = []; 
-                        activeRecTrack = idx; // Flips the switch to start saving the running audio stream
-                    }
-                }, (stepTime * 1000) - 50); 
-            }
-
             if (sInL === 0) {
                 if(t.state === "RECORDING") {
-                    // Stop saving audio and package it up
+                    // Stop compiling audio
                     activeRecTrack = -1;
                     processBuffer(idx);
                     
@@ -245,6 +226,8 @@
                 if(t.state === "WAITING") {
                     t.waitCycles++;
                     if(t.waitCycles >= 2) {
+                        recData = []; 
+                        activeRecTrack = idx;
                         t.state = "RECORDING"; 
                         document.getElementById(`led-${idx}`).className = 'status-led led-rec';
                         masterGain.gain.setValueAtTime(0, audioCtx.currentTime); 
@@ -268,24 +251,25 @@
     function processBuffer(idx) {
         if(recData.length === 0) return;
         
-        // Flatten the captured data
+        // Flatten the array exactly as we caught it
         const flat = new Float32Array(recData.length * 4096);
         for(let i=0; i<recData.length; i++) flat.set(recData[i], i*4096);
         
         const buffer = audioCtx.createBuffer(1, flat.length, audioCtx.sampleRate);
         const channelData = buffer.getChannelData(0);
         
-        // Only micro-fade the tail end to prevent a pop. Leave the attack fully intact.
+        // Dum-sampler tail fade (prevents end-pop, keeps attack 100% natural)
         const fadeSamples = Math.floor(audioCtx.sampleRate * 0.005);
         let maxVal = 0;
         
         for(let i=0; i<flat.length; i++) {
             let val = flat[i] || 0;
-            if (i > flat.length - fadeSamples) val *= ((flat.length - i) / fadeSamples); // Fade out
+            if (i > flat.length - fadeSamples) val *= ((flat.length - i) / fadeSamples);
             channelData[i] = val;
             if(Math.abs(val) > maxVal) maxVal = Math.abs(val);
         }
         
+        // Normalize volume automatically
         if (maxVal > 0) { for (let i = 0; i < flat.length; i++) channelData[i] /= maxVal; }
         tracks[idx].buffer = buffer;
     }
