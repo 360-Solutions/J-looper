@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.19</title>
+    <title>J-looper v3.20</title>
     <style>
         :root {
             /* Light/Minimalist Web Palette */
@@ -36,7 +36,7 @@
             touch-action: manipulation; 
         }
 
-        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; }
+        header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; }
         .header-left { display: flex; align-items: center; gap: 10px; }
         
         #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px;}
@@ -56,7 +56,10 @@
         }
         #tempo-btn:active { background: #f3f4f6; }
 
-        .version-info { font-size: 10px; text-align: right; opacity: 0.8; color: #666; }
+        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .version-info { font-size: 10px; text-align: right; color: #666; font-weight: 600;}
+        .tip-jar { display: flex; gap: 8px; font-size: 9px; font-weight: bold; }
+        .tip-jar a { color: var(--gh-purple); text-decoration: none; display: flex; align-items: center; gap: 2px;}
 
         /* Transport Section */
         .transport {
@@ -103,10 +106,11 @@
         .track-lane { background: var(--panel-color); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid var(--border-color); }
         .track-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 4px; }
 
+        /* Updated to Purple Spine */
         .track-number {
-            background: var(--bt-blue); color: white; font-weight: bold; font-size: 11px;
+            background: var(--gh-purple); color: white; font-weight: bold; font-size: 11px;
             width: 20px; height: 20px; display: flex; justify-content: center; align-items: center;
-            border-radius: 4px; border: 1px solid #005bb5; flex-shrink: 0;
+            border-radius: 4px; border: 1px solid #6b3ec2; flex-shrink: 0;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
         }
 
@@ -198,11 +202,17 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.19</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.20</span>
         </div>
         <button id="tempo-btn">120 BPM</button>
     </div>
-    <div class="version-info">Created by Jeremiah Keller</div>
+    <div class="header-right">
+        <div class="version-info">Created by Jeremiah Keller</div>
+        <div class="tip-jar">
+            <a href="#" target="_blank">☕ Buy me a coffee</a>
+            <a href="#" target="_blank">❤️ Ko-fi</a>
+        </div>
+    </div>
 </header>
 
 <div class="transport">
@@ -240,7 +250,7 @@
         <h3 style="margin:0 0 10px 0; font-size:16px;">Set Tempo</h3>
         <div style="font-size: 24px; font-weight: 900; color: var(--gh-purple);" id="tempo-overlay-val">120 BPM</div>
         <input type="range" id="tempo" min="40" max="220" value="120" oninput="updateTempo(this.value)">
-        <button class="action-btn" onclick="document.getElementById('tempo-modal').style.display='none'" style="width:100%; margin-top:10px;">DONE</button>
+        <button class="action-btn" onclick="closeTempoModal()" style="width:100%; margin-top:10px;">DONE</button>
     </div>
 </div>
 
@@ -288,10 +298,12 @@
 </div>
 
 <script>
+    // Expanded to 8 Tracks
     const tracks = [
         { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
         { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
         { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
         { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
         { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
         { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
@@ -335,8 +347,12 @@
     function updateTempo(val) {
         document.getElementById('tempo-overlay-val').innerText = val + ' BPM';
         document.getElementById('tempo-btn').innerText = val + ' BPM';
-        
-        // Force a stop if the beat is playing to protect the math and sequencer sync
+        // Removed the forced stop from here so you can hear the change while dragging
+    }
+
+    // New function specifically for the DONE button to reset math
+    function closeTempoModal() {
+        document.getElementById('tempo-modal').style.display='none';
         if (isPlaying) {
             forceStopForModeSwitch();
         }
@@ -413,7 +429,7 @@
                 <div class="controls-right">
                     <button class="bubble-btn" onclick="toggleDropdown('nudge-panel-${tIdx}')">NUDGE</button>
                     <button class="bubble-btn ${track.choke ? 'choke-on' : 'choke-off'}" onclick="toggleChoke(${tIdx})">CHOKE</button>
-                    <button class="bubble-btn" onclick="cycleBars(${tIdx})" style="min-width:24px;">${track.bars}B</button>
+                    <button class="bubble-btn" onclick="cycleBars(${tIdx})" style="min-width:40px;">${track.bars} BAR${track.bars > 1 ? 'S' : ''}</button>
                 </div>
             </div>
             
@@ -1010,7 +1026,7 @@
         const track = tracks[activeTrackIdx];
         const container = document.getElementById('modal-bars-container');
         document.getElementById('modal-track-name').innerText = track.name.toUpperCase();
-        document.getElementById('modal-bar-cycle').innerText = `${track.bars} BAR`;
+        document.getElementById('modal-bar-cycle').innerText = `${track.bars} BAR${track.bars > 1 ? 'S' : ''}`;
         container.innerHTML = '';
         for(let b=0; b < track.bars; b++) {
             const row = document.createElement('div'); row.className = 'bar-row';
