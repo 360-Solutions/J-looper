@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.16</title>
+    <title>J-looper v3.17</title>
     <style>
         :root {
             /* GitHub & Hardware Inspired Palette */
@@ -47,19 +47,12 @@
             letter-spacing: 0.5px;
         }
 
-        /* The Re-styled Tempo Node (Matches Track Nodes) */
+        /* The Re-styled Pill Tempo Button (No Flashing) */
         #tempo-btn {
-            background: var(--node-off); border: 1px solid #111; color: #aaaaaa;
-            font-weight: 900; font-size: 11px; padding: 6px 12px; border-radius: 4px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.5); 
-            cursor: pointer; min-width: 80px; text-align: center;
-            transition: background 0.05s, color 0.05s, box-shadow 0.05s;
-        }
-        #tempo-btn.pulsing {
-            background: var(--node-led) !important;
-            color: #111111 !important;
-            box-shadow: 0 0 6px rgba(255,255,255,0.9), inset 0 1px 1px rgba(0,0,0,0.1) !important;
-            border-color: #fff !important;
+            background: #2b2b2b; border: 1px solid #111; color: var(--gh-purple);
+            font-weight: 900; font-size: 11px; padding: 6px 16px; border-radius: 20px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.2); 
+            cursor: pointer; text-align: center;
         }
 
         .version-info { font-size: 10px; text-align: right; opacity: 0.8; color: #666; }
@@ -167,6 +160,11 @@
         .tempo-content input[type=range] { margin: 20px 0; accent-color: var(--gh-purple); }
 
         .rec-visualizer-zone { background: var(--panel-color); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #d0d7de; position: relative; }
+        
+        /* VU Meter Styles */
+        .vu-meter { width: 100%; height: 6px; background: #111; border-radius: 3px; margin-bottom: 10px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8); }
+        .vu-fill { width: 0%; height: 100%; background: #238636; transition: width 0.05s ease-out, background-color 0.1s; }
+
         .modal-header-btns { display: flex; justify-content: space-around; align-items: center; margin-bottom: 12px; gap: 10px; }
 
         .rec-btn { background: var(--rec-red); color: white; border: 2px solid #b02826; padding: 15px 25px; border-radius: 40px; font-weight: 600; font-size: 13px; min-width: 120px; cursor: pointer; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3); transition: opacity 0.2s; }
@@ -190,7 +188,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.16</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.17</span>
         </div>
         <button id="tempo-btn">150 BPM</button>
     </div>
@@ -243,6 +241,7 @@
                 <span id="modal-track-name" style="font-size:12px; color:var(--text-color); font-weight:900;">READY</span>
                 <button class="action-sm-btn" id="modal-bar-cycle" style="min-width: 60px; padding:8px;">1 BAR</button>
             </div>
+            <div class="vu-meter"><div class="vu-fill" id="vu-fill"></div></div>
             <div id="modal-bars-container"></div>
         </div>
         
@@ -299,9 +298,12 @@
     
     let mediaRecorder = null, audioChunks = [];
     let currentMicStream = null;
+    
+    // VU Meter Nodes
+    let micAnalyser = null;
+    let micSource = null;
 
     let targetBarLength = 16;
-    // Dropped lookahead from 0.5 to 0.15 to prevent the long "Stop Tail"
     let scheduleAheadTime = 0.15; 
     let sequenceStartTime = 0;
 
@@ -525,6 +527,16 @@
                     renderSequencer();
                 });
             };
+
+            // Initialize VU Meter Analyser
+            if (audioCtx) {
+                micAnalyser = audioCtx.createAnalyser();
+                micAnalyser.fftSize = 128; // Small size for fast level reading
+                micSource = audioCtx.createMediaStreamSource(currentMicStream);
+                // We connect to the analyser to read levels, but NOT to destination so there is no feedback.
+                micSource.connect(micAnalyser); 
+            }
+
         } catch (err) { console.error("Mic error: " + err); }
     }
 
@@ -533,7 +545,6 @@
         if (isPlaying) {
             isPlaying = false;
             document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing'));
-            document.getElementById('tempo-btn').classList.remove('pulsing');
             masterMuted = false;
             
             if(masterGain && audioCtx) {
@@ -601,6 +612,12 @@
         
         this.innerText = "WAIT...";
         
+        if (micSource) {
+            micSource.disconnect();
+            micSource = null;
+        }
+        micAnalyser = null;
+
         if (currentMicStream) {
             currentMicStream.getTracks().forEach(track => track.stop());
             currentMicStream = null;
@@ -763,17 +780,31 @@
                 const activeModalNode = document.getElementById(`modal-node-${laneStep}`);
                 if (activeModalNode) activeModalNode.classList.add('playing');
             }
-
-            // Tempo LED Pulse (Now perfectly matched to white node styling)
-            const tempoBtn = document.getElementById('tempo-btn');
-            if (visualStep % 4 === 0) {
-                tempoBtn.classList.add('pulsing');
-            } else {
-                tempoBtn.classList.remove('pulsing');
-            }
-            
-            requestAnimationFrame(uiLoop);
         }
+
+        // Run VU Meter continually if modal is open and mic is active
+        if (activeTrackIdx !== null && currentMode === 'mic' && micAnalyser) {
+            const dataArray = new Uint8Array(micAnalyser.frequencyBinCount);
+            micAnalyser.getByteFrequencyData(dataArray);
+            let max = 0;
+            for(let i=0; i<dataArray.length; i++) {
+                if(dataArray[i] > max) max = dataArray[i];
+            }
+            let percent = (max / 255) * 100;
+            const vuFill = document.getElementById('vu-fill');
+            if (vuFill) {
+                vuFill.style.width = percent + '%';
+                vuFill.style.background = percent > 90 ? 'var(--rec-red)' : (percent > 70 ? 'var(--mic-orange)' : '#238636');
+            }
+        } else if (activeTrackIdx !== null) {
+            // Keep it zeroed out if in BT mode or mic not ready
+            const vuFill = document.getElementById('vu-fill');
+            if (vuFill) {
+                vuFill.style.width = '0%';
+            }
+        }
+
+        requestAnimationFrame(uiLoop);
     }
 
     document.getElementById('play-btn').onclick = async function() {
@@ -794,6 +825,9 @@
             this.className = "ready";
             this.style.background = ""; 
             this.style.borderColor = "";
+            
+            // Start the visual loop primarily for the VU meter even before hitting PLAY
+            requestAnimationFrame(uiLoop);
             return;
         }
 
@@ -803,7 +837,6 @@
                 await audioCtx.resume();
             }
             
-            // Ensure master gain is unmuted and reset correctly on play
             if (masterGain) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
                 masterGain.gain.setValueAtTime(getActiveVolume(), audioCtx.currentTime);
@@ -813,20 +846,16 @@
             nextStepTime = sequenceStartTime;
             currentStep = 0; 
             scheduler(); 
-            uiLoop();
             
             this.innerText = "STOP";
             this.classList.remove('ready');
             this.classList.add('stopped');
         } else { 
-            // The New Stop Logic
             document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing')); 
-            document.getElementById('tempo-btn').classList.remove('pulsing');
             masterMuted = false;
             
             if(masterGain) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-                // Hard fade out to completely kill the tail
                 masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.015);
             }
             updateRecBtnUI(); 
