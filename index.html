@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v3.12</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>J-looper v3.13</title>
     <style>
         :root {
             /* GitHub & Hardware Inspired Palette */
@@ -28,15 +28,17 @@
 
         body {
             background-color: var(--bg-color); color: var(--text-color);
-            font-family: -apple-system, sans-serif; margin: 0; padding: 10px;
+            font-family: -apple-system, sans-serif; margin: 0; 
+            /* Safe area inset prevents overlapping with iOS notch and clock */
+            padding: max(10px, env(safe-area-inset-top)) 10px 10px 10px;
             user-select: none; -webkit-tap-highlight-color: transparent;
             touch-action: manipulation; 
         }
 
-        header { display: flex; justify-content: space-between; align-items: center; padding: 5px 0 10px 0; }
-        .version-info { font-size: 10px; text-align: right; opacity: 0.8; color: #666; }
+        header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; }
+        .header-left { display: flex; align-items: center; gap: 10px; }
         
-        #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 8px;}
+        #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px;}
         
         .title-box {
             background: var(--gh-purple); color: white; padding: 4px 8px; 
@@ -45,54 +47,62 @@
             letter-spacing: 0.5px;
         }
 
-        .transport {
-            background: var(--panel-color); padding: 12px; border-radius: 10px;
-            display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;
-            border: 1px solid #d0d7de; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        /* The New Tempo Button LED */
+        #tempo-btn {
+            background: var(--accent-color); border: 1px solid #111; color: #fff;
+            font-weight: 800; font-size: 11px; padding: 6px 10px; border-radius: 6px;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.15); cursor: pointer;
+            transition: background 0.05s, box-shadow 0.05s;
+        }
+        #tempo-btn.pulsing {
+            background: var(--rec-red) !important;
+            box-shadow: 0 0 8px var(--rec-red), inset 0 1px 2px rgba(255,255,255,0.5) !important;
+            border-color: #ff5555 !important;
         }
 
-        /* Black Rubber Buttons */
-        .action-sm-btn, .action-btn, #toggle-samples-btn, .modal-content > button:last-child {
-            background: var(--accent-color); border: 1px solid #111; color: #fff; 
-            font-weight: 600; border-radius: 5px; cursor: pointer;
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 1px 2px rgba(0,0,0,0.2);
+        .version-info { font-size: 10px; text-align: right; opacity: 0.8; color: #666; }
+
+        /* Restructured Transport Section */
+        .transport {
+            background: var(--panel-color); padding: 10px; border-radius: 10px;
+            display: flex; gap: 10px; margin-bottom: 12px;
+            border: 1px solid #d0d7de; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            align-items: stretch;
         }
         
         #play-btn { 
             background: var(--gh-purple); border: 1px solid #6b3ec2; color: #fff; 
-            font-weight: 900; border-radius: 6px; cursor: pointer;
-            padding: 15px; font-size: 14px; width: 100%;
+            font-weight: 900; border-radius: 8px; cursor: pointer;
+            font-size: 11px; width: 85px; flex-shrink: 0;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.2);
+            display: flex; justify-content: center; align-items: center; text-align: center;
         }
         #play-btn.ready { background: #238636; border-color: #2ea043; }
         #play-btn.stopped { background: var(--rec-red); border-color: #b02826; }
         
-        /* Stacked Mode Rows */
-        .mode-row { display: flex; align-items: center; gap: 12px; width: 100%; }
+        .mode-stack { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+        .mode-row { display: flex; align-items: center; gap: 10px; width: 100%; }
         
         .mode-btn {
             background: var(--accent-color); border: 1px solid #111; color: #fff; 
-            font-weight: 900; border-radius: 6px; cursor: pointer;
-            padding: 12px 8px; font-size: 11px; width: 35%;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.15), 0 2px 4px rgba(0,0,0,0.2);
-            transition: all 0.2s;
-            opacity: 0.4; 
+            font-weight: 900; border-radius: 5px; cursor: pointer;
+            padding: 0; font-size: 10px; width: 55px; height: 32px; flex-shrink: 0;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.15), 0 1px 3px rgba(0,0,0,0.2);
+            transition: all 0.2s; opacity: 0.4; 
         }
         .mode-btn.mic-on { background: var(--mic-orange); border-color: #cc7a00; color: #111; opacity: 1; }
         .mode-btn.bt-on { background: var(--bt-blue); border-color: #005bb5; color: #fff; opacity: 1; }
         
-        #play-btn:active, .action-sm-btn:active, .action-btn:active, .mode-btn:active { transform: translateY(1px); box-shadow: none; }
+        #play-btn:active, .mode-btn:active { transform: translateY(1px); box-shadow: none; }
 
         .vol-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        .slider-label { font-size: 10px; text-transform: uppercase; color: var(--text-color); display: block; margin-bottom: 4px; font-weight: bold;}
+        .slider-label { font-size: 9px; text-transform: uppercase; color: var(--text-color); display: flex; justify-content: space-between; margin-bottom: 2px; font-weight: bold;}
+        .warning-text { color: var(--rec-red); font-size: 8px; margin-left: 4px; font-weight: 900; }
         
         input[type=range] { width: 100%; height: 20px; margin:0; }
-        
-        /* Dynamic Slider Colors */
         input[type=range].mode-slider { opacity: 0.3; transition: opacity 0.2s, accent-color 0.2s; accent-color: #666; }
         input[type=range].mode-slider.mic-active { opacity: 1; accent-color: var(--mic-orange); }
         input[type=range].mode-slider.bt-active { opacity: 1; accent-color: var(--bt-blue); }
-        input[type=range].tempo-slider { accent-color: var(--gh-purple); }
 
         .track-lane { background: var(--panel-color); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid #d0d7de; }
         .track-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 4px; }
@@ -113,8 +123,14 @@
 
         .center-controls { display:flex; align-items:center; gap:4px; flex-grow:1; margin: 0 4px; justify-content: space-between;}
         
+        .action-sm-btn, .action-btn, #toggle-samples-btn, .modal-content > button:last-child {
+            background: var(--accent-color); border: 1px solid #111; color: #fff; 
+            font-weight: 600; border-radius: 5px; cursor: pointer;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 1px 2px rgba(0,0,0,0.2);
+        }
         .action-sm-btn { font-size: 9px; padding: 6px 4px; text-align: center; }
         .ms-btn { flex-grow: 1; font-weight: bold; font-size: 10px; padding: 6px 0;}
+        .action-sm-btn:active, .action-btn:active { transform: translateY(1px); box-shadow: none; }
         
         .active-choke { color: #fff; border-color: #fff; background: #666; }
         .active-mute { background-color: var(--rec-red) !important; color: #ffffff !important; border-color: #b02826 !important; }
@@ -141,8 +157,12 @@
             border-color: #fff !important;
         }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
-        .modal-content { background: var(--bg-color); width: 90%; max-height: 92%; padding: 15px; border-radius: 12px; border: 3px solid #d0d7de; display: flex; flex-direction: column; }
+        .modal, .tempo-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
+        .modal-content, .tempo-content { background: var(--bg-color); width: 90%; padding: 15px; border-radius: 12px; border: 3px solid #d0d7de; display: flex; flex-direction: column; }
+        .modal-content { max-height: 92%; }
+        
+        .tempo-content { width: 70%; text-align: center;}
+        .tempo-content input[type=range] { margin: 20px 0; accent-color: var(--gh-purple); }
 
         .rec-visualizer-zone { background: var(--panel-color); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #d0d7de; position: relative; }
         .modal-header-btns { display: flex; justify-content: space-around; align-items: center; margin-bottom: 12px; gap: 10px; }
@@ -165,9 +185,12 @@
 <body>
 
 <header>
-    <div id="app-title">
-        <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.12</span>
+    <div class="header-left">
+        <div id="app-title">
+            <span class="title-box">J-looper</span> 
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.13</span>
+        </div>
+        <button id="tempo-btn">150 BPM</button>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -175,38 +198,41 @@
 <div class="transport">
     <button id="play-btn">INITIALIZE</button>
     
-    <div class="mode-row">
-        <button id="mic-btn" class="mode-btn">🎤 MIC</button>
-        <div class="vol-container">
-            <span class="slider-label" style="display: flex; justify-content: space-between;">
-                <span>Mic Volume</span>
-                <span id="mic-vol-label">90%</span>
-            </span>
-            <input type="range" id="mic-vol" class="mode-slider" min="0" max="1" step="0.05" value="0.9">
+    <div class="mode-stack">
+        <div class="mode-row">
+            <button id="mic-btn" class="mode-btn">🎤 MIC</button>
+            <div class="vol-container">
+                <span class="slider-label">
+                    <span>MIC VOL</span>
+                    <span id="mic-vol-label">90%</span>
+                </span>
+                <input type="range" id="mic-vol" class="mode-slider" min="0" max="1" step="0.05" value="0.9">
+            </div>
         </div>
-    </div>
 
-    <div class="mode-row">
-        <button id="bt-btn" class="mode-btn">🔊 BT</button>
-        <div class="vol-container">
-            <span class="slider-label" style="display: flex; justify-content: space-between;">
-                <span>BT Volume</span>
-                <span id="bt-vol-label">50%</span>
-            </span>
-            <input type="range" id="bt-vol" class="mode-slider" min="0" max="1" step="0.05" value="0.5">
+        <div class="mode-row">
+            <button id="bt-btn" class="mode-btn">🔊 BT</button>
+            <div class="vol-container">
+                <span class="slider-label">
+                    <span>BT VOL <span class="warning-text">(LOUD ON INTERNAL!)</span></span>
+                    <span id="bt-vol-label">15%</span>
+                </span>
+                <input type="range" id="bt-vol" class="mode-slider" min="0" max="1" step="0.05" value="0.15">
+            </div>
         </div>
-    </div>
-
-    <div class="tempo-row" style="margin-top: 4px;">
-        <span class="slider-label" style="display: flex; justify-content: space-between;">
-            <span>Tempo</span>
-            <span id="bpm-text">150 BPM</span>
-        </span>
-        <input type="range" id="tempo" class="tempo-slider" min="40" max="220" value="150" oninput="document.getElementById('bpm-text').innerText = this.value + ' BPM'">
     </div>
 </div>
 
 <div id="main-grid"></div>
+
+<div id="tempo-modal" class="tempo-overlay">
+    <div class="tempo-content">
+        <h3 style="margin:0 0 10px 0; font-size:16px;">Set Tempo</h3>
+        <div style="font-size: 24px; font-weight: 900; color: var(--gh-purple);" id="tempo-overlay-val">150 BPM</div>
+        <input type="range" id="tempo" min="40" max="220" value="150" oninput="updateTempo(this.value)">
+        <button class="action-btn" onclick="document.getElementById('tempo-modal').style.display='none'" style="width:100%; padding:15px; margin-top:10px;">DONE</button>
+    </div>
+</div>
 
 <div id="sample-modal" class="modal">
     <div class="modal-content">
@@ -281,6 +307,16 @@
         if(t.steps) t.steps.forEach(idx => s[idx] = true);
         t.steps = s;
     });
+
+    // Tempo Control
+    document.getElementById('tempo-btn').onclick = () => {
+        document.getElementById('tempo-modal').style.display = 'flex';
+    };
+
+    function updateTempo(val) {
+        document.getElementById('tempo-overlay-val').innerText = val + ' BPM';
+        document.getElementById('tempo-btn').innerText = val + ' BPM';
+    }
 
     function getActiveVolume() {
         if (currentMode === 'mic') return parseFloat(document.getElementById('mic-vol').value);
@@ -498,9 +534,7 @@
         
         if (currentMode === 'mic') {
             micBtn.className = "mode-btn mic-on";
-            micBtn.innerText = "🎤 MIC ON";
             btBtn.className = "mode-btn";
-            btBtn.innerText = "🔊 BT";
             
             micVol.className = "mode-slider mic-active";
             btVol.className = "mode-slider";
@@ -508,9 +542,7 @@
             recBtn.style.opacity = "1";
         } else if (currentMode === 'bt') {
             micBtn.className = "mode-btn";
-            micBtn.innerText = "🎤 MIC";
             btBtn.className = "mode-btn bt-on";
-            btBtn.innerText = "🔊 BT MODE";
             
             micVol.className = "mode-slider";
             btVol.className = "mode-slider bt-active";
@@ -527,7 +559,6 @@
         if (!isInitialized) return;
         if (currentMode === 'mic') return;
         
-        this.innerText = "WAIT...";
         await initMic();
         currentMode = 'mic';
         updateModeUI();
@@ -536,8 +567,6 @@
     document.getElementById('bt-btn').onclick = async function() {
         if (!isInitialized) return;
         if (currentMode === 'bt') return;
-        
-        this.innerText = "WAIT...";
         
         if (currentMicStream) {
             currentMicStream.getTracks().forEach(track => track.stop());
@@ -554,6 +583,7 @@
         
         tracks.forEach(t => { t.buffer = null; t.lastSource = null; t.lastGain = null; });
         document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing'));
+        document.getElementById('tempo-btn').classList.remove('pulsing');
         
         await initAudioContextAndDecode();
         
@@ -613,7 +643,6 @@
                         masterMuted = false;
                         
                         masterGain.gain.setValueAtTime(masterGain.gain.value, nextStepTime);
-                        // Safely ramp back up to the exact volume set by the active mode's slider
                         masterGain.gain.linearRampToValueAtTime(getActiveVolume(), nextStepTime + 0.01);
                         
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
@@ -657,7 +686,6 @@
         const gainNode = audioCtx.createGain();
         source.buffer = buffer; 
         
-        // Track Volume applied here. Master Volume is handled by the masterGain node.
         const targetVol = (vol / 100); 
         
         gainNode.gain.value = 0;
@@ -711,6 +739,14 @@
                 const activeModalNode = document.getElementById(`modal-node-${laneStep}`);
                 if (activeModalNode) activeModalNode.classList.add('playing');
             }
+
+            // Tempo LED Pulse on Quarter Notes
+            const tempoBtn = document.getElementById('tempo-btn');
+            if (visualStep % 4 === 0) {
+                tempoBtn.classList.add('pulsing');
+            } else {
+                tempoBtn.classList.remove('pulsing');
+            }
             
             requestAnimationFrame(uiLoop);
         }
@@ -754,6 +790,7 @@
             this.classList.add('stopped');
         } else { 
             document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing')); 
+            document.getElementById('tempo-btn').classList.remove('pulsing');
             masterMuted = false;
             
             if(masterGain) {
