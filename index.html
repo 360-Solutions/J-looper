@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.18</title>
+    <title>J-looper v3.19</title>
     <style>
         :root {
             /* Light/Minimalist Web Palette */
@@ -110,7 +110,7 @@
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
         }
 
-        /* The New Sleek Bubble Buttons */
+        /* Sleek Bubble Buttons */
         .bubble-btn {
             background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color);
             font-weight: 600; font-size: 9px; padding: 5px 6px; border-radius: 6px;
@@ -198,9 +198,9 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.18</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.19</span>
         </div>
-        <button id="tempo-btn">150 BPM</button>
+        <button id="tempo-btn">120 BPM</button>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -238,8 +238,8 @@
 <div id="tempo-modal" class="tempo-overlay">
     <div class="tempo-content">
         <h3 style="margin:0 0 10px 0; font-size:16px;">Set Tempo</h3>
-        <div style="font-size: 24px; font-weight: 900; color: var(--gh-purple);" id="tempo-overlay-val">150 BPM</div>
-        <input type="range" id="tempo" min="40" max="220" value="150" oninput="updateTempo(this.value)">
+        <div style="font-size: 24px; font-weight: 900; color: var(--gh-purple);" id="tempo-overlay-val">120 BPM</div>
+        <input type="range" id="tempo" min="40" max="220" value="120" oninput="updateTempo(this.value)">
         <button class="action-btn" onclick="document.getElementById('tempo-modal').style.display='none'" style="width:100%; margin-top:10px;">DONE</button>
     </div>
 </div>
@@ -309,7 +309,7 @@
     let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false, isSecretlyRecording = false;
     let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
     
-    // NEW: Variable to isolate mic in the modal
+    // Variable to isolate mic in the modal
     let previewMuted = false;
 
     let mediaRecorder = null, audioChunks = [];
@@ -335,6 +335,11 @@
     function updateTempo(val) {
         document.getElementById('tempo-overlay-val').innerText = val + ' BPM';
         document.getElementById('tempo-btn').innerText = val + ' BPM';
+        
+        // Force a stop if the beat is playing to protect the math and sequencer sync
+        if (isPlaying) {
+            forceStopForModeSwitch();
+        }
     }
 
     function getActiveVolume() {
@@ -622,9 +627,7 @@
         if (currentMode === 'mic') return;
         
         forceStopForModeSwitch();
-        this.innerText = "WAIT...";
         await initMic();
-        this.innerText = "🎤 MIC"; 
         
         currentMode = 'mic';
         updateModeUI();
@@ -635,7 +638,6 @@
         if (currentMode === 'bt') return;
         
         forceStopForModeSwitch();
-        this.innerText = "WAIT...";
         
         if (micSource) {
             micSource.disconnect();
