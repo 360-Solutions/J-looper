@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.15</title>
+    <title>J-looper v3.16</title>
     <style>
         :root {
             /* GitHub & Hardware Inspired Palette */
@@ -47,17 +47,19 @@
             letter-spacing: 0.5px;
         }
 
-        /* The New Tempo Digital LED Screen */
+        /* The Re-styled Tempo Node (Matches Track Nodes) */
         #tempo-btn {
-            background: #111111; border: 2px solid #333333; color: #dddddd;
-            font-family: 'Courier New', Courier, monospace; font-weight: 900; 
-            font-size: 13px; padding: 6px 12px; border-radius: 4px;
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.8); cursor: pointer;
-            min-width: 80px; text-align: center; letter-spacing: 1px;
+            background: var(--node-off); border: 1px solid #111; color: #aaaaaa;
+            font-weight: 900; font-size: 11px; padding: 6px 12px; border-radius: 4px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.5); 
+            cursor: pointer; min-width: 80px; text-align: center;
+            transition: background 0.05s, color 0.05s, box-shadow 0.05s;
         }
         #tempo-btn.pulsing {
-            color: #ff3333 !important;
-            text-shadow: 0 0 8px #ff0000;
+            background: var(--node-led) !important;
+            color: #111111 !important;
+            box-shadow: 0 0 6px rgba(255,255,255,0.9), inset 0 1px 1px rgba(0,0,0,0.1) !important;
+            border-color: #fff !important;
         }
 
         .version-info { font-size: 10px; text-align: right; opacity: 0.8; color: #666; }
@@ -188,7 +190,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.15</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.16</span>
         </div>
         <button id="tempo-btn">150 BPM</button>
     </div>
@@ -299,7 +301,8 @@
     let currentMicStream = null;
 
     let targetBarLength = 16;
-    let scheduleAheadTime = 0.5; 
+    // Dropped lookahead from 0.5 to 0.15 to prevent the long "Stop Tail"
+    let scheduleAheadTime = 0.15; 
     let sequenceStartTime = 0;
 
     tracks.forEach(t => { 
@@ -525,7 +528,7 @@
         } catch (err) { console.error("Mic error: " + err); }
     }
 
-    // Forces a stop and resets UI to prevent sync bugs on mode switch
+    // Forces a stop and mutes instantly to prevent tail sync bugs
     function forceStopForModeSwitch() {
         if (isPlaying) {
             isPlaying = false;
@@ -535,7 +538,7 @@
             
             if(masterGain && audioCtx) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-                masterGain.gain.setValueAtTime(getActiveVolume(), audioCtx.currentTime);
+                masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.015);
             }
             updateRecBtnUI(); 
             
@@ -584,7 +587,7 @@
         
         this.innerText = "WAIT...";
         await initMic();
-        this.innerText = "🎤 MIC"; // Returns to normal label immediately before UI update overwrites it
+        this.innerText = "🎤 MIC"; 
         
         currentMode = 'mic';
         updateModeUI();
@@ -761,7 +764,7 @@
                 if (activeModalNode) activeModalNode.classList.add('playing');
             }
 
-            // Tempo LED Pulse on Quarter Notes (Text Flash Only)
+            // Tempo LED Pulse (Now perfectly matched to white node styling)
             const tempoBtn = document.getElementById('tempo-btn');
             if (visualStep % 4 === 0) {
                 tempoBtn.classList.add('pulsing');
@@ -800,6 +803,12 @@
                 await audioCtx.resume();
             }
             
+            // Ensure master gain is unmuted and reset correctly on play
+            if (masterGain) {
+                masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+                masterGain.gain.setValueAtTime(getActiveVolume(), audioCtx.currentTime);
+            }
+            
             sequenceStartTime = audioCtx.currentTime + 0.1;
             nextStepTime = sequenceStartTime;
             currentStep = 0; 
@@ -810,13 +819,15 @@
             this.classList.remove('ready');
             this.classList.add('stopped');
         } else { 
+            // The New Stop Logic
             document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing')); 
             document.getElementById('tempo-btn').classList.remove('pulsing');
             masterMuted = false;
             
             if(masterGain) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-                masterGain.gain.setValueAtTime(getActiveVolume(), audioCtx.currentTime);
+                // Hard fade out to completely kill the tail
+                masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.015);
             }
             updateRecBtnUI(); 
             this.innerText = "START";
