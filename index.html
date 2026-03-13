@@ -3,19 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>J-looper v3.08</title>
+    <title>J-looper v3.09</title>
     <style>
         :root {
-            --bg-color: #dcedc8; 
-            --panel-color: #c5e1a5; 
-            --accent-color: #333333; 
-            --bt-blue: #007AFF;
-            --text-color: #111111;
-            --node-off: #555555; 
-            --node-beat: #888888; 
-            --node-on: #e0e0e0; 
-            --rec-red: #cc0000;
-            --the-one: #ff3333;
+            /* GitHub & Hardware Inspired Palette */
+            --bg-color: #ffffff; 
+            --panel-color: #f6f8fa; 
+            --accent-color: #24292f; /* Black Rubber */
+            --text-color: #1f2328;
+            
+            /* Custom Brand Accents */
+            --gh-purple: #8250df; 
+            --bt-blue: #007AFF; 
+            --mic-orange: #ff9f0a; 
+            --rec-red: #da3633;
+            --the-one: #da3633;
+
+            /* The 3 Shades of Gray for Nodes */
+            --node-off: #2b2b2b; 
+            --node-beat: #444444; 
+            --node-on: #888888; 
+            --node-led: #ffffff;
         }
 
         body {
@@ -26,79 +34,80 @@
         }
 
         header { display: flex; justify-content: space-between; align-items: center; padding: 5px 0 10px 0; }
-        .version-info { font-size: 10px; text-align: right; opacity: 0.8; color: #333; }
+        .version-info { font-size: 10px; text-align: right; opacity: 0.8; color: #666; }
         
         #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 8px;}
         
         .title-box {
-            background: var(--bt-blue); color: white; padding: 4px 8px; 
-            border-radius: 6px; border: 1px solid #005bb5;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
+            background: var(--gh-purple); color: white; padding: 4px 8px; 
+            border-radius: 6px; border: 1px solid #6b3ec2;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
             letter-spacing: 0.5px;
         }
 
         .transport {
             background: var(--panel-color); padding: 10px; border-radius: 10px;
             display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;
-            box-shadow: inset 0 1px 3px rgba(255,255,255,0.5), 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #d0d7de; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         .transport-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
         
+        /* Black Rubber Buttons */
         .action-sm-btn, .action-btn, #toggle-samples-btn, .modal-content > button:last-child {
-            background: #222; border: 1px solid #000; color: #fff; 
+            background: var(--accent-color); border: 1px solid #111; color: #fff; 
             font-weight: 600; border-radius: 5px; cursor: pointer;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 1px 2px rgba(0,0,0,0.2);
         }
         
         #play-btn { 
-            background: #6f42c1; border: 1px solid #59339d; color: #fff; 
+            background: var(--gh-purple); border: 1px solid #6b3ec2; color: #fff; 
             font-weight: 900; border-radius: 6px; cursor: pointer;
             padding: 15px 15px; font-size: 14px; min-width: 90px;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.2);
         }
-        #play-btn.ready { background: #28a745; border-color: #1e7e34; }
-        #play-btn.stopped { background: #dc3545; border-color: #a71d2a; }
+        #play-btn.ready { background: #238636; border-color: #2ea043; }
+        #play-btn.stopped { background: var(--rec-red); border-color: #b02826; }
         
         #bt-mic-btn {
-            background: #555; border: 1px solid #333; color: #fff; 
+            background: var(--accent-color); border: 1px solid #111; color: #fff; 
             font-weight: 900; border-radius: 6px; cursor: pointer;
             padding: 15px 10px; font-size: 11px; min-width: 90px;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.15), 0 2px 4px rgba(0,0,0,0.2);
             transition: background-color 0.2s, color 0.2s;
         }
         #bt-mic-btn.bt-active {
-            background: #87CEEB; /* Baby Blue */
-            border-color: #5b9ebf;
-            color: #111;
-        }
-        #bt-mic-btn.mic-active {
-            background: var(--rec-red);
-            border-color: #900;
+            background: var(--bt-blue); 
+            border-color: #005bb5;
             color: #fff;
         }
+        #bt-mic-btn.mic-active {
+            background: var(--mic-orange);
+            border-color: #cc7a00;
+            color: #111;
+        }
         
-        #play-btn:active, .action-sm-btn:active, .action-btn:active, #bt-mic-btn:active { transform: translateY(1px); }
+        #play-btn:active, .action-sm-btn:active, .action-btn:active, #bt-mic-btn:active { transform: translateY(1px); box-shadow: none; }
 
         .sliders-group { flex-grow: 1; display: flex; flex-direction: column; gap: 6px;}
-        .slider-label { font-size: 10px; text-transform: uppercase; color: var(--accent-color); display: block; margin-bottom: 2px; font-weight: bold;}
-        input[type=range] { width: 100%; accent-color: #222; height: 20px; margin:0; }
+        .slider-label { font-size: 10px; text-transform: uppercase; color: var(--text-color); display: block; margin-bottom: 2px; font-weight: bold;}
+        input[type=range] { width: 100%; accent-color: var(--gh-purple); height: 20px; margin:0; }
 
-        .track-lane { background: rgba(0,0,0,0.05); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid rgba(0,0,0,0.1); }
+        .track-lane { background: var(--panel-color); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid #d0d7de; }
         .track-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 4px; }
 
         .track-number {
-            background: var(--bt-blue); color: white; font-weight: bold; font-size: 11px;
+            background: var(--gh-purple); color: white; font-weight: bold; font-size: 11px;
             width: 20px; height: 20px; display: flex; justify-content: center; align-items: center;
-            border-radius: 4px; border: 1px solid #005bb5; flex-shrink: 0;
+            border-radius: 4px; border: 1px solid #6b3ec2; flex-shrink: 0;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
         }
 
         .sample-name {
-            background: #222; padding: 6px 4px; border-radius: 4px; border: 1px solid #000;
+            background: var(--accent-color); padding: 6px 4px; border-radius: 4px; border: 1px solid #111;
             font-size: 10px; min-width: 60px; max-width: 60px; color: #fff; cursor: pointer;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.15);
         }
 
         .center-controls { display:flex; align-items:center; gap:4px; flex-grow:1; margin: 0 4px; justify-content: space-between;}
@@ -106,40 +115,52 @@
         .action-sm-btn { font-size: 9px; padding: 6px 4px; text-align: center; }
         .ms-btn { flex-grow: 1; font-weight: bold; font-size: 10px; padding: 6px 0;}
         
-        .active-choke { color: #fff; border-color: #fff; background: #555; }
-        .active-mute { background-color: #cc0000 !important; color: #ffffff !important; border-color: #ff3333 !important; }
-        .active-solo { background-color: #ccaa00 !important; color: #ffffff !important; border-color: #ffaa00 !important; }
+        .active-choke { color: #fff; border-color: #fff; background: #666; }
+        .active-mute { background-color: var(--rec-red) !important; color: #ffffff !important; border-color: #b02826 !important; }
+        .active-solo { background-color: #d29922 !important; color: #ffffff !important; border-color: #9e6a03 !important; }
         
-        .dropdown-panel { background: rgba(0,0,0,0.1); padding: 8px; border-radius: 6px; margin-bottom: 6px; display: none; }
+        .dropdown-panel { background: #e1e4e8; padding: 8px; border-radius: 6px; margin-bottom: 6px; display: none; border: 1px solid #d0d7de;}
         
         .bar-row { display: flex; width: 100%; justify-content: space-between; position: relative; margin-bottom: 3px; height: 20px; }
         .node-wrapper { position: relative; width: 100%; display: flex; justify-content: space-between; }
-        .node { width: 6%; height: 20px; background: var(--node-off); border-radius: 2px; cursor: pointer; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
-        .node.beat-node { background: var(--node-beat); }
-        .node.active { background: var(--node-on); box-shadow: 0 0 6px rgba(255,255,255,0.8), inset 0 1px 2px rgba(255,255,255,0.8); }
         
-        .playhead { position: absolute; top: 0; bottom: 0; left: 0; width: 3px; background: #222; box-shadow: 0 0 4px rgba(0,0,0,0.5); pointer-events: none; z-index: 10; display: none; height: 100%; margin-left: 1px;}
+        /* Node Styling */
+        .node, .modal-node { 
+            width: 6%; height: 20px; background: var(--node-off); 
+            border-radius: 2px; cursor: pointer; 
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.5); 
+            border: 1px solid #111;
+            transition: background 0.05s, box-shadow 0.05s;
+        }
+        .node.beat-node, .modal-node.beat-node { background: var(--node-beat); }
+        .node.active { background: var(--node-on); box-shadow: inset 0 1px 2px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.5); }
+        
+        /* The Hardware LED Playhead Effect */
+        .node.playing, .modal-node.playing {
+            background: var(--node-led) !important;
+            box-shadow: 0 0 6px rgba(255,255,255,0.9), inset 0 1px 1px rgba(0,0,0,0.1) !important;
+            border-color: #fff !important;
+        }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
-        .modal-content { background: var(--panel-color); width: 90%; max-height: 92%; padding: 15px; border-radius: 12px; border: 3px solid #222; display: flex; flex-direction: column; }
+        .modal-content { background: var(--bg-color); width: 90%; max-height: 92%; padding: 15px; border-radius: 12px; border: 3px solid #d0d7de; display: flex; flex-direction: column; }
 
-        .rec-visualizer-zone { background: rgba(0,0,0,0.1); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.2); position: relative; }
+        .rec-visualizer-zone { background: var(--panel-color); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #d0d7de; position: relative; }
         .modal-header-btns { display: flex; justify-content: space-around; align-items: center; margin-bottom: 12px; gap: 10px; }
 
-        .rec-btn { background: var(--rec-red); color: white; border: 2px solid #600; padding: 15px 25px; border-radius: 40px; font-weight: 600; font-size: 13px; min-width: 120px; cursor: pointer; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3); transition: opacity 0.2s; }
+        .rec-btn { background: var(--rec-red); color: white; border: 2px solid #b02826; padding: 15px 25px; border-radius: 40px; font-weight: 600; font-size: 13px; min-width: 120px; cursor: pointer; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3); transition: opacity 0.2s; }
         .rec-btn.waiting { background: #aaaaaa; color: #000; border-color: #666; }
-        .rec-btn.recording { background: #fff; color: #ff0000; border-color: #ff0000; animation: pulse 1s infinite; }
+        .rec-btn.recording { background: #fff; color: var(--rec-red); border-color: var(--rec-red); animation: pulse 1s infinite; }
         
         .action-btn { padding: 12px; font-size: 11px; min-width: 90px;}
 
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
 
-        .sample-list { overflow-y: auto; background: rgba(0,0,0,0.1); border-radius: 5px; max-height: 150px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.2); }
-        .sample-item { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.1); font-size: 14px; color: #222; font-weight: bold; cursor: pointer; }
+        .sample-list { overflow-y: auto; background: var(--panel-color); border-radius: 5px; max-height: 150px; margin-bottom: 10px; border: 1px solid #d0d7de; }
+        .sample-item { padding: 12px; border-bottom: 1px solid #d0d7de; font-size: 14px; color: var(--text-color); font-weight: bold; cursor: pointer; }
         
-        .modal-node { width: 6%; height: 20px; background: var(--node-off); border-radius: 1px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
-        .modal-node.beat-node { background: var(--node-beat); }
-        .modal-node.the-only-one { background: var(--the-one) !important; box-shadow: 0 0 8px var(--the-one); }
+        .modal-node.the-only-one { background: var(--the-one) !important; box-shadow: 0 0 8px var(--the-one); border-color:#fff;}
+        .modal-node.the-only-one.playing { background: var(--node-led) !important; box-shadow: 0 0 8px #fff !important; }
     </style>
 </head>
 <body>
@@ -147,7 +168,7 @@
 <header>
     <div id="app-title">
         <span class="title-box">J-looper</span> 
-        <span style="font-size: 12px; opacity:0.6; color: var(--accent-color);">v3.08</span>
+        <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.09</span>
     </div>
     <div class="version-info">Created by Jeremiah Keller</div>
 </header>
@@ -177,22 +198,22 @@
     <div class="modal-content">
         <div class="rec-visualizer-zone">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span id="modal-track-name" style="font-size:12px; color:var(--accent-color); font-weight:900;">READY</span>
+                <span id="modal-track-name" style="font-size:12px; color:var(--text-color); font-weight:900;">READY</span>
                 <button class="action-sm-btn" id="modal-bar-cycle" style="min-width: 60px; padding:8px;">1 BAR</button>
             </div>
             <div id="modal-bars-container"></div>
         </div>
         
-        <div style="margin-bottom: 15px; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.2);">
+        <div style="margin-bottom: 15px; background: var(--panel-color); padding: 10px; border-radius: 8px; border: 1px solid #d0d7de;">
             <div style="margin-bottom: 12px;">
-                <span class="slider-label" style="display:flex; justify-content:space-between; color: #222;">
+                <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
                     <span>Track Volume</span>
                     <span id="modal-vol-val">80%</span>
                 </span>
                 <input type="range" id="modal-vol" min="0" max="300" value="80" step="5">
             </div>
             <div>
-                <span class="slider-label" style="display:flex; justify-content:space-between; color: #222;">
+                <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
                     <span>Start Point Nudge (Mic Latency)</span>
                     <span id="modal-nudge-val">-120ms</span>
                 </span>
@@ -208,7 +229,7 @@
         <button id="toggle-samples-btn" class="action-btn" style="width:100%; margin-bottom: 10px; padding: 12px;">PRELOADED SAMPLES</button>
         <div class="sample-list" id="modal-sample-list" style="display: none;"></div>
         
-        <button onclick="closeModal()" style="margin-top:auto; padding:15px; font-size:14px; background: var(--bt-blue); color: white; border: 1px solid #005bb5; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);">BACK TO GRID</button>
+        <button onclick="closeModal()" style="margin-top:auto; padding:15px; font-size:14px; background: var(--accent-color); color: white; border: 1px solid #111; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: inset 0 1px 2px rgba(255,255,255,0.15);">BACK TO GRID</button>
     </div>
 </div>
 
@@ -259,9 +280,11 @@
             let barHtml = '';
             for(let b=0; b < track.bars; b++) {
                 barHtml += `<div class="bar-row">
-                    <div class="playhead" id="ph-${tIdx}-bar-${b}"></div>
                     <div class="node-wrapper">
-                    ${Array.from({length: 16}).map((_, s) => `<div class="node ${(s%4===0)?'beat-node':''} ${track.steps[(b*16)+s]?'active':''}" onclick="tglNode(${tIdx},${(b*16)+s},this)"></div>`).join('')}
+                    ${Array.from({length: 16}).map((_, s) => {
+                        let stepIdx = (b*16)+s;
+                        return `<div id="node-${tIdx}-${stepIdx}" class="node ${(s%4===0)?'beat-node':''} ${track.steps[stepIdx]?'active':''}" onclick="tglNode(${tIdx},${stepIdx},this)"></div>`;
+                    }).join('')}
                     </div>
                 </div>`;
             }
@@ -287,7 +310,7 @@
             <div class="dropdown-panel" id="vol-panel-${tIdx}">
                 <span class="slider-label" style="display:flex; justify-content:space-between;">
                     <span>Volume (Overdrive up to 300%)</span>
-                    <span id="lane-vol-val-${tIdx}" style="color:#222;">${track.volume}%</span>
+                    <span id="lane-vol-val-${tIdx}" style="color:var(--text-color);">${track.volume}%</span>
                 </span>
                 <input type="range" min="0" max="300" value="${track.volume}" step="5" oninput="updateLaneVol(${tIdx}, this.value)">
             </div>
@@ -295,7 +318,7 @@
             <div class="dropdown-panel" id="nudge-panel-${tIdx}">
                 <span class="slider-label" style="display:flex; justify-content:space-between;">
                     <span>Track Nudge (-400ms to 100ms)</span>
-                    <span id="lane-nudge-val-${tIdx}" style="color:#222;">${track.nudge}ms</span>
+                    <span id="lane-nudge-val-${tIdx}" style="color:var(--text-color);">${track.nudge}ms</span>
                 </span>
                 <input type="range" min="-400" max="100" value="${track.nudge}" step="5" oninput="updateLaneNudge(${tIdx}, this.value)">
             </div>
@@ -361,7 +384,6 @@
                 let bufferToDecode = null;
                 let isUserSample = false;
 
-                // Load from stored user memory first, OR fallback to prefetched defaults
                 if (tracks[i].rawArrayBuffer) {
                     bufferToDecode = tracks[i].rawArrayBuffer.slice(0);
                     isUserSample = true;
@@ -420,7 +442,6 @@
                 const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                 const arrayBuffer = await audioBlob.arrayBuffer();
                 
-                // SAVE RAW AUDIO DATA FOR WHEN CONTEXT REBOOTS
                 tracks[activeTrackIdx].rawArrayBuffer = arrayBuffer.slice(0); 
                 
                 audioCtx.decodeAudioData(arrayBuffer, (decoded) => {
@@ -445,7 +466,6 @@
     }
 
     function disableMicAndDestroyContext() {
-        // 1. Kill the physical microphone
         if (currentMicStream) {
             currentMicStream.getTracks().forEach(track => track.stop());
             currentMicStream = null;
@@ -453,7 +473,6 @@
         mediaRecorder = null;
         micEnabled = false;
         
-        // 2. BURN DOWN THE AUDIO ENGINE to release iOS Bluetooth Stranglehold
         if (audioCtx) {
             audioCtx.close();
             audioCtx = null;
@@ -462,10 +481,8 @@
         isInitialized = false;
         isPlaying = false;
         
-        // Clear all actively decoded buffers (they will rebuild from rawArrayBuffer on Initialize)
         tracks.forEach(t => { t.buffer = null; t.lastSource = null; t.lastGain = null; });
 
-        // 3. Reset UI back to Initialization state
         const mb = document.getElementById('bt-mic-btn');
         mb.innerText = "🔊 BT MODE";
         mb.className = "bt-active";
@@ -477,18 +494,15 @@
         const playBtn = document.getElementById('play-btn');
         playBtn.innerText = "INITIALIZE";
         playBtn.className = "";
-        playBtn.style.background = "";
-        playBtn.style.borderColor = "";
         
-        document.querySelectorAll('.playhead').forEach(ph => ph.style.display = 'none');
+        // Clear all LED playheads
+        document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing'));
     }
 
     document.getElementById('bt-mic-btn').onclick = async function() {
         if (micEnabled) {
-            // Revert to BT by destroying the active call context
             disableMicAndDestroyContext();
         } else {
-            // Turn Mic on (We don't need to burn the context down here, but user must hit START if not playing)
             this.innerText = "WAIT...";
             await initMic();
         }
@@ -623,32 +637,21 @@
             
             let visualStep = Math.floor(elapsed / secondsPerStep);
             
+            // Hardware LED Playhead Updates
+            document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing'));
+            
             tracks.forEach((track, tIdx) => {
                 const laneStep = visualStep % (track.bars * 16);
-                for(let b=0; b<4; b++) { 
-                    const ph = document.getElementById(`ph-${tIdx}-bar-${b}`); 
-                    if(ph) ph.style.display = 'none'; 
-                }
-                
-                const mainPh = document.getElementById(`ph-${tIdx}-bar-${Math.floor(laneStep/16)}`);
-                if (mainPh) { 
-                    mainPh.style.display = 'block'; 
-                    mainPh.style.left = `${(laneStep%16) * 6.25}%`; 
-                }
+                const activeNode = document.getElementById(`node-${tIdx}-${laneStep}`);
+                if (activeNode) activeNode.classList.add('playing');
             });
 
             if (activeTrackIdx !== null) {
                 const laneStep = visualStep % (tracks[activeTrackIdx].bars * 16);
-                for(let b=0; b<4; b++) {
-                    const mph = document.getElementById(`modal-ph-bar-${b}`);
-                    if (mph) mph.style.display = 'none';
-                }
-                const activeMph = document.getElementById(`modal-ph-bar-${Math.floor(laneStep/16)}`);
-                if (activeMph) {
-                    activeMph.style.display = 'block';
-                    activeMph.style.left = `${(laneStep%16) * 6.25}%`;
-                }
+                const activeModalNode = document.getElementById(`modal-node-${laneStep}`);
+                if (activeModalNode) activeModalNode.classList.add('playing');
             }
+            
             requestAnimationFrame(uiLoop);
         }
     }
@@ -692,7 +695,7 @@
             this.classList.remove('ready');
             this.classList.add('stopped');
         } else { 
-            document.querySelectorAll('.playhead').forEach(ph => ph.style.display = 'none'); 
+            document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing')); 
             masterMuted = false;
             
             if(masterGain) {
@@ -821,9 +824,11 @@
         container.innerHTML = '';
         for(let b=0; b < track.bars; b++) {
             const row = document.createElement('div'); row.className = 'bar-row';
-            row.innerHTML = `<div class="playhead" id="modal-ph-bar-${b}"></div>` + 
-                `<div class="node-wrapper">` +
-                Array.from({length: 16}).map((_, s) => `<div class="modal-node ${(s%4===0)?'beat-node':''} ${(b===0&&s===0)?'the-only-one':''}"></div>`).join('') +
+            row.innerHTML = `<div class="node-wrapper">` +
+                Array.from({length: 16}).map((_, s) => {
+                    let stepIdx = (b*16)+s;
+                    return `<div id="modal-node-${stepIdx}" class="modal-node ${(s%4===0)?'beat-node':''} ${(stepIdx===0)?'the-only-one':''}"></div>`;
+                }).join('') +
                 `</div>`;
             container.appendChild(row);
         }
