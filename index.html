@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.17</title>
+    <title>J-looper v3.18</title>
     <style>
         :root {
-            /* GitHub & Hardware Inspired Palette */
+            /* Light/Minimalist Web Palette */
             --bg-color: #ffffff; 
             --panel-color: #f6f8fa; 
-            --accent-color: #24292f; /* Black Rubber */
             --text-color: #1f2328;
+            --border-color: #d0d7de;
             
             /* Custom Brand Accents */
             --gh-purple: #8250df; 
             --bt-blue: #007AFF; 
             --mic-orange: #ff9f0a; 
-            --rec-red: #da3633;
+            --rec-red: #d73a49;
+            --gh-green: #28a745;
             --the-one: #da3633;
 
-            /* The 3 Shades of Gray for Nodes */
+            /* Node Colors */
             --node-off: #2b2b2b; 
             --node-beat: #444444; 
             --node-on: #888888; 
@@ -28,8 +29,8 @@
 
         body {
             background-color: var(--bg-color); color: var(--text-color);
-            font-family: -apple-system, sans-serif; margin: 0; 
-            /* Safe area inset prevents overlapping with iOS notch and clock */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
+            margin: 0; 
             padding: max(10px, env(safe-area-inset-top)) 10px 10px 10px;
             user-select: none; -webkit-tap-highlight-color: transparent;
             touch-action: manipulation; 
@@ -47,21 +48,21 @@
             letter-spacing: 0.5px;
         }
 
-        /* The Re-styled Pill Tempo Button (No Flashing) */
+        /* Clean Pill Tempo Button */
         #tempo-btn {
-            background: #2b2b2b; border: 1px solid #111; color: var(--gh-purple);
-            font-weight: 900; font-size: 11px; padding: 6px 16px; border-radius: 20px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.2); 
-            cursor: pointer; text-align: center;
+            background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color);
+            font-weight: 700; font-size: 11px; padding: 6px 16px; border-radius: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer; text-align: center;
         }
+        #tempo-btn:active { background: #f3f4f6; }
 
         .version-info { font-size: 10px; text-align: right; opacity: 0.8; color: #666; }
 
-        /* Restructured Transport Section */
+        /* Transport Section */
         .transport {
             background: var(--panel-color); padding: 10px; border-radius: 10px;
             display: flex; gap: 10px; margin-bottom: 12px;
-            border: 1px solid #d0d7de; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             align-items: stretch;
         }
         
@@ -69,7 +70,7 @@
             background: var(--gh-purple); border: 1px solid #6b3ec2; color: #fff; 
             font-weight: 900; border-radius: 8px; cursor: pointer;
             font-size: 11px; width: 85px; flex-shrink: 0;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.1);
             display: flex; justify-content: center; align-items: center; text-align: center;
         }
         #play-btn.ready { background: #238636; border-color: #2ea043; }
@@ -79,7 +80,7 @@
         .mode-row { display: flex; align-items: center; gap: 10px; width: 100%; }
         
         .mode-btn {
-            background: var(--accent-color); border: 1px solid #111; color: #fff; 
+            background: #24292f; border: 1px solid #111; color: #fff; 
             font-weight: 900; border-radius: 5px; cursor: pointer;
             padding: 0; font-size: 10px; width: 55px; height: 32px; flex-shrink: 0;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.15), 0 1px 3px rgba(0,0,0,0.2);
@@ -99,39 +100,42 @@
         input[type=range].mode-slider.mic-active { opacity: 1; accent-color: var(--mic-orange); }
         input[type=range].mode-slider.bt-active { opacity: 1; accent-color: var(--bt-blue); }
 
-        .track-lane { background: var(--panel-color); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid #d0d7de; }
+        .track-lane { background: var(--panel-color); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid var(--border-color); }
         .track-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 4px; }
 
         .track-number {
-            background: var(--gh-purple); color: white; font-weight: bold; font-size: 11px;
+            background: var(--bt-blue); color: white; font-weight: bold; font-size: 11px;
             width: 20px; height: 20px; display: flex; justify-content: center; align-items: center;
-            border-radius: 4px; border: 1px solid #6b3ec2; flex-shrink: 0;
+            border-radius: 4px; border: 1px solid #005bb5; flex-shrink: 0;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
         }
 
-        .sample-name {
-            background: var(--accent-color); padding: 6px 4px; border-radius: 4px; border: 1px solid #111;
-            font-size: 10px; min-width: 60px; max-width: 60px; color: #fff; cursor: pointer;
+        /* The New Sleek Bubble Buttons */
+        .bubble-btn {
+            background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color);
+            font-weight: 600; font-size: 9px; padding: 5px 6px; border-radius: 6px;
+            cursor: pointer; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            transition: all 0.1s ease;
+        }
+        .bubble-btn:active { background: #f3f4f6; transform: translateY(1px); box-shadow: none; }
+        
+        /* Clean Text Color States */
+        .bubble-btn.active-mute { color: var(--rec-red); border-color: #fca5a5; background: #fff0f2; }
+        .bubble-btn.active-solo { color: var(--gh-green); border-color: #86efac; background: #f0fdf4; }
+        .bubble-btn.choke-off { color: #8c959f; border-color: var(--border-color); background: transparent; box-shadow: none; }
+        .bubble-btn.choke-on { color: var(--text-color); border-color: #8c959f; background: #ffffff; }
+
+        .sample-name-btn {
+            font-size: 10px; min-width: 60px; max-width: 60px; padding: 5px 4px;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.15);
         }
 
         .center-controls { display:flex; align-items:center; gap:4px; flex-grow:1; margin: 0 4px; justify-content: space-between;}
+        .controls-right { display:flex; align-items:center; gap:4px; }
         
-        .action-sm-btn, .action-btn, #toggle-samples-btn, .modal-content > button:last-child {
-            background: var(--accent-color); border: 1px solid #111; color: #fff; 
-            font-weight: 600; border-radius: 5px; cursor: pointer;
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 1px 2px rgba(0,0,0,0.2);
-        }
-        .action-sm-btn { font-size: 9px; padding: 6px 4px; text-align: center; }
-        .ms-btn { flex-grow: 1; font-weight: bold; font-size: 10px; padding: 6px 0;}
-        .action-sm-btn:active, .action-btn:active { transform: translateY(1px); box-shadow: none; }
+        .ms-btn { flex-grow: 1; font-size: 10px; padding: 5px 0;}
         
-        .active-choke { color: #fff; border-color: #fff; background: #666; }
-        .active-mute { background-color: var(--rec-red) !important; color: #ffffff !important; border-color: #b02826 !important; }
-        .active-solo { background-color: #d29922 !important; color: #ffffff !important; border-color: #9e6a03 !important; }
-        
-        .dropdown-panel { background: #e1e4e8; padding: 8px; border-radius: 6px; margin-bottom: 6px; display: none; border: 1px solid #d0d7de;}
+        .dropdown-panel { background: #e1e4e8; padding: 8px; border-radius: 6px; margin-bottom: 6px; display: none; border: 1px solid var(--border-color);}
         
         .bar-row { display: flex; width: 100%; justify-content: space-between; position: relative; margin-bottom: 3px; height: 20px; }
         .node-wrapper { position: relative; width: 100%; display: flex; justify-content: space-between; }
@@ -153,13 +157,13 @@
         }
 
         .modal, .tempo-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
-        .modal-content, .tempo-content { background: var(--bg-color); width: 90%; padding: 15px; border-radius: 12px; border: 3px solid #d0d7de; display: flex; flex-direction: column; }
+        .modal-content, .tempo-content { background: var(--bg-color); width: 90%; padding: 15px; border-radius: 12px; border: 3px solid var(--border-color); display: flex; flex-direction: column; }
         .modal-content { max-height: 92%; }
         
         .tempo-content { width: 70%; text-align: center;}
         .tempo-content input[type=range] { margin: 20px 0; accent-color: var(--gh-purple); }
 
-        .rec-visualizer-zone { background: var(--panel-color); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #d0d7de; position: relative; }
+        .rec-visualizer-zone { background: var(--panel-color); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); position: relative; }
         
         /* VU Meter Styles */
         .vu-meter { width: 100%; height: 6px; background: #111; border-radius: 3px; margin-bottom: 10px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8); }
@@ -171,12 +175,18 @@
         .rec-btn.waiting { background: #aaaaaa; color: #000; border-color: #666; }
         .rec-btn.recording { background: #fff; color: var(--rec-red); border-color: var(--rec-red); animation: pulse 1s infinite; }
         
-        .action-btn { padding: 12px; font-size: 11px; min-width: 90px;}
+        /* General Action Button (Modal bottom) */
+        .action-btn { 
+            background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color);
+            font-weight: 600; border-radius: 6px; cursor: pointer; padding: 12px; font-size: 11px; min-width: 90px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .action-btn:active { background: #f3f4f6; transform: translateY(1px); box-shadow: none; }
 
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
 
-        .sample-list { overflow-y: auto; background: var(--panel-color); border-radius: 5px; max-height: 150px; margin-bottom: 10px; border: 1px solid #d0d7de; }
-        .sample-item { padding: 12px; border-bottom: 1px solid #d0d7de; font-size: 14px; color: var(--text-color); font-weight: bold; cursor: pointer; }
+        .sample-list { overflow-y: auto; background: var(--panel-color); border-radius: 5px; max-height: 150px; margin-bottom: 10px; border: 1px solid var(--border-color); }
+        .sample-item { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 14px; color: var(--text-color); font-weight: bold; cursor: pointer; }
         
         .modal-node.the-only-one { background: var(--the-one) !important; box-shadow: 0 0 8px var(--the-one); border-color:#fff;}
         .modal-node.the-only-one.playing { background: var(--node-led) !important; box-shadow: 0 0 8px #fff !important; }
@@ -188,7 +198,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.17</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.18</span>
         </div>
         <button id="tempo-btn">150 BPM</button>
     </div>
@@ -230,7 +240,7 @@
         <h3 style="margin:0 0 10px 0; font-size:16px;">Set Tempo</h3>
         <div style="font-size: 24px; font-weight: 900; color: var(--gh-purple);" id="tempo-overlay-val">150 BPM</div>
         <input type="range" id="tempo" min="40" max="220" value="150" oninput="updateTempo(this.value)">
-        <button class="action-btn" onclick="document.getElementById('tempo-modal').style.display='none'" style="width:100%; padding:15px; margin-top:10px;">DONE</button>
+        <button class="action-btn" onclick="document.getElementById('tempo-modal').style.display='none'" style="width:100%; margin-top:10px;">DONE</button>
     </div>
 </div>
 
@@ -239,13 +249,16 @@
         <div class="rec-visualizer-zone">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                 <span id="modal-track-name" style="font-size:12px; color:var(--text-color); font-weight:900;">READY</span>
-                <button class="action-sm-btn" id="modal-bar-cycle" style="min-width: 60px; padding:8px;">1 BAR</button>
+                <div style="display:flex; gap:6px;">
+                    <button class="bubble-btn" id="modal-mute-beat-btn" onclick="togglePreviewMute()">🔊 HEAR BEAT</button>
+                    <button class="bubble-btn" id="modal-bar-cycle" style="min-width: 50px;">1 BAR</button>
+                </div>
             </div>
             <div class="vu-meter"><div class="vu-fill" id="vu-fill"></div></div>
             <div id="modal-bars-container"></div>
         </div>
         
-        <div style="margin-bottom: 15px; background: var(--panel-color); padding: 10px; border-radius: 8px; border: 1px solid #d0d7de;">
+        <div style="margin-bottom: 15px; background: var(--panel-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
             <div style="margin-bottom: 12px;">
                 <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
                     <span>Track Volume</span>
@@ -270,7 +283,7 @@
         <button id="toggle-samples-btn" class="action-btn" style="width:100%; margin-bottom: 10px; padding: 12px;">PRELOADED SAMPLES</button>
         <div class="sample-list" id="modal-sample-list" style="display: none;"></div>
         
-        <button onclick="closeModal()" style="margin-top:auto; padding:15px; font-size:14px; background: var(--accent-color); color: white; border: 1px solid #111; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: inset 0 1px 2px rgba(255,255,255,0.15);">BACK TO GRID</button>
+        <button class="action-btn" onclick="closeModal()" style="margin-top:auto; padding:15px; font-size:14px; font-weight: bold; width: 100%;">BACK TO GRID</button>
     </div>
 </div>
 
@@ -296,10 +309,12 @@
     let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false, isSecretlyRecording = false;
     let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
     
+    // NEW: Variable to isolate mic in the modal
+    let previewMuted = false;
+
     let mediaRecorder = null, audioChunks = [];
     let currentMicStream = null;
     
-    // VU Meter Nodes
     let micAnalyser = null;
     let micSource = null;
 
@@ -313,7 +328,6 @@
         t.steps = s;
     });
 
-    // Tempo Control
     document.getElementById('tempo-btn').onclick = () => {
         document.getElementById('tempo-modal').style.display = 'flex';
     };
@@ -329,7 +343,6 @@
         return 0.8;
     }
 
-    // Dynamic Slider Updates
     document.getElementById('mic-vol').oninput = function() {
         document.getElementById('mic-vol-label').innerText = Math.round(this.value * 100) + '%';
         if (currentMode === 'mic' && masterGain && !masterMuted) {
@@ -343,6 +356,23 @@
             masterGain.gain.setValueAtTime(this.value, audioCtx.currentTime);
         }
     };
+
+    // Toggles the playback volume inside the recording modal so you can hear only your mic
+    function togglePreviewMute() {
+        previewMuted = !previewMuted;
+        const btn = document.getElementById('modal-mute-beat-btn');
+        if (previewMuted) {
+            btn.innerText = "🔇 BEAT MUTED";
+            btn.style.color = "var(--rec-red)";
+            btn.style.borderColor = "#fca5a5";
+            btn.style.background = "#fff0f2";
+        } else {
+            btn.innerText = "🔊 HEAR BEAT";
+            btn.style.color = "var(--text-color)";
+            btn.style.borderColor = "var(--border-color)";
+            btn.style.background = "#ffffff";
+        }
+    }
 
     function renderSequencer() {
         const mainGrid = document.getElementById('main-grid');
@@ -367,18 +397,18 @@
             lane.innerHTML = `
             <div class="track-controls">
                 <div class="track-number">${tIdx + 1}</div>
-                <div class="sample-name" onclick="openModal(${tIdx})">${track.name}</div>
+                <button class="bubble-btn sample-name-btn" onclick="openModal(${tIdx})">${track.name}</button>
                 
                 <div class="center-controls">
-                    <button class="action-sm-btn" onclick="toggleDropdown('vol-panel-${tIdx}')" style="min-width:32px;">VOL</button>
-                    <button class="action-sm-btn ms-btn ${track.mute ? 'active-mute' : ''}" onclick="toggleMute(${tIdx})">MUTE</button>
-                    <button class="action-sm-btn ms-btn ${track.solo ? 'active-solo' : ''}" onclick="toggleSolo(${tIdx})">SOLO</button>
+                    <button class="bubble-btn" onclick="toggleDropdown('vol-panel-${tIdx}')" style="min-width:32px;">VOL</button>
+                    <button class="bubble-btn ms-btn ${track.mute ? 'active-mute' : ''}" onclick="toggleMute(${tIdx})">MUTE</button>
+                    <button class="bubble-btn ms-btn ${track.solo ? 'active-solo' : ''}" onclick="toggleSolo(${tIdx})">SOLO</button>
                 </div>
 
                 <div class="controls-right">
-                    <button class="action-sm-btn" onclick="toggleDropdown('nudge-panel-${tIdx}')">NUDGE</button>
-                    <button class="action-sm-btn ${track.choke ? 'active-choke' : ''}" onclick="toggleChoke(${tIdx})">CHOKE</button>
-                    <button class="action-sm-btn" onclick="cycleBars(${tIdx})" style="min-width:24px;">${track.bars}B</button>
+                    <button class="bubble-btn" onclick="toggleDropdown('nudge-panel-${tIdx}')">NUDGE</button>
+                    <button class="bubble-btn ${track.choke ? 'choke-on' : 'choke-off'}" onclick="toggleChoke(${tIdx})">CHOKE</button>
+                    <button class="bubble-btn" onclick="cycleBars(${tIdx})" style="min-width:24px;">${track.bars}B</button>
                 </div>
             </div>
             
@@ -528,19 +558,16 @@
                 });
             };
 
-            // Initialize VU Meter Analyser
             if (audioCtx) {
                 micAnalyser = audioCtx.createAnalyser();
-                micAnalyser.fftSize = 128; // Small size for fast level reading
+                micAnalyser.fftSize = 128; 
                 micSource = audioCtx.createMediaStreamSource(currentMicStream);
-                // We connect to the analyser to read levels, but NOT to destination so there is no feedback.
                 micSource.connect(micAnalyser); 
             }
 
         } catch (err) { console.error("Mic error: " + err); }
     }
 
-    // Forces a stop and mutes instantly to prevent tail sync bugs
     function forceStopForModeSwitch() {
         if (isPlaying) {
             isPlaying = false;
@@ -595,7 +622,6 @@
         if (currentMode === 'mic') return;
         
         forceStopForModeSwitch();
-        
         this.innerText = "WAIT...";
         await initMic();
         this.innerText = "🎤 MIC"; 
@@ -609,7 +635,6 @@
         if (currentMode === 'bt') return;
         
         forceStopForModeSwitch();
-        
         this.innerText = "WAIT...";
         
         if (micSource) {
@@ -699,7 +724,8 @@
                 }
             }
 
-            if (!masterMuted) {
+            // The previewMuted flag stops backing tracks while testing levels, but lets them mute properly during actual recording
+            if (!masterMuted && !previewMuted) {
                 const isAnySolo = tracks.some(t => t.solo);
                 tracks.forEach((track) => {
                     if (track.steps[currentStep % (track.bars * 16)]) { 
@@ -782,7 +808,6 @@
             }
         }
 
-        // Run VU Meter continually if modal is open and mic is active
         if (activeTrackIdx !== null && currentMode === 'mic' && micAnalyser) {
             const dataArray = new Uint8Array(micAnalyser.frequencyBinCount);
             micAnalyser.getByteFrequencyData(dataArray);
@@ -797,7 +822,6 @@
                 vuFill.style.background = percent > 90 ? 'var(--rec-red)' : (percent > 70 ? 'var(--mic-orange)' : '#238636');
             }
         } else if (activeTrackIdx !== null) {
-            // Keep it zeroed out if in BT mode or mic not ready
             const vuFill = document.getElementById('vu-fill');
             if (vuFill) {
                 vuFill.style.width = '0%';
@@ -826,7 +850,6 @@
             this.style.background = ""; 
             this.style.borderColor = "";
             
-            // Start the visual loop primarily for the VU meter even before hitting PLAY
             requestAnimationFrame(uiLoop);
             return;
         }
@@ -944,6 +967,17 @@
     function closeModal() { 
         renderSequencer();
         activeTrackIdx = null; 
+        
+        // Reset preview mute when closing modal so you don't accidentally leave it muted
+        previewMuted = false;
+        const muteBtn = document.getElementById('modal-mute-beat-btn');
+        if (muteBtn) {
+            muteBtn.innerText = "🔊 HEAR BEAT";
+            muteBtn.style.color = "var(--text-color)";
+            muteBtn.style.borderColor = "var(--border-color)";
+            muteBtn.style.background = "#ffffff";
+        }
+
         document.getElementById('sample-modal').style.display = 'none'; 
     }
     
