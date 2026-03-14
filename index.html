@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.28</title>
+    <title>J-looper v3.29</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -60,7 +60,10 @@
 
         .slider-stack { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
         .slider-bubble { background: #ffffff; border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 6px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-        #master-vol-bubble { background: #e8ecf1; border-color: #c0c7ce; }
+        
+        /* Moved darker background to Tempo bubble */
+        #master-tempo-bubble { background: #e8ecf1; border-color: #c0c7ce; }
+        
         .slider-label { font-size: 9px; text-transform: uppercase; color: var(--text-color); display: flex; justify-content: space-between; margin-bottom: 2px; font-weight: bold;}
         
         input[type=range] { width: 100%; height: 20px; margin:0; accent-color: var(--gh-purple); }
@@ -140,7 +143,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.28</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.29</span>
         </div>
     </div>
     <div class="header-right">
@@ -152,7 +155,7 @@
     <button id="play-btn" class="main-play-btn">START</button>
     
     <div class="slider-stack">
-        <div class="slider-bubble" id="master-vol-bubble">
+        <div class="slider-bubble">
             <span class="slider-label">
                 <span>MASTER VOLUME</span>
                 <span id="master-vol-val">80%</span>
@@ -160,7 +163,7 @@
             <input type="range" id="master-vol" class="thick-blue-slider" min="0" max="1" step="0.05" value="0.8" oninput="updateMasterVol(this.value)">
         </div>
 
-        <div class="slider-bubble">
+        <div class="slider-bubble" id="master-tempo-bubble">
             <span class="slider-label">
                 <span>MASTER TEMPO</span>
                 <span id="tempo-val">120 BPM</span>
@@ -775,7 +778,10 @@
 
     function tglNode(t, s, el) { tracks[t].steps[s] = !tracks[t].steps[s]; el.classList.toggle('active'); }
     
+    // Auto-Resume injected into openModal!
     async function openModal(i) { 
+        let wasPlaying = isPlaying; // Save state before tearing down
+        
         forceStopEngine();
         
         activeTrackIdx = i; 
@@ -799,12 +805,19 @@
         renderModalLane(); populateSampleList(); 
         document.getElementById('sample-modal').style.display = 'flex'; 
 
-        await initAudioEngine(true);
+        await initAudioEngine(true); // <--- This inherently waits for the mic permission dialog!
+
+        // If it was playing when the user opened the modal, auto-start the new engine!
+        if (wasPlaying) {
+            setTimeout(() => {
+                const playBtn = document.getElementById('play-btn');
+                if (playBtn) playBtn.click();
+            }, 50); 
+        }
     }
     
-    // Auto-Resume playback injected here!
     async function closeModal() { 
-        let wasPlaying = isPlaying; // Save state before tearing down
+        let wasPlaying = isPlaying; 
 
         forceStopEngine();
 
@@ -825,12 +838,11 @@
 
         await initAudioEngine(false);
 
-        // If it was playing when the user hit DONE, auto-start the new engine!
         if (wasPlaying) {
             setTimeout(() => {
                 const playBtn = document.getElementById('play-btn');
                 if (playBtn) playBtn.click();
-            }, 50); // 50ms buffer to ensure the DOM is settled and context is ready
+            }, 50); 
         }
     }
     
