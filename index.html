@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.27</title>
+    <title>J-looper v3.28</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -69,10 +69,8 @@
         .track-lane { background: var(--panel-color); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid var(--border-color); }
         .track-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 4px; }
         
-        /* Updated Track Number - No Box, Just Purple Text */
         .track-number { color: var(--gh-purple); font-weight: bold; font-size: 12px; width: 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         
-        /* Differentiated Bubble Buttons (Light Gray) */
         .bubble-btn { background: #f0f3f6; border: 1px solid var(--border-color); color: var(--text-color); font-weight: 600; font-size: 9px; padding: 5px 6px; border-radius: 6px; cursor: pointer; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
         .bubble-btn:active { background: #e1e4e8; transform: translateY(1px); box-shadow: none; }
         .bubble-btn.active-mute { color: var(--rec-red); border-color: #fca5a5; background: #fff0f2; }
@@ -80,7 +78,6 @@
         .bubble-btn.choke-off { color: #8c959f; border-color: var(--border-color); background: transparent; box-shadow: none; }
         .bubble-btn.choke-on { color: var(--text-color); border-color: #8c959f; background: #ffffff; }
 
-        /* Bright White File Name with Green Text */
         .sample-name-btn { 
             font-size: 10px; min-width: 65px; max-width: 65px; padding: 5px 4px; 
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
@@ -143,7 +140,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.27</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.28</span>
         </div>
     </div>
     <div class="header-right">
@@ -155,20 +152,20 @@
     <button id="play-btn" class="main-play-btn">START</button>
     
     <div class="slider-stack">
-        <div class="slider-bubble">
-            <span class="slider-label">
-                <span>MASTER TEMPO</span>
-                <span id="tempo-val">120 BPM</span>
-            </span>
-            <input type="range" id="tempo" min="40" max="220" value="120" oninput="updateTempo(this.value)">
-        </div>
-
         <div class="slider-bubble" id="master-vol-bubble">
             <span class="slider-label">
                 <span>MASTER VOLUME</span>
                 <span id="master-vol-val">80%</span>
             </span>
             <input type="range" id="master-vol" class="thick-blue-slider" min="0" max="1" step="0.05" value="0.8" oninput="updateMasterVol(this.value)">
+        </div>
+
+        <div class="slider-bubble">
+            <span class="slider-label">
+                <span>MASTER TEMPO</span>
+                <span id="tempo-val">120 BPM</span>
+            </span>
+            <input type="range" id="tempo" min="40" max="220" value="120" oninput="updateTempo(this.value)">
         </div>
     </div>
 </div>
@@ -805,7 +802,10 @@
         await initAudioEngine(true);
     }
     
+    // Auto-Resume playback injected here!
     async function closeModal() { 
+        let wasPlaying = isPlaying; // Save state before tearing down
+
         forceStopEngine();
 
         if (micSource) { micSource.disconnect(); micSource = null; }
@@ -824,6 +824,14 @@
         renderSequencer();
 
         await initAudioEngine(false);
+
+        // If it was playing when the user hit DONE, auto-start the new engine!
+        if (wasPlaying) {
+            setTimeout(() => {
+                const playBtn = document.getElementById('play-btn');
+                if (playBtn) playBtn.click();
+            }, 50); // 50ms buffer to ensure the DOM is settled and context is ready
+        }
     }
     
     function populateSampleList() {
