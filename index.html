@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.26</title>
+    <title>J-looper v3.27</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -68,19 +68,24 @@
 
         .track-lane { background: var(--panel-color); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid var(--border-color); }
         .track-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 4px; }
-        .track-number { background: var(--gh-purple); color: white; font-weight: bold; font-size: 11px; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; border-radius: 4px; border: 1px solid #6b3ec2; flex-shrink: 0; }
         
-        .bubble-btn { background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color); font-weight: 600; font-size: 9px; padding: 5px 6px; border-radius: 6px; cursor: pointer; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
-        .bubble-btn:active { background: #f3f4f6; transform: translateY(1px); box-shadow: none; }
+        /* Updated Track Number - No Box, Just Purple Text */
+        .track-number { color: var(--gh-purple); font-weight: bold; font-size: 12px; width: 20px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        
+        /* Differentiated Bubble Buttons (Light Gray) */
+        .bubble-btn { background: #f0f3f6; border: 1px solid var(--border-color); color: var(--text-color); font-weight: 600; font-size: 9px; padding: 5px 6px; border-radius: 6px; cursor: pointer; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+        .bubble-btn:active { background: #e1e4e8; transform: translateY(1px); box-shadow: none; }
         .bubble-btn.active-mute { color: var(--rec-red); border-color: #fca5a5; background: #fff0f2; }
         .bubble-btn.active-solo { color: var(--gh-green); border-color: #86efac; background: #f0fdf4; }
         .bubble-btn.choke-off { color: #8c959f; border-color: var(--border-color); background: transparent; box-shadow: none; }
         .bubble-btn.choke-on { color: var(--text-color); border-color: #8c959f; background: #ffffff; }
 
+        /* Bright White File Name with Green Text */
         .sample-name-btn { 
             font-size: 10px; min-width: 65px; max-width: 65px; padding: 5px 4px; 
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
-            background: #ffffff !important; font-weight: 800; border-color: #c0c7ce;
+            background: #ffffff !important; color: var(--gh-green); font-weight: 900; 
+            border-color: #c0c7ce; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
         .empty-track { color: var(--empty-pink) !important; }
 
@@ -105,7 +110,6 @@
 
         .modal-header-btns { display: flex; justify-content: space-between; align-items: stretch; margin-bottom: 12px; gap: 8px; }
         
-        /* New Modal Start Button explicitly styled */
         .modal-play-btn { 
             background: var(--gh-green); color: white; border: 2px solid #2ea043; 
             padding: 15px 0; border-radius: 12px; font-weight: 900; font-size: 13px; 
@@ -139,7 +143,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.26</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.27</span>
         </div>
     </div>
     <div class="header-right">
@@ -246,7 +250,6 @@
     let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false, isSecretlyRecording = false;
     let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
     
-    // Auto-node flag
     let justRecordedNewSample = false; 
 
     let mediaRecorder = null, audioChunks = [];
@@ -488,7 +491,6 @@
                         modalTrackName.classList.remove('empty-track');
 
                         justRecordedNewSample = true; 
-                        // INSTANT PLAYBACK FIX: Drop the node down internally immediately
                         tracks[activeTrackIdx].steps[0] = true;
 
                         renderSequencer();
@@ -836,7 +838,6 @@
                 document.getElementById('modal-nudge-val').innerText = '0ms';
                 justRecordedNewSample = true; 
                 
-                // INSTANT PLAYBACK FOR PRELOADED SAMPLES
                 tracks[activeTrackIdx].steps[0] = true;
 
                 const modalTrackName = document.getElementById('modal-track-name');
