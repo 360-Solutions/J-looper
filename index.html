@@ -3,24 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.21</title>
+    <title>J-looper v3.22</title>
     <style>
         :root {
-            /* Light/Minimalist Web Palette */
             --bg-color: #ffffff; 
             --panel-color: #f6f8fa; 
             --text-color: #1f2328;
             --border-color: #d0d7de;
-            
-            /* Custom Brand Accents */
             --gh-purple: #8250df; 
             --bt-blue: #007AFF; 
             --mic-orange: #ff9f0a; 
             --rec-red: #d73a49;
             --gh-green: #28a745;
             --the-one: #da3633;
-
-            /* Node Colors */
             --node-off: #2b2b2b; 
             --node-beat: #444444; 
             --node-on: #888888; 
@@ -38,20 +33,12 @@
 
         header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; }
         .header-left { display: flex; align-items: center; gap: 10px; }
-        
         #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px;}
-        
-        .title-box {
-            background: var(--gh-purple); color: white; padding: 4px 8px; 
-            border-radius: 6px; border: 1px solid #6b3ec2;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
-            letter-spacing: 0.5px;
-        }
+        .title-box { background: var(--gh-purple); color: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #6b3ec2; letter-spacing: 0.5px; }
 
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
         .version-info { font-size: 10px; text-align: right; color: #666; font-weight: 600;}
 
-        /* Restructured Transport Section */
         .transport {
             background: var(--panel-color); padding: 10px; border-radius: 10px;
             display: flex; gap: 10px; margin-bottom: 12px;
@@ -64,88 +51,45 @@
             font-weight: 900; border-radius: 8px; cursor: pointer;
             font-size: 14px; width: 85px; flex-shrink: 0;
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.1);
-            display: flex; justify-content: center; align-items: center; text-align: center;
         }
-        #play-btn.ready { background: #238636; border-color: #2ea043; }
         #play-btn.stopped { background: var(--rec-red); border-color: #b02826; }
-        
         #play-btn:active { transform: translateY(1px); box-shadow: none; }
 
         .slider-stack { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
-        
-        .slider-bubble {
-            background: #ffffff; border: 1px solid var(--border-color);
-            padding: 4px 8px; border-radius: 6px; display: flex; flex-direction: column;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-        }
-
+        .slider-bubble { background: #ffffff; border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 6px; display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         .slider-label { font-size: 9px; text-transform: uppercase; color: var(--text-color); display: flex; justify-content: space-between; margin-bottom: 2px; font-weight: bold;}
-        
         input[type=range] { width: 100%; height: 20px; margin:0; accent-color: var(--gh-purple); }
 
         .track-lane { background: var(--panel-color); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid var(--border-color); }
         .track-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 4px; }
 
-        .track-number {
-            background: var(--gh-purple); color: white; font-weight: bold; font-size: 11px;
-            width: 20px; height: 20px; display: flex; justify-content: center; align-items: center;
-            border-radius: 4px; border: 1px solid #6b3ec2; flex-shrink: 0;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.3);
-        }
-
-        /* Sleek Bubble Buttons */
-        .bubble-btn {
-            background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color);
-            font-weight: 600; font-size: 9px; padding: 5px 6px; border-radius: 6px;
-            cursor: pointer; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-            transition: all 0.1s ease;
-        }
+        .track-number { background: var(--gh-purple); color: white; font-weight: bold; font-size: 11px; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; border-radius: 4px; border: 1px solid #6b3ec2; flex-shrink: 0; }
+        .bubble-btn { background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color); font-weight: 600; font-size: 9px; padding: 5px 6px; border-radius: 6px; cursor: pointer; text-align: center; }
         .bubble-btn:active { background: #f3f4f6; transform: translateY(1px); box-shadow: none; }
-        
-        /* Clean Text Color States */
         .bubble-btn.active-mute { color: var(--rec-red); border-color: #fca5a5; background: #fff0f2; }
         .bubble-btn.active-solo { color: var(--gh-green); border-color: #86efac; background: #f0fdf4; }
         .bubble-btn.choke-off { color: #8c959f; border-color: var(--border-color); background: transparent; box-shadow: none; }
         .bubble-btn.choke-on { color: var(--text-color); border-color: #8c959f; background: #ffffff; }
 
-        .sample-name-btn {
-            font-size: 10px; min-width: 60px; max-width: 60px; padding: 5px 4px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
-        }
+        .sample-name-btn { font-size: 10px; min-width: 60px; max-width: 60px; padding: 5px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
 
         .center-controls { display:flex; align-items:center; gap:4px; flex-grow:1; margin: 0 4px; justify-content: space-between;}
         .controls-right { display:flex; align-items:center; gap:4px; }
-        
         .ms-btn { flex-grow: 1; font-size: 10px; padding: 5px 0;}
-        
         .dropdown-panel { background: #e1e4e8; padding: 8px; border-radius: 6px; margin-bottom: 6px; display: none; border: 1px solid var(--border-color);}
         
         .bar-row { display: flex; width: 100%; justify-content: space-between; position: relative; margin-bottom: 3px; height: 20px; }
         .node-wrapper { position: relative; width: 100%; display: flex; justify-content: space-between; }
-        
-        .node, .modal-node { 
-            width: 6%; height: 20px; background: var(--node-off); 
-            border-radius: 2px; cursor: pointer; 
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.5); 
-            border: 1px solid #111;
-            transition: background 0.05s, box-shadow 0.05s;
-        }
+        .node, .modal-node { width: 6%; height: 20px; background: var(--node-off); border-radius: 2px; cursor: pointer; border: 1px solid #111; transition: background 0.05s, box-shadow 0.05s; }
         .node.beat-node, .modal-node.beat-node { background: var(--node-beat); }
         .node.active { background: var(--node-on); box-shadow: inset 0 1px 2px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.5); }
-        
-        .node.playing, .modal-node.playing {
-            background: var(--node-led) !important;
-            box-shadow: 0 0 6px rgba(255,255,255,0.9), inset 0 1px 1px rgba(0,0,0,0.1) !important;
-            border-color: #fff !important;
-        }
+        .node.playing, .modal-node.playing { background: var(--node-led) !important; box-shadow: 0 0 6px rgba(255,255,255,0.9), inset 0 1px 1px rgba(0,0,0,0.1) !important; border-color: #fff !important; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
-        .modal-content { background: var(--bg-color); width: 90%; padding: 15px; border-radius: 12px; border: 3px solid var(--border-color); display: flex; flex-direction: column; }
-        .modal-content { max-height: 92%; }
+        .modal-content { background: var(--bg-color); width: 90%; padding: 15px; border-radius: 12px; border: 3px solid var(--border-color); display: flex; flex-direction: column; max-height: 92%; }
         
         .rec-visualizer-zone { background: var(--panel-color); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); position: relative; }
         
-        /* VU Meter Styles */
         .vu-meter { width: 100%; height: 6px; background: #111; border-radius: 3px; margin-bottom: 10px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8); }
         .vu-fill { width: 0%; height: 100%; background: #238636; transition: width 0.05s ease-out, background-color 0.1s; }
 
@@ -155,19 +99,10 @@
         .rec-btn.waiting { background: #aaaaaa; color: #000; border-color: #666; }
         .rec-btn.recording { background: #fff; color: var(--rec-red); border-color: var(--rec-red); animation: pulse 1s infinite; }
         
-        /* General Action Button (Modal bottom) */
-        .action-btn { 
-            background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color);
-            font-weight: 600; border-radius: 6px; cursor: pointer; padding: 12px; font-size: 11px; min-width: 90px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-        }
+        .action-btn { background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color); font-weight: 600; border-radius: 6px; cursor: pointer; padding: 12px; font-size: 11px; min-width: 90px; }
         .action-btn:active { background: #f3f4f6; transform: translateY(1px); box-shadow: none; }
         
-        .done-btn {
-            background: var(--panel-color); border: 2px solid var(--border-color); color: var(--text-color);
-            font-weight: 900; border-radius: 8px; cursor: pointer; padding: 15px; font-size: 14px; width: 100%;
-            margin-top: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
+        .done-btn { background: var(--panel-color); border: 2px solid var(--border-color); color: var(--text-color); font-weight: 900; border-radius: 8px; cursor: pointer; padding: 15px; font-size: 14px; width: 100%; margin-top: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .done-btn:active { background: #e1e4e8; transform: translateY(1px); box-shadow: none; }
 
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
@@ -185,7 +120,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.21</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.22</span>
         </div>
     </div>
     <div class="header-right">
@@ -194,7 +129,7 @@
 </header>
 
 <div class="transport">
-    <button id="play-btn" class="ready">START</button>
+    <button id="play-btn">START</button>
     
     <div class="slider-stack">
         <div class="slider-bubble">
@@ -221,18 +156,26 @@
     <div class="modal-content">
         <div class="rec-visualizer-zone">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <button class="bubble-btn" id="modal-play-btn" style="background:var(--gh-green); color:white; border-color:#2ea043; padding: 6px 12px;">START</button>
                 <span id="modal-track-name" style="font-size:12px; color:var(--text-color); font-weight:900;">READY</span>
                 <div style="display:flex; gap:6px;">
                     <button class="bubble-btn" id="modal-mute-beat-btn" onclick="togglePreviewMute()">🔊 HEAR BEAT</button>
-                    <button class="bubble-btn" id="modal-bar-cycle" style="min-width: 50px;">1 BAR</button>
+                    <button class="bubble-btn" id="modal-bar-cycle" style="min-width: 45px;">1 BAR</button>
                 </div>
             </div>
             <div class="vu-meter"><div class="vu-fill" id="vu-fill"></div></div>
             <div id="modal-bars-container"></div>
         </div>
         
-        <div style="margin-bottom: 15px; background: var(--panel-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-            <div style="margin-bottom: 12px;">
+        <div style="margin-bottom: 15px; background: var(--panel-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display:flex; flex-direction:column; gap:12px;">
+            <div>
+                <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
+                    <span>Studio Master Vol (Up to 300%)</span>
+                    <span id="modal-master-vol-val">150%</span>
+                </span>
+                <input type="range" id="modal-master-vol" min="0" max="3" value="1.5" step="0.05">
+            </div>
+            <div>
                 <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
                     <span>Track Volume</span>
                     <span id="modal-vol-val">80%</span>
@@ -261,7 +204,7 @@
 </div>
 
 <script>
-    // Expanded to 8 Tracks
+    // 8 Tracks setup
     const tracks = [
         { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
         { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
@@ -284,7 +227,7 @@
     let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
     
     let previewMuted = false;
-    let justRecordedNewSample = false; // The Auto-Node Flag
+    let justRecordedNewSample = false; 
 
     let mediaRecorder = null, audioChunks = [];
     let currentMicStream = null;
@@ -301,16 +244,22 @@
         t.steps = s;
     });
 
-    function updateTempo(val) {
-        document.getElementById('tempo-val').innerText = val + ' BPM';
-    }
+    function updateTempo(val) { document.getElementById('tempo-val').innerText = val + ' BPM'; }
 
     function updateMasterVol(val) {
         document.getElementById('master-vol-val').innerText = Math.round(val * 100) + '%';
-        if (masterGain) {
+        if (masterGain && activeTrackIdx === null) {
             masterGain.gain.setValueAtTime(val, audioCtx.currentTime);
         }
     }
+
+    // Modal Studio Master Volume
+    document.getElementById('modal-master-vol').oninput = function() {
+        document.getElementById('modal-master-vol-val').innerText = Math.round(this.value * 100) + '%';
+        if (masterGain && activeTrackIdx !== null) {
+            masterGain.gain.setValueAtTime(this.value, audioCtx.currentTime);
+        }
+    };
 
     function togglePreviewMute() {
         previewMuted = !previewMuted;
@@ -338,27 +287,22 @@
             
             let barHtml = '';
             for(let b=0; b < track.bars; b++) {
-                barHtml += `<div class="bar-row">
-                    <div class="node-wrapper">
+                barHtml += `<div class="bar-row"><div class="node-wrapper">
                     ${Array.from({length: 16}).map((_, s) => {
                         let stepIdx = (b*16)+s;
                         return `<div id="node-${tIdx}-${stepIdx}" class="node ${(s%4===0)?'beat-node':''} ${track.steps[stepIdx]?'active':''}" onclick="tglNode(${tIdx},${stepIdx},this)"></div>`;
-                    }).join('')}
-                    </div>
-                </div>`;
+                    }).join('')}</div></div>`;
             }
             
             lane.innerHTML = `
             <div class="track-controls">
                 <div class="track-number">${tIdx + 1}</div>
                 <button class="bubble-btn sample-name-btn" onclick="openModal(${tIdx})">${track.name}</button>
-                
                 <div class="center-controls">
                     <button class="bubble-btn" onclick="toggleDropdown('vol-panel-${tIdx}')" style="min-width:32px;">VOL</button>
                     <button class="bubble-btn ms-btn ${track.mute ? 'active-mute' : ''}" onclick="toggleMute(${tIdx})">MUTE</button>
                     <button class="bubble-btn ms-btn ${track.solo ? 'active-solo' : ''}" onclick="toggleSolo(${tIdx})">SOLO</button>
                 </div>
-
                 <div class="controls-right">
                     <button class="bubble-btn" onclick="toggleDropdown('nudge-panel-${tIdx}')">NUDGE</button>
                     <button class="bubble-btn ${track.choke ? 'choke-on' : 'choke-off'}" onclick="toggleChoke(${tIdx})">CHOKE</button>
@@ -373,7 +317,6 @@
                 </span>
                 <input type="range" min="0" max="300" value="${track.volume}" step="5" oninput="updateLaneVol(${tIdx}, this.value)">
             </div>
-
             <div class="dropdown-panel" id="nudge-panel-${tIdx}">
                 <span class="slider-label" style="display:flex; justify-content:space-between;">
                     <span>Track Nudge (-300ms to 100ms)</span>
@@ -381,18 +324,13 @@
                 </span>
                 <input type="range" min="-300" max="100" value="${track.nudge}" step="5" oninput="updateLaneNudge(${tIdx}, this.value)">
             </div>
-            
             <div class="bars-container">${barHtml}</div>`;
             
             mainGrid.appendChild(lane);
         });
     }
 
-    function toggleDropdown(panelId) {
-        const panel = document.getElementById(panelId);
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-    }
-
+    function toggleDropdown(panelId) { const panel = document.getElementById(panelId); panel.style.display = panel.style.display === 'block' ? 'none' : 'block'; }
     function toggleChoke(tIdx) { tracks[tIdx].choke = !tracks[tIdx].choke; renderSequencer(); }
     function toggleMute(tIdx) { tracks[tIdx].mute = !tracks[tIdx].mute; renderSequencer(); }
     function toggleSolo(tIdx) { tracks[tIdx].solo = !tracks[tIdx].solo; renderSequencer(); }
@@ -416,55 +354,41 @@
     }
 
     let fetchPromise = preFetchAll();
-
     async function preFetchAll() {
         const promises = sampleFiles.map(async (file) => {
             try {
                 const res = await fetch(`samples/${file}`);
                 if(res.ok) preFetchedBuffers[file] = await res.arrayBuffer();
-            } catch (e) { console.warn("Missing file or offline:", file); }
+            } catch (e) { console.warn("Missing file:", file); }
         });
         await Promise.all(promises);
     }
 
-    // This dynamically destroys and rebuilds the audio context depending on if we need the mic or high fidelity
     async function initAudioEngine(needsMic) {
-        if (audioCtx) {
-            await audioCtx.close();
-            audioCtx = null;
-        }
-
+        if (audioCtx) { await audioCtx.close(); audioCtx = null; }
         audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
         masterGain = audioCtx.createGain();
-        masterGain.gain.value = document.getElementById('master-vol').value;
+        
+        let targetVol = needsMic ? document.getElementById('modal-master-vol').value : document.getElementById('master-vol').value;
+        masterGain.gain.value = targetVol;
         masterGain.connect(audioCtx.destination);
 
         if (audioCtx.state === 'suspended') await audioCtx.resume();
-        
         await fetchPromise; 
         
-        // Decode existing track buffers into the new Audio Context
         const decodePromises = [];
         for (let i = 0; i < tracks.length; i++) {
             if (tracks[i].name !== 'EMPTY' && !tracks[i].buffer) {
                 let bufferToDecode = null;
                 let isUserSample = false;
 
-                if (tracks[i].rawArrayBuffer) {
-                    bufferToDecode = tracks[i].rawArrayBuffer.slice(0);
-                    isUserSample = true;
-                } else if (preFetchedBuffers[tracks[i].name]) {
-                    bufferToDecode = preFetchedBuffers[tracks[i].name].slice(0);
-                }
+                if (tracks[i].rawArrayBuffer) { bufferToDecode = tracks[i].rawArrayBuffer.slice(0); isUserSample = true; } 
+                else if (preFetchedBuffers[tracks[i].name]) { bufferToDecode = preFetchedBuffers[tracks[i].name].slice(0); }
 
                 if (bufferToDecode) {
                     const p = new Promise(resolve => {
                         audioCtx.decodeAudioData(bufferToDecode, decoded => { 
-                            if (isUserSample) {
-                                tracks[i].buffer = normalizeBuffer(decoded);
-                            } else {
-                                tracks[i].buffer = decoded; 
-                            }
+                            tracks[i].buffer = isUserSample ? normalizeBuffer(decoded) : decoded; 
                             resolve();
                         }, () => resolve()); 
                     });
@@ -474,19 +398,14 @@
         }
         await Promise.all(decodePromises);
 
-        // If we need the mic (Modal is open), initialize it here to trigger the iOS Intercom hack
         if (needsMic) {
             try {
-                currentMicStream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } 
-                });
+                currentMicStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
                 mediaRecorder = new MediaRecorder(currentMicStream);
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                
                 mediaRecorder.onstop = async () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                     const arrayBuffer = await audioBlob.arrayBuffer();
-                    
                     tracks[activeTrackIdx].rawArrayBuffer = arrayBuffer.slice(0); 
                     
                     audioCtx.decodeAudioData(arrayBuffer, (decoded) => {
@@ -494,10 +413,7 @@
                         tracks[activeTrackIdx].buffer = normalizeBuffer(decoded);
                         tracks[activeTrackIdx].name = `USER_${userSampleCount}`;
                         document.getElementById('modal-track-name').innerText = tracks[activeTrackIdx].name.toUpperCase();
-                        
-                        // Flag to trigger the Auto-Node when they hit DONE
                         justRecordedNewSample = true; 
-                        
                         renderSequencer();
                     });
                 };
@@ -506,7 +422,6 @@
                 micAnalyser.fftSize = 128; 
                 micSource = audioCtx.createMediaStreamSource(currentMicStream);
                 micSource.connect(micAnalyser); 
-
             } catch (err) { console.error("Mic error: " + err); }
         }
     }
@@ -515,17 +430,13 @@
         let maxPeak = 0;
         for (let c = 0; c < buffer.numberOfChannels; c++) {
             const data = buffer.getChannelData(c);
-            for (let i = 0; i < data.length; i++) {
-                if (Math.abs(data[i]) > maxPeak) maxPeak = Math.abs(data[i]);
-            }
+            for (let i = 0; i < data.length; i++) { if (Math.abs(data[i]) > maxPeak) maxPeak = Math.abs(data[i]); }
         }
         if (maxPeak > 0 && maxPeak < 1.0) {
             const multiplier = 1.0 / maxPeak; 
             for (let c = 0; c < buffer.numberOfChannels; c++) {
                 const data = buffer.getChannelData(c);
-                for (let i = 0; i < data.length; i++) {
-                    data[i] *= multiplier;
-                }
+                for (let i = 0; i < data.length; i++) { data[i] *= multiplier; }
             }
         }
         return buffer;
@@ -546,7 +457,11 @@
             const playBtn = document.getElementById('play-btn');
             playBtn.innerText = "START";
             playBtn.classList.remove('stopped');
-            playBtn.classList.add('ready');
+            
+            const modalBtn = document.getElementById('modal-play-btn');
+            modalBtn.innerText = "START";
+            modalBtn.style.background = "var(--gh-green)";
+            modalBtn.style.borderColor = "#2ea043";
         }
     }
 
@@ -567,12 +482,9 @@
                     cycleCounter++;
                     if (cycleCounter >= targetBarLength && laneRelative === targetBarLength - 1) {
                         isWaitingFullCycle = false; isRecordingNow = true; masterMuted = true;
-                        
                         masterGain.gain.setValueAtTime(masterGain.gain.value, nextStepTime);
                         masterGain.gain.linearRampToValueAtTime(0, nextStepTime + 0.01);
-                        
                         recordCounter = 0; audioChunks = []; 
-                        
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
                         setTimeout(() => { if(isPlaying && mediaRecorder) mediaRecorder.start(); updateRecBtnUI(); }, delay); 
                     }
@@ -580,24 +492,17 @@
                 
                 if (isRecordingNow) {
                     recordCounter++;
-                    
                     if (recordCounter > 10 && laneRelative === 0) {
-                        isRecordingNow = false; 
-                        isSecretlyRecording = true; 
-                        
+                        isRecordingNow = false; isSecretlyRecording = true; 
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
                         setTimeout(updateRecBtnUI, delay); 
                     }
                 } else if (isSecretlyRecording) {
                     recordCounter++;
-                    
                     if (laneRelative === 2) {
-                        isSecretlyRecording = false;
-                        masterMuted = false;
-                        
+                        isSecretlyRecording = false; masterMuted = false;
                         masterGain.gain.setValueAtTime(masterGain.gain.value, nextStepTime);
-                        masterGain.gain.linearRampToValueAtTime(document.getElementById('master-vol').value, nextStepTime + 0.01);
-                        
+                        masterGain.gain.linearRampToValueAtTime(document.getElementById('modal-master-vol').value, nextStepTime + 0.01);
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
                         setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
                     }
@@ -605,9 +510,7 @@
                 
                 if (!isRecordingNow && !isSecretlyRecording && laneRelative === 0) {
                     const track = tracks[activeTrackIdx];
-                    if (track.buffer && !track.steps[0]) {
-                        playSample(track.buffer, nextStepTime, track.volume, track.nudge, track); 
-                    }
+                    if (track.buffer && !track.steps[0]) { playSample(track.buffer, nextStepTime, track.volume, track.nudge, track); }
                 }
             }
 
@@ -616,14 +519,8 @@
                 tracks.forEach((track) => {
                     if (track.steps[currentStep % (track.bars * 16)]) { 
                         let shouldPlay = false;
-                        if (isAnySolo) {
-                            if (track.solo) shouldPlay = true;
-                        } else {
-                            if (!track.mute) shouldPlay = true;
-                        }
-                        if (shouldPlay) {
-                            playSample(track.buffer, nextStepTime, track.volume, track.nudge, track); 
-                        }
+                        if (isAnySolo) { if (track.solo) shouldPlay = true; } else { if (!track.mute) shouldPlay = true; }
+                        if (shouldPlay) { playSample(track.buffer, nextStepTime, track.volume, track.nudge, track); }
                     }
                 });
             }
@@ -638,19 +535,16 @@
         const source = audioCtx.createBufferSource();
         const gainNode = audioCtx.createGain();
         source.buffer = buffer; 
-        
         const targetVol = (vol / 100); 
-        
         gainNode.gain.value = 0;
         source.connect(gainNode); gainNode.connect(masterGain);
         
         let startTime = time + (nudgeMs / 1000);
-        let actualPlayTime = startTime;
-        
-        if (startTime < audioCtx.currentTime) actualPlayTime = audioCtx.currentTime;
+        let actualPlayTime = startTime < audioCtx.currentTime ? audioCtx.currentTime : startTime;
         
         gainNode.gain.setValueAtTime(0, actualPlayTime);
-        gainNode.gain.linearRampToValueAtTime(targetVol, actualPlayTime + 0.005);
+        // Fixed artifact ramp (from 0.005 to 0.015)
+        gainNode.gain.linearRampToValueAtTime(targetVol, actualPlayTime + 0.015);
         
         if (trackObj && trackObj.choke) {
             if (trackObj.lastSource && trackObj.lastGain) {
@@ -659,14 +553,14 @@
                     const prevGain = trackObj.lastGain;
                     prevGain.gain.cancelScheduledValues(chokeTime);
                     prevGain.gain.setValueAtTime(targetVol, chokeTime);
-                    prevGain.gain.linearRampToValueAtTime(0, chokeTime + 0.015);
-                    trackObj.lastSource.stop(chokeTime + 0.015); 
+                    // Fixed choke ramp (from 0.015 to 0.020)
+                    prevGain.gain.linearRampToValueAtTime(0, chokeTime + 0.020);
+                    trackObj.lastSource.stop(chokeTime + 0.020); 
                 } catch (e) {}
             }
             trackObj.lastSource = source;
             trackObj.lastGain = gainNode;
         }
-
         source.start(actualPlayTime);
     }
 
@@ -697,9 +591,7 @@
             const dataArray = new Uint8Array(micAnalyser.frequencyBinCount);
             micAnalyser.getByteFrequencyData(dataArray);
             let max = 0;
-            for(let i=0; i<dataArray.length; i++) {
-                if(dataArray[i] > max) max = dataArray[i];
-            }
+            for(let i=0; i<dataArray.length; i++) { if(dataArray[i] > max) max = dataArray[i]; }
             let percent = (max / 255) * 100;
             const vuFill = document.getElementById('vu-fill');
             if (vuFill) {
@@ -707,24 +599,31 @@
                 vuFill.style.background = percent > 90 ? 'var(--rec-red)' : (percent > 70 ? 'var(--mic-orange)' : '#238636');
             }
         }
-
         requestAnimationFrame(uiLoop);
     }
 
-    document.getElementById('play-btn').onclick = async function() {
-        // High fidelity initialization (No Mic)
-        if (!audioCtx) {
-            await initAudioEngine(false); 
+    // Modal Specific Play Button Logic
+    document.getElementById('modal-play-btn').onclick = function() {
+        if(!isPlaying) {
+            document.getElementById('play-btn').click();
+            this.innerText = "STOP";
+            this.style.background = "var(--rec-red)";
+            this.style.borderColor = "#b02826";
+        } else {
+            document.getElementById('play-btn').click();
         }
+    }
+
+    document.getElementById('play-btn').onclick = async function() {
+        if (!audioCtx) { await initAudioEngine(false); }
 
         isPlaying = !isPlaying;
         if (isPlaying) { 
-            if (audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
+            if (audioCtx.state === 'suspended') { await audioCtx.resume(); }
             if (masterGain) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-                masterGain.gain.setValueAtTime(document.getElementById('master-vol').value, audioCtx.currentTime);
+                let currentVol = activeTrackIdx !== null ? document.getElementById('modal-master-vol').value : document.getElementById('master-vol').value;
+                masterGain.gain.setValueAtTime(currentVol, audioCtx.currentTime);
             }
             
             sequenceStartTime = audioCtx.currentTime + 0.1;
@@ -734,7 +633,6 @@
             uiLoop();
             
             this.innerText = "STOP";
-            this.classList.remove('ready');
             this.classList.add('stopped');
         } else { 
             forceStopEngine();
@@ -742,9 +640,8 @@
     };
 
     document.getElementById('rec-action-btn').onclick = () => { 
-        // Efficiency fix: If user hits record while stopped, auto-start the playback engine
         if(!isPlaying) {
-            document.getElementById('play-btn').click();
+            document.getElementById('modal-play-btn').click();
         }
         isWaitingForFirstOne = true; 
         updateRecBtnUI(); 
@@ -755,7 +652,7 @@
         tracks[activeTrackIdx].rawArrayBuffer = null; 
         tracks[activeTrackIdx].name = "EMPTY";
         tracks[activeTrackIdx].steps.fill(false); 
-        justRecordedNewSample = false; // Cancel auto-node
+        justRecordedNewSample = false; 
         
         tracks[activeTrackIdx].nudge = -120; 
         document.getElementById('modal-nudge').value = -120;
@@ -765,9 +662,7 @@
         renderSequencer(); renderModalLane();
     };
 
-    document.getElementById('modal-bar-cycle').onclick = () => {
-        if(activeTrackIdx !== null) cycleBars(activeTrackIdx);
-    };
+    document.getElementById('modal-bar-cycle').onclick = () => { if(activeTrackIdx !== null) cycleBars(activeTrackIdx); };
 
     document.getElementById('modal-nudge').oninput = function() {
         if(activeTrackIdx !== null) {
@@ -808,7 +703,6 @@
     function tglNode(t, s, el) { tracks[t].steps[s] = !tracks[t].steps[s]; el.classList.toggle('active'); }
     
     async function openModal(i) { 
-        // 1. Force stop music to zero out the sync engine
         forceStopEngine();
         
         activeTrackIdx = i; 
@@ -825,30 +719,22 @@
         renderModalLane(); populateSampleList(); 
         document.getElementById('sample-modal').style.display = 'flex'; 
 
-        // 2. Re-initialize Audio Engine WITH the Mic (Entering Studio Mode / Intercom Hack)
         await initAudioEngine(true);
     }
     
     async function closeModal() { 
-        // 1. Stop music safely
         forceStopEngine();
 
-        // 2. Disconnect Mic Streams
         if (micSource) { micSource.disconnect(); micSource = null; }
         micAnalyser = null;
-        if (currentMicStream) {
-            currentMicStream.getTracks().forEach(track => track.stop());
-            currentMicStream = null;
-        }
+        if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
         mediaRecorder = null;
 
-        // 3. Auto-Node Logic
         if (justRecordedNewSample && activeTrackIdx !== null) {
             tracks[activeTrackIdx].steps[0] = true;
             justRecordedNewSample = false;
         }
         
-        // 4. Reset UI
         activeTrackIdx = null; 
         previewMuted = false;
         const muteBtn = document.getElementById('modal-mute-beat-btn');
@@ -861,7 +747,6 @@
         document.getElementById('sample-modal').style.display = 'none'; 
         renderSequencer();
 
-        // 5. Rebuild Audio Context WITHOUT Mic (Restores High Fidelity)
         await initAudioEngine(false);
     }
     
@@ -875,7 +760,7 @@
                 tracks[activeTrackIdx].nudge = 0;
                 document.getElementById('modal-nudge').value = 0;
                 document.getElementById('modal-nudge-val').innerText = '0ms';
-                justRecordedNewSample = true; // Treats a pre-load like a new record for Auto-Node
+                justRecordedNewSample = true; 
                 
                 if(preFetchedBuffers[file]) {
                     const bufferCopy = preFetchedBuffers[file].slice(0);
