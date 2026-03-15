@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.46</title>
+    <title>J-looper v3.47b</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -178,7 +178,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.46</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.47</span>
             </div>
             <div class="creator-text">By Jeremiah Keller</div>
         </div>
@@ -410,6 +410,20 @@
                     </span>
                     <input type="range" id="modal-nudge" min="-300" max="100" value="-120" step="5">
                 </div>
+                <div>
+                    <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
+                        <span>Attack (Fade In)</span>
+                        <span id="modal-attack-val">15ms</span>
+                    </span>
+                    <input type="range" id="modal-attack" min="0" max="250" value="15" step="1">
+                </div>
+                <div>
+                    <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
+                        <span>Release (Crossfade / Tail)</span>
+                        <span id="modal-release-val">25ms</span>
+                    </span>
+                    <input type="range" id="modal-release" min="0" max="250" value="25" step="1">
+                </div>
             </div>
 
             <div class="modal-header-btns">
@@ -436,18 +450,20 @@
         trackVols: Array(8).fill(80),
         trackNudges: Array(8).fill(-120),
         trackModalVols: Array(8).fill(220),
-        trackModalBackingVols: Array(8).fill(2.2)
+        trackModalBackingVols: Array(8).fill(2.2),
+        trackAttacks: Array(8).fill(15),
+        trackReleases: Array(8).fill(25)
     };
 
     const tracks = [
-        { name: 'ds_kick1.wav', steps: [0, 4], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'ds_snare1.wav', steps: [8], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 }
+        { name: 'ds_kick1.wav', steps: [0, 4], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2, attack: 15, release: 25 },
+        { name: 'ds_snare1.wav', steps: [8], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2, attack: 15, release: 25 },
+        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2, attack: 15, release: 25 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2, attack: 15, release: 25 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2, attack: 15, release: 25 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2, attack: 15, release: 25 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2, attack: 15, release: 25 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2, attack: 15, release: 25 }
     ];
 
     const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
@@ -496,6 +512,8 @@
             t.nudge = appSettings.trackNudges && appSettings.trackNudges[i] !== undefined ? appSettings.trackNudges[i] : -120;
             t.modalVol = appSettings.trackModalVols && appSettings.trackModalVols[i] !== undefined ? appSettings.trackModalVols[i] : 220;
             t.modalBackingVol = appSettings.trackModalBackingVols && appSettings.trackModalBackingVols[i] !== undefined ? appSettings.trackModalBackingVols[i] : 2.2;
+            t.attack = appSettings.trackAttacks && appSettings.trackAttacks[i] !== undefined ? appSettings.trackAttacks[i] : 15;
+            t.release = appSettings.trackReleases && appSettings.trackReleases[i] !== undefined ? appSettings.trackReleases[i] : 25;
         });
 
         renderInitState();
@@ -543,7 +561,9 @@
                 trackVols: Array(8).fill(80),
                 trackNudges: Array(8).fill(savedNudge),
                 trackModalVols: Array(8).fill(220),
-                trackModalBackingVols: Array(8).fill(2.2)
+                trackModalBackingVols: Array(8).fill(2.2),
+                trackAttacks: Array(8).fill(15),
+                trackReleases: Array(8).fill(25)
             };
 
             const defaultNames = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'];
@@ -558,6 +578,7 @@
                 t.bars = 1; t.choke = true; t.mute = false; t.solo = false;
                 t.rawArrayBuffer = null;
                 t.volume = 80; t.nudge = savedNudge; t.modalVol = 220; t.modalBackingVol = 2.2;
+                t.attack = 15; t.release = 25;
                 t.buffer = null; 
             });
 
@@ -642,6 +663,24 @@
             appSettings.trackModalVols[activeTrackIdx] = tracks[activeTrackIdx].modalVol;
             document.getElementById('modal-vol-val').innerText = this.value + '%';
             updateTrackGains(); 
+            saveSettings();
+        }
+    };
+
+    document.getElementById('modal-attack').oninput = function() {
+        if(activeTrackIdx !== null) {
+            tracks[activeTrackIdx].attack = parseInt(this.value);
+            appSettings.trackAttacks[activeTrackIdx] = tracks[activeTrackIdx].attack;
+            document.getElementById('modal-attack-val').innerText = this.value + 'ms';
+            saveSettings();
+        }
+    };
+
+    document.getElementById('modal-release').oninput = function() {
+        if(activeTrackIdx !== null) {
+            tracks[activeTrackIdx].release = parseInt(this.value);
+            appSettings.trackReleases[activeTrackIdx] = tracks[activeTrackIdx].release;
+            document.getElementById('modal-release-val').innerText = this.value + 'ms';
             saveSettings();
         }
     };
@@ -981,6 +1020,14 @@
 
     function playSample(buffer, time, nudgeMs = 0, trackObj = null, tIdx) {
         if (!buffer || !audioCtx || !trackGains[tIdx]) return;
+        
+        let aSec = 0.015;
+        let rSec = 0.025;
+        if (trackObj) {
+            if (typeof trackObj.attack === 'number') aSec = trackObj.attack / 1000;
+            if (typeof trackObj.release === 'number') rSec = trackObj.release / 1000;
+        }
+
         const source = audioCtx.createBufferSource();
         const envelopeGain = audioCtx.createGain();
         source.buffer = buffer; 
@@ -993,18 +1040,28 @@
         let actualPlayTime = startTime < audioCtx.currentTime ? audioCtx.currentTime : startTime;
         
         envelopeGain.gain.setValueAtTime(0, actualPlayTime);
-        envelopeGain.gain.linearRampToValueAtTime(1, actualPlayTime + 0.015); 
+        if (aSec > 0) {
+            envelopeGain.gain.linearRampToValueAtTime(1, actualPlayTime + aSec); 
+        } else {
+            envelopeGain.gain.setValueAtTime(1, actualPlayTime);
+        }
         
         if (trackObj && trackObj.choke) {
             if (trackObj.lastSource && trackObj.lastEnvelope) {
                 try { 
-                    let chokeTime = Math.max(time, actualPlayTime); 
+                    let chokeTime = actualPlayTime; 
                     const prevEnv = trackObj.lastEnvelope;
                     prevEnv.gain.cancelScheduledValues(chokeTime);
-                    prevEnv.gain.setValueAtTime(1, chokeTime);
-                    prevEnv.gain.linearRampToValueAtTime(0, chokeTime + 0.025); 
-                    trackObj.lastSource.stop(chokeTime + 0.025); 
-                } catch (e) {}
+                    prevEnv.gain.setValueAtTime(1, chokeTime); 
+                    
+                    if (rSec > 0) {
+                        prevEnv.gain.linearRampToValueAtTime(0, chokeTime + rSec); 
+                        trackObj.lastSource.stop(chokeTime + rSec); 
+                    } else {
+                        prevEnv.gain.setValueAtTime(0, chokeTime);
+                        trackObj.lastSource.stop(chokeTime);
+                    }
+                } catch (e) { console.warn("Engine crossfade overlap warning"); }
             }
             trackObj.lastSource = source;
             trackObj.lastEnvelope = envelopeGain;
@@ -1166,6 +1223,11 @@
         document.getElementById('modal-vol-val').innerText = tracks[i].modalVol + '%';
         document.getElementById('modal-backing-vol').value = tracks[i].modalBackingVol;
         document.getElementById('modal-backing-vol-val').innerText = Math.round(tracks[i].modalBackingVol * 100) + '%';
+        
+        document.getElementById('modal-attack').value = tracks[i].attack;
+        document.getElementById('modal-attack-val').innerText = tracks[i].attack + 'ms';
+        document.getElementById('modal-release').value = tracks[i].release;
+        document.getElementById('modal-release-val').innerText = tracks[i].release + 'ms';
         
         const modalTrackName = document.getElementById('modal-track-name');
         modalTrackName.innerText = tracks[i].name.toUpperCase();
