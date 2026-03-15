@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.36</title>
+    <title>J-looper v3.37</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -170,7 +170,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.36</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.37</span>
             </div>
         </div>
         <div class="header-right">
@@ -243,7 +243,7 @@
                 <span class="settings-label">About</span>
                 <div class="modal-text" style="margin-bottom: 0;">
                     Created by Jeremiah Keller.<br>
-                    Version: 3.36<br>
+                    Version: 3.37<br>
                     <em>Audio engine optimized for mobile Safari conference-call routing.</em>
                 </div>
             </div>
@@ -262,12 +262,16 @@
                         <button class="action-btn" style="width:100%; background: var(--gh-purple); color: white; border: none;" onclick="initCalibrationMic()">INITIALIZE MIC</button>
                     </div>
                     <div id="calib-step-2" class="calib-step">
-                        <span class="settings-label" style="color: var(--rec-red);">Step 2: Prepare Audio</span>
-                        <p class="modal-text" style="font-size: 11px;">1. Turn phone volume to at least 80%.<br>2. Disconnect Bluetooth headphones.<br>3. Keep quiet when you press start.</p>
+                        <span class="settings-label" style="color: var(--rec-red);">Step 2: SAFETY PREP</span>
+                        <div style="background: #fff; padding: 8px; border-radius: 4px; border-left: 3px solid var(--rec-red); margin-bottom: 10px;">
+                            <p class="modal-text" style="font-size: 11px; font-weight: bold; margin: 0; color: var(--rec-red);">⚠️ WARNING: LOUD BEEP</p>
+                            <p class="modal-text" style="font-size: 11px; margin: 4px 0 0 0;">Remove earbuds or headphones NOW. The device will emit a loud beep at 100% volume.</p>
+                        </div>
+                        <p class="modal-text" style="font-size: 11px;">1. Turn phone media volume up.<br>2. Disconnect Bluetooth.<br>3. Keep quiet when you press start.</p>
                         <button class="action-btn" style="width:100%; background: var(--gh-green); color: white; border: none;" onclick="executeCalibrationTest()">START TEST</button>
                     </div>
                     <div id="calib-step-3" class="calib-step">
-                        <p class="modal-text" style="text-align:center; font-weight:bold; color: var(--mic-orange); animation: pulse 1s infinite;">Listening for click...</p>
+                        <p id="calib-countdown-text" class="modal-text" style="text-align:center; font-weight:bold; color: var(--rec-red);">Brace yourself... Beeping in 2s</p>
                     </div>
                     <div id="calib-step-4" class="calib-step">
                         <p class="modal-text" id="calib-result-text" style="text-align:center; font-weight:bold;"></p>
@@ -286,6 +290,14 @@
                 <p class="modal-text" style="font-size: 10px; margin-top: 6px; margin-bottom:0; color: #666;">
                     Use this to instantly overwrite and lock in all track adjustments to your favorite latency compensation instead of testing.
                 </p>
+            </div>
+
+            <div class="settings-section" style="border-color: #fca5a5; background: #fff0f2;">
+                <span class="settings-label" style="color: var(--rec-red);">Danger Zone</span>
+                <p class="modal-text" style="font-size: 11px; margin-bottom: 10px;">
+                    Having issues? This will delete all saved memory, clear your track volumes, and restore the original hardcoded factory defaults.
+                </p>
+                <button class="action-btn" style="width: 100%; color: var(--rec-red); border-color: var(--rec-red);" onclick="factoryReset()">RESTORE FACTORY DEFAULTS</button>
             </div>
         </div>
         <div class="modal-footer">
@@ -421,6 +433,13 @@
 
     function saveSettings() {
         localStorage.setItem('jLooperSettings', JSON.stringify(appSettings));
+    }
+
+    function factoryReset() {
+        if (confirm("Are you sure you want to reset J-looper?\n\nThis will clear all saved volume settings, latency nudges, and memory, restoring the original factory defaults.")) {
+            localStorage.removeItem('jLooperSettings');
+            location.reload(); 
+        }
     }
 
     function applyGlobalNudgeToAll() {
@@ -1092,67 +1111,78 @@
     async function executeCalibrationTest() {
         if (!audioCtx || !micAnalyser) return;
         
-        // Ensure browser audio engine is awake before trying to beep
         if (audioCtx.state === 'suspended') await audioCtx.resume();
 
         document.getElementById('calib-step-2').style.display = 'none';
-        document.getElementById('calib-step-3').style.display = 'block';
-
-        const osc = audioCtx.createOscillator();
-        const env = audioCtx.createGain();
-        osc.type = 'square';
-        osc.frequency.value = 880; // Adjusted frequency to cut through noise better
+        const step3 = document.getElementById('calib-step-3');
+        const countdownText = document.getElementById('calib-countdown-text');
         
-        // CRITICAL FIX: Wire directly to the destination speaker to bypass any muted sliders
-        osc.connect(env);
-        env.connect(audioCtx.destination);
-
-        // Schedule the beep precisely on the AudioContext clock
-        let triggerCtxTime = audioCtx.currentTime + 0.25; 
+        step3.style.display = 'block';
         
-        env.gain.setValueAtTime(0, audioCtx.currentTime);
-        env.gain.linearRampToValueAtTime(1, triggerCtxTime);
-        env.gain.setValueAtTime(1, triggerCtxTime + 0.05);
-        env.gain.exponentialRampToValueAtTime(0.001, triggerCtxTime + 0.15);
-
-        osc.start(triggerCtxTime);
-        osc.stop(triggerCtxTime + 0.2);
-
-        let detected = false;
-        let timeoutTriggered = false;
+        // 2 Second Safety and Buffer Spin-up Countdown
+        countdownText.innerHTML = "Brace yourself... Beeping in 2s";
+        countdownText.style.color = "var(--rec-red)";
+        countdownText.style.animation = "none";
         
-        const checkPeak = () => {
-            if (detected || timeoutTriggered) return;
-            const data = new Uint8Array(micAnalyser.fftSize);
-            micAnalyser.getByteTimeDomainData(data);
+        setTimeout(() => {
+            countdownText.innerHTML = "Brace yourself... Beeping in 1s";
             
-            let max = 0;
-            for(let i=0; i<data.length; i++) {
-                let val = Math.abs(data[i] - 128); 
-                if(val > max) max = val;
-            }
+            setTimeout(() => {
+                countdownText.innerHTML = "Listening for click...";
+                countdownText.style.color = "var(--mic-orange)";
+                countdownText.style.animation = "pulse 1s infinite";
 
-            // CRITICAL FIX: Check the same audioCtx clock to see if we passed the trigger time
-            if (audioCtx.currentTime > triggerCtxTime && max > 30) { 
-                detected = true;
-                let latencyMs = Math.round((audioCtx.currentTime - triggerCtxTime) * 1000);
+                const osc = audioCtx.createOscillator();
+                const env = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = 880; 
                 
-                // Prevent impossibly fast detection from electrical noise
-                if(latencyMs < 5) latencyMs = 5; 
-                
-                finishCalibration(latencyMs);
-                return;
-            }
+                osc.connect(env);
+                env.connect(audioCtx.destination);
 
-            // Timeout after 1.5 seconds if no sound heard
-            if (audioCtx.currentTime > triggerCtxTime + 1.5) {
-                timeoutTriggered = true;
-                finishCalibration(-1);
-                return;
-            }
-            requestAnimationFrame(checkPeak);
-        };
-        requestAnimationFrame(checkPeak);
+                let triggerCtxTime = audioCtx.currentTime + 0.1; 
+                
+                env.gain.setValueAtTime(0, audioCtx.currentTime);
+                env.gain.linearRampToValueAtTime(1, triggerCtxTime);
+                env.gain.setValueAtTime(1, triggerCtxTime + 0.05);
+                env.gain.exponentialRampToValueAtTime(0.001, triggerCtxTime + 0.15);
+
+                osc.start(triggerCtxTime);
+                osc.stop(triggerCtxTime + 0.2);
+
+                let detected = false;
+                let timeoutTriggered = false;
+                
+                const checkPeak = () => {
+                    if (detected || timeoutTriggered) return;
+                    const data = new Uint8Array(micAnalyser.fftSize);
+                    micAnalyser.getByteTimeDomainData(data);
+                    
+                    let max = 0;
+                    for(let i=0; i<data.length; i++) {
+                        let val = Math.abs(data[i] - 128); 
+                        if(val > max) max = val;
+                    }
+
+                    if (audioCtx.currentTime > triggerCtxTime && max > 20) { 
+                        detected = true;
+                        let latencyMs = Math.round((audioCtx.currentTime - triggerCtxTime) * 1000);
+                        if(latencyMs < 5) latencyMs = 5; 
+                        finishCalibration(latencyMs);
+                        return;
+                    }
+
+                    if (audioCtx.currentTime > triggerCtxTime + 1.5) {
+                        timeoutTriggered = true;
+                        finishCalibration(-1);
+                        return;
+                    }
+                    requestAnimationFrame(checkPeak);
+                };
+                requestAnimationFrame(checkPeak);
+
+            }, 1000);
+        }, 1000);
     }
 
     function finishCalibration(latencyResult) {
@@ -1168,7 +1198,6 @@
             resultText.style.color = "var(--gh-green)";
             resultText.innerHTML = `SUCCESS!<br>Latency Detected: ${latencyResult}ms`;
             
-            // Invert latency for the nudge offset
             let newNudge = -latencyResult;
             document.getElementById('global-nudge-override').value = newNudge;
             appSettings.globalNudge = newNudge;
