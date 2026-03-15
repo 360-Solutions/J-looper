@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.32</title>
+    <title>J-looper v3.33</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -148,7 +148,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.32</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.33</span>
         </div>
     </div>
     <div class="header-right">
@@ -215,7 +215,7 @@
             <span class="settings-label">About</span>
             <div class="modal-text" style="margin-bottom: 0;">
                 Created by Jeremiah Keller.<br>
-                Version: 3.32<br>
+                Version: 3.33<br>
                 <em>Audio engine optimized for mobile Safari conference-call routing.</em>
             </div>
         </div>
@@ -230,12 +230,12 @@
             <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
                 <span class="settings-label" style="margin: 0;">Global Nudge Override:</span>
                 <div style="display: flex; align-items: center; gap: 4px;">
-                    <input type="number" id="global-nudge-override" class="nudge-input" value="-120">
+                    <input type="number" id="global-nudge-override" class="nudge-input" value="-120" oninput="updateGlobalNudge(this.value)">
                     <span style="font-size: 11px; font-weight: bold;">ms</span>
                 </div>
             </div>
             <p class="modal-text" style="font-size: 10px; margin-top: 6px; margin-bottom:0; color: #666;">
-                Use this to manually lock in your favorite latency compensation instead of testing.
+                Use this to manually lock in your favorite latency compensation instead of testing. This value becomes the default for all new tracks.
             </p>
         </div>
 
@@ -296,15 +296,25 @@
 </div>
 
 <script>
+    // System Memory Variables
+    let appSettings = {
+        tempo: 120,
+        masterVol: 0.8,
+        modalMasterVol: 1.5,
+        globalNudge: -120,
+        trackVols: Array(8).fill(80),
+        trackNudges: Array(8).fill(-120)
+    };
+
     const tracks = [
-        { name: 'ds_kick1.wav', steps: [0, 4], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'ds_snare1.wav', steps: [8], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], volume: 80, bars: 1, nudge: 0, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], volume: 80, bars: 1, nudge: -120, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null }
+        { name: 'ds_kick1.wav', steps: [0, 4], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'ds_snare1.wav', steps: [8], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null }
     ];
 
     const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
@@ -333,19 +343,98 @@
         t.steps = s;
     });
 
-    function updateTempo(val) { document.getElementById('tempo-val').innerText = val + ' BPM'; }
+    // --- MEMORY FUNCTIONS (localStorage) ---
+    function loadSettings() {
+        const saved = localStorage.getItem('jLooperSettings');
+        if (saved) {
+            try { appSettings = JSON.parse(saved); } catch(e) {}
+        }
+        
+        // Apply Global Settings
+        document.getElementById('tempo').value = appSettings.tempo;
+        document.getElementById('tempo-val').innerText = appSettings.tempo + ' BPM';
+        
+        document.getElementById('master-vol').value = appSettings.masterVol;
+        document.getElementById('master-vol-val').innerText = Math.round(appSettings.masterVol * 100) + '%';
+        
+        document.getElementById('modal-master-vol').value = appSettings.modalMasterVol;
+        document.getElementById('modal-master-vol-val').innerText = Math.round(appSettings.modalMasterVol * 100) + '%';
+        
+        document.getElementById('global-nudge-override').value = appSettings.globalNudge;
+
+        // Apply Track Specific Settings
+        tracks.forEach((t, i) => {
+            t.volume = appSettings.trackVols[i];
+            t.nudge = appSettings.trackNudges[i];
+        });
+    }
+
+    function saveSettings() {
+        localStorage.setItem('jLooperSettings', JSON.stringify(appSettings));
+    }
+
+    function updateGlobalNudge(val) {
+        appSettings.globalNudge = parseInt(val) || 0;
+        saveSettings();
+    }
+
+    function updateTempo(val) { 
+        appSettings.tempo = val;
+        document.getElementById('tempo-val').innerText = val + ' BPM'; 
+        saveSettings();
+    }
 
     function updateMasterVol(val) {
+        appSettings.masterVol = parseFloat(val);
         document.getElementById('master-vol-val').innerText = Math.round(val * 100) + '%';
         if (masterGain && activeTrackIdx === null) {
             masterGain.gain.setTargetAtTime(val, audioCtx.currentTime, 0.015);
         }
+        saveSettings();
     }
 
     document.getElementById('modal-master-vol').oninput = function() {
+        appSettings.modalMasterVol = parseFloat(this.value);
         document.getElementById('modal-master-vol-val').innerText = Math.round(this.value * 100) + '%';
         if (masterGain && activeTrackIdx !== null) {
             masterGain.gain.setTargetAtTime(this.value, audioCtx.currentTime, 0.015);
+        }
+        saveSettings();
+    };
+
+    function updateLaneNudge(tIdx, val) {
+        tracks[tIdx].nudge = parseInt(val);
+        appSettings.trackNudges[tIdx] = tracks[tIdx].nudge;
+        document.getElementById(`lane-nudge-val-${tIdx}`).innerText = val + 'ms';
+        if (activeTrackIdx === tIdx) {
+            document.getElementById('modal-nudge').value = val;
+            document.getElementById('modal-nudge-val').innerText = val + 'ms';
+        }
+        saveSettings();
+    }
+
+    function updateLaneVol(tIdx, val) {
+        tracks[tIdx].volume = parseInt(val);
+        appSettings.trackVols[tIdx] = tracks[tIdx].volume;
+        document.getElementById(`lane-vol-val-${tIdx}`).innerText = val + '%';
+        if (activeTrackIdx === tIdx) {
+            document.getElementById('modal-vol').value = val;
+            document.getElementById('modal-vol-val').innerText = val + '%';
+        }
+        updateTrackGains();
+        saveSettings();
+    }
+
+    // Modal Specific Slider Listeners
+    document.getElementById('modal-nudge').oninput = function() {
+        if(activeTrackIdx !== null) {
+            updateLaneNudge(activeTrackIdx, this.value);
+        }
+    };
+
+    document.getElementById('modal-vol').oninput = function() {
+        if(activeTrackIdx !== null) {
+            updateLaneVol(activeTrackIdx, this.value);
         }
     };
 
@@ -469,25 +558,6 @@
         updateTrackGains(); renderSequencer(); 
     }
 
-    function updateLaneNudge(tIdx, val) {
-        tracks[tIdx].nudge = parseInt(val);
-        document.getElementById(`lane-nudge-val-${tIdx}`).innerText = val + 'ms';
-        if (activeTrackIdx === tIdx) {
-            document.getElementById('modal-nudge').value = val;
-            document.getElementById('modal-nudge-val').innerText = val + 'ms';
-        }
-    }
-
-    function updateLaneVol(tIdx, val) {
-        tracks[tIdx].volume = parseInt(val);
-        document.getElementById(`lane-vol-val-${tIdx}`).innerText = val + '%';
-        if (activeTrackIdx === tIdx) {
-            document.getElementById('modal-vol').value = val;
-            document.getElementById('modal-vol-val').innerText = val + '%';
-        }
-        updateTrackGains();
-    }
-
     let fetchPromise = preFetchAll();
     async function preFetchAll() {
         const promises = sampleFiles.map(async (file) => {
@@ -504,7 +574,7 @@
         audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
         
         masterGain = audioCtx.createGain();
-        let targetVol = needsMic ? document.getElementById('modal-master-vol').value : document.getElementById('master-vol').value;
+        let targetVol = needsMic ? appSettings.modalMasterVol : appSettings.masterVol;
         masterGain.gain.value = targetVol;
         masterGain.connect(audioCtx.destination);
 
@@ -625,7 +695,7 @@
     }
 
     function scheduler() {
-        let secondsPerStep = (60 / document.getElementById('tempo').value) / 4;
+        let secondsPerStep = (60 / appSettings.tempo) / 4;
         
         while (nextStepTime < audioCtx.currentTime + scheduleAheadTime) {
             if (activeTrackIdx !== null) {
@@ -662,7 +732,7 @@
                     if (laneRelative === 2) {
                         isSecretlyRecording = false;
                         
-                        masterGain.gain.setTargetAtTime(document.getElementById('modal-master-vol').value, nextStepTime, 0.015);
+                        masterGain.gain.setTargetAtTime(appSettings.modalMasterVol, nextStepTime, 0.015);
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
                         setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
                     }
@@ -717,7 +787,7 @@
 
     function uiLoop() {
         if (isPlaying && audioCtx) {
-            let secondsPerStep = (60 / document.getElementById('tempo').value) / 4;
+            let secondsPerStep = (60 / appSettings.tempo) / 4;
             let elapsed = audioCtx.currentTime - sequenceStartTime; 
             if (elapsed < 0) elapsed = 0;
             
@@ -765,7 +835,7 @@
             if (audioCtx.state === 'suspended') { await audioCtx.resume(); }
             if (masterGain) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-                let currentVol = activeTrackIdx !== null ? document.getElementById('modal-master-vol').value : document.getElementById('master-vol').value;
+                let currentVol = activeTrackIdx !== null ? appSettings.modalMasterVol : appSettings.masterVol;
                 masterGain.gain.setTargetAtTime(currentVol, audioCtx.currentTime, 0.015);
             }
             
@@ -794,9 +864,9 @@
         tracks[activeTrackIdx].steps.fill(false); 
         justRecordedNewSample = false; 
         
-        tracks[activeTrackIdx].nudge = -120; 
-        document.getElementById('modal-nudge').value = -120;
-        document.getElementById('modal-nudge-val').innerText = '-120ms';
+        // Grab the global nudge override instead of defaulting to -120
+        let newNudge = appSettings.globalNudge;
+        updateLaneNudge(activeTrackIdx, newNudge);
         
         const modalTrackName = document.getElementById('modal-track-name');
         modalTrackName.innerText = "EMPTY";
@@ -806,25 +876,6 @@
     };
 
     document.getElementById('modal-bar-cycle').onclick = () => { if(activeTrackIdx !== null) cycleBars(activeTrackIdx); };
-
-    document.getElementById('modal-nudge').oninput = function() {
-        if(activeTrackIdx !== null) {
-            tracks[activeTrackIdx].nudge = parseInt(this.value);
-            document.getElementById('modal-nudge-val').innerText = this.value + 'ms';
-            const mainNudgeDisplay = document.getElementById(`lane-nudge-val-${activeTrackIdx}`);
-            if(mainNudgeDisplay) mainNudgeDisplay.innerText = this.value + 'ms';
-        }
-    };
-
-    document.getElementById('modal-vol').oninput = function() {
-        if(activeTrackIdx !== null) {
-            tracks[activeTrackIdx].volume = parseInt(this.value);
-            document.getElementById('modal-vol-val').innerText = this.value + '%';
-            const mainVolDisplay = document.getElementById(`lane-vol-val-${activeTrackIdx}`);
-            if(mainVolDisplay) mainVolDisplay.innerText = this.value + '%';
-        }
-        updateTrackGains(); 
-    };
 
     document.getElementById('toggle-samples-btn').onclick = function() {
         const list = document.getElementById('modal-sample-list');
@@ -854,10 +905,10 @@
         activeTrackIdx = i; 
         justRecordedNewSample = false;
         
-        document.getElementById('modal-nudge').value = tracks[i].nudge || 0;
-        document.getElementById('modal-nudge-val').innerText = (tracks[i].nudge || 0) + 'ms';
-        document.getElementById('modal-vol').value = tracks[i].volume || 80;
-        document.getElementById('modal-vol-val').innerText = (tracks[i].volume || 80) + '%';
+        document.getElementById('modal-nudge').value = tracks[i].nudge;
+        document.getElementById('modal-nudge-val').innerText = tracks[i].nudge + 'ms';
+        document.getElementById('modal-vol').value = tracks[i].volume;
+        document.getElementById('modal-vol-val').innerText = tracks[i].volume + '%';
         
         const modalTrackName = document.getElementById('modal-track-name');
         modalTrackName.innerText = tracks[i].name.toUpperCase();
@@ -919,9 +970,10 @@
             item.onclick = () => { 
                 tracks[activeTrackIdx].name = file; 
                 tracks[activeTrackIdx].rawArrayBuffer = null; 
-                tracks[activeTrackIdx].nudge = 0;
-                document.getElementById('modal-nudge').value = 0;
-                document.getElementById('modal-nudge-val').innerText = '0ms';
+                
+                let newNudge = appSettings.globalNudge;
+                updateLaneNudge(activeTrackIdx, newNudge);
+
                 justRecordedNewSample = true; 
                 
                 tracks[activeTrackIdx].steps[0] = true;
@@ -963,6 +1015,8 @@
         if(activeTrackIdx === i) renderModalLane(); 
     }
 
+    // Initialize the app by loading settings first
+    loadSettings();
     renderSequencer();
 </script>
 </body>
