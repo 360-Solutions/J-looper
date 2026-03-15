@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.46</title>
+    <title>J-looper v3.47</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -167,7 +167,6 @@
         .settings-label { font-size: 11px; font-weight: 800; color: var(--text-color); display: block; margin-bottom: 6px; text-transform: uppercase;}
         .nudge-input { width: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; text-align: center; }
 
-        .calib-flow { display: none; background: #ffffff; padding: 10px; border-radius: 8px; margin-top: 10px; }
         .calib-step { display: none; }
     </style>
 </head>
@@ -178,7 +177,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.46</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.47</span>
             </div>
             <div class="creator-text">By Jeremiah Keller</div>
         </div>
@@ -221,35 +220,53 @@
 
 <div id="main-grid"></div>
 
-<div id="onboarding-modal" class="modal">
+<div id="calibration-modal" class="modal">
     <div class="modal-content" style="max-width: 380px;">
         <div class="modal-scroll-area" style="text-align: center; padding: 20px;">
-            <h2 class="modal-title" style="margin-bottom: 12px; font-size: 22px;">Welcome! 👋</h2>
-            <p class="modal-text" style="font-size: 14px;">Since it's your first time here, we need to run a quick, one-time audio test to measure your device's exact latency.</p>
+            <h2 id="calib-modal-title" class="modal-title" style="margin-bottom: 12px; font-size: 22px;">System Calibration</h2>
+            <p id="calib-modal-text" class="modal-text" style="font-size: 14px;">Run a quick audio test to measure your device's exact latency.</p>
             
-            <div id="ob-step-1" style="display: block;">
-                <button class="action-btn" style="width:100%; background: var(--gh-purple); color: white; border: none; padding: 18px; font-size: 14px;" onclick="initCalibrationMic('ob')">ENABLE MICROPHONE</button>
+            <div id="calib-step-1" style="display: block;">
+                <button class="action-btn" style="width:100%; background: var(--gh-purple); color: white; border: none; padding: 18px; font-size: 14px;" onclick="initCalibrationMic()">ENABLE MICROPHONE</button>
+                <button class="action-btn" id="calib-cancel-btn" style="width:100%; background: var(--panel-color); margin-top:10px; padding: 12px; font-size: 12px;" onclick="closeCalibrationModal()">CANCEL</button>
             </div>
             
-            <div id="ob-step-2" class="calib-step">
+            <div id="calib-step-2" class="calib-step">
                 <div style="background: #fff; padding: 12px; border-radius: 6px; border-left: 4px solid var(--rec-red); margin-bottom: 15px; text-align: left;">
                     <p class="modal-text" style="font-size: 13px; font-weight: bold; margin: 0; color: var(--rec-red);">⚠️ SAFETY PREP: LOUD BEEP</p>
                     <p class="modal-text" style="font-size: 12px; margin: 4px 0 0 0;">Remove earbuds or headphones NOW. The device will emit a loud beep.</p>
                 </div>
                 <p class="modal-text" style="font-size: 13px; text-align: left;">1. Turn phone media volume up.<br>2. Disconnect Bluetooth.<br>3. Keep quiet when you press start.</p>
-                <button class="action-btn" style="width:100%; background: var(--gh-green); color: white; border: none; padding: 18px; font-size: 14px;" onclick="executeCalibrationTest('ob')">START TEST</button>
+                <button class="action-btn" style="width:100%; background: var(--gh-green); color: white; border: none; padding: 18px; font-size: 14px;" onclick="executeCalibrationTest()">START TEST</button>
             </div>
             
-            <div id="ob-step-3" class="calib-step">
-                <p id="ob-countdown-text" class="modal-text" style="text-align:center; font-weight:bold; color: var(--rec-red); font-size: 16px;">Brace yourself... Beeping in 2s</p>
+            <div id="calib-step-3" class="calib-step">
+                <p id="calib-countdown-text" class="modal-text" style="text-align:center; font-weight:bold; color: var(--rec-red); font-size: 16px;">Brace yourself... Beeping in 2s</p>
                 <p class="modal-text" style="font-size:11px; text-align:center; margin-bottom:4px;">Live Mic Debugger:</p>
-                <div class="vu-meter" style="margin-bottom: 20px; height: 10px; border-radius: 5px;"><div class="vu-fill" id="ob-vu-fill" style="background:var(--mic-orange);"></div></div>
+                <div class="vu-meter" style="margin-bottom: 20px; height: 10px; border-radius: 5px;"><div class="vu-fill" id="calib-vu-fill" style="background:var(--mic-orange);"></div></div>
             </div>
             
-            <div id="ob-step-4" class="calib-step">
-                <p class="modal-text" id="ob-result-text" style="text-align:center; font-weight:bold; font-size: 16px; margin-bottom: 5px;"></p>
-                <p style="font-size: 11px; text-align: center; color: #666; margin-top: 0;">Saving settings and getting ready...</p>
+            <div id="calib-step-4" class="calib-step">
+                <p class="modal-text" id="calib-result-text" style="text-align:center; font-weight:bold; font-size: 16px; margin-bottom: 5px;"></p>
+                <p style="font-size: 11px; text-align: center; color: #666; margin-top: 0;">Saving settings and returning...</p>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="override-modal" class="modal">
+    <div class="modal-content" style="max-width: 380px;">
+        <div class="modal-scroll-area" style="text-align: center; padding: 20px;">
+            <h2 class="modal-title" style="margin-bottom: 12px; color: var(--rec-red);">Manual Override</h2>
+            <p class="modal-text" style="font-size: 12px; color: #333;">Instantly overwrite all track timing adjustments to a custom latency.</p>
+            
+            <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 15px;">
+                <input type="number" id="global-nudge-override" class="nudge-input" value="-120" style="border-color: #fca5a5; font-size: 16px; width: 80px;">
+                <span style="font-size: 14px; font-weight: bold; color: var(--rec-red);">ms</span>
+            </div>
+            
+            <button class="action-btn" style="width: 100%; padding: 15px; border-color: var(--rec-red); color: white; background: var(--rec-red); font-size: 13px;" onclick="applyGlobalNudgeToAll()">APPLY NUDGE TO ALL TRACKS</button>
+            <button class="action-btn" style="width: 100%; margin-top: 10px; padding: 15px; background: var(--panel-color);" onclick="closeOverrideModal()">CANCEL</button>
         </div>
     </div>
 </div>
@@ -283,11 +300,6 @@
                 <strong>The "Cheat Code":</strong><br>
                 J-looper is a free JavaScript webpage, not a full-fledged App Store program. It works by briefly fooling your smartphone into thinking you're on a speakerphone call while you're in the recording window. That’s why you’ll notice a slightly "lo-fi" quality while recording. But when you hit "DONE" and return to the main screen, it releases the microphone and switches back to higher-quality audio.
             </p>
-            <div style="background: var(--panel-color); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                <p class="modal-text" style="font-size: 11px; color: #555; margin: 0;">
-                    <em>Note: J-looper lives in the moment. Your loops are not saved permanently when you refresh the page. Think of it as a fun practice tool for when you have a quiet place to lay down a chord progression and solo over it, or to build up a beatbox loop. It isn't intended to be professional-grade—it's just a fun, easy-access looper.</em>
-                </p>
-            </div>
         </div>
         <div class="modal-footer">
             <button class="done-btn" onclick="document.getElementById('help-modal').style.display='none'">GOT IT</button>
@@ -304,57 +316,15 @@
             </div>
 
             <div class="settings-section" style="border-color: #fca5a5; background: #fff0f2;">
-                <span class="settings-label" style="color: var(--rec-red);">System Latency Calibration</span>
+                <span class="settings-label" style="color: var(--rec-red);">Latency Calibration</span>
                 <p class="modal-text" style="font-size: 11px; margin-bottom: 10px;">
-                    Different devices process audio at different speeds. If your recordings sound out of sync, run this loopback test. It will emit a click, listen for it, and adjust your timing automatically.
+                    If your recordings sound out of sync, run this loopback test. It will emit a click, listen for it, and adjust your timing automatically.
                 </p>
-                <button class="action-btn" id="init-calib-btn" style="width: 100%; border-color: var(--rec-red); color: var(--rec-red); margin-bottom: 4px;" onclick="initCalibrationMic('calib')">RUN LOOPBACK TEST</button>
-                <div id="last-calib-result" style="font-size: 10px; color: var(--gh-green); text-align: center; margin-bottom: 10px; font-weight: bold; min-height: 12px;"></div>
+                <button class="action-btn" style="width: 100%; border-color: var(--rec-red); color: var(--rec-red); margin-bottom: 10px;" onclick="openCalibrationModal('settings')">RUN LOOPBACK TEST</button>
                 
-                <div id="calib-flow-container" class="calib-flow">
-                    <div id="calib-step-1" class="calib-step">
-                        <span class="settings-label" style="color: var(--rec-red);">Step 1: Init Microphone</span>
-                        <p class="modal-text" style="font-size: 11px;">J-looper needs to enter Conference Call mode to test the latency. Press below and accept any warnings.</p>
-                    </div>
-                    <div id="calib-step-2" class="calib-step">
-                        <span class="settings-label" style="color: var(--rec-red);">Step 2: SAFETY PREP</span>
-                        <div style="background: #fff; padding: 8px; border-radius: 4px; border-left: 3px solid var(--rec-red); margin-bottom: 10px;">
-                            <p class="modal-text" style="font-size: 11px; font-weight: bold; margin: 0; color: var(--rec-red);">⚠️ WARNING: LOUD BEEP</p>
-                            <p class="modal-text" style="font-size: 11px; margin: 4px 0 0 0;">Remove earbuds or headphones NOW. The device will emit a loud beep at 100% volume.</p>
-                        </div>
-                        <p class="modal-text" style="font-size: 11px;">1. Turn phone media volume up.<br>2. Disconnect Bluetooth.<br>3. Keep quiet when you press start.</p>
-                        <button class="action-btn" style="width:100%; background: var(--gh-green); color: white; border: none;" onclick="executeCalibrationTest('calib')">START TEST</button>
-                    </div>
-                    <div id="calib-step-3" class="calib-step">
-                        <p id="calib-countdown-text" class="modal-text" style="text-align:center; font-weight:bold; color: var(--rec-red);">Brace yourself... Beeping in 2s</p>
-                        <p class="modal-text" style="font-size:10px; text-align:center; margin-bottom:4px;">Live Mic Debugger:</p>
-                        <div class="vu-meter" style="margin-bottom: 20px;"><div class="vu-fill" id="calib-vu-fill" style="background:var(--mic-orange);"></div></div>
-                    </div>
-                    <div id="calib-step-4" class="calib-step">
-                        <p class="modal-text" id="calib-result-text" style="text-align:center; font-weight:bold; margin-bottom: 5px;"></p>
-                        <p style="font-size: 9px; text-align: center; color: #666; margin-top: 0;">Saving and releasing microphone...</p>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #fca5a5;">
-                    <div id="nudge-display-view" style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="settings-label" style="margin:0; color:var(--text-color);">Current Global Latency: <span id="current-nudge-text" style="color:var(--rec-red);">-120ms</span></span>
-                        <button class="bubble-btn" style="color:#666; border:none; box-shadow:none; text-decoration:underline; font-size:10px;" onclick="showNudgeOverride()">Override</button>
-                    </div>
-                    
-                    <div id="nudge-override-view" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span class="settings-label" style="margin: 0; color: var(--rec-red);">Global Nudge Override:</span>
-                            <div style="display: flex; align-items: center; gap: 4px;">
-                                <input type="number" id="global-nudge-override" class="nudge-input" value="-120" style="border-color: #fca5a5;">
-                                <span style="font-size: 11px; font-weight: bold;">ms</span>
-                            </div>
-                        </div>
-                        <button class="bubble-btn" style="width: 100%; padding: 10px; border-color: var(--rec-red); color: var(--rec-red); background: #ffffff;" onclick="applyGlobalNudgeToAll()">APPLY NUDGE TO ALL TRACKS</button>
-                        <p class="modal-text" style="font-size: 10px; margin-bottom:0; color: #c53030;">
-                            Use this to instantly overwrite and lock in all track adjustments to your favorite latency compensation instead of testing.
-                        </p>
-                    </div>
+                <div style="padding-top: 10px; border-top: 1px solid #fca5a5; display:flex; justify-content:space-between; align-items:center;">
+                    <span class="settings-label" style="margin:0; color:var(--text-color);">Global Latency: <span id="current-nudge-text" style="color:var(--rec-red);">-120ms</span></span>
+                    <button class="bubble-btn" style="color:#666; border:none; box-shadow:none; text-decoration:underline; font-size:10px;" onclick="openOverrideModal()">Override</button>
                 </div>
             </div>
 
@@ -367,7 +337,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="done-btn" onclick="closeSettingsModal()">SAVE & CLOSE</button>
+            <button class="done-btn" onclick="document.getElementById('settings-modal').style.display='none'">SAVE & CLOSE</button>
         </div>
     </div>
 </div>
@@ -410,6 +380,23 @@
                     </span>
                     <input type="range" id="modal-nudge" min="-300" max="100" value="-120" step="5">
                 </div>
+                
+                <div style="border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 5px;">
+                    <div style="margin-bottom: 10px;">
+                        <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
+                            <span>Fade Attack (Clean Start)</span>
+                            <span id="modal-attack-val">15ms</span>
+                        </span>
+                        <input type="range" id="modal-attack" min="0" max="500" value="15" step="5">
+                    </div>
+                    <div>
+                        <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
+                            <span>Fade Tail (Clean Loop End)</span>
+                            <span id="modal-release-val">25ms</span>
+                        </span>
+                        <input type="range" id="modal-release" min="0" max="500" value="25" step="5">
+                    </div>
+                </div>
             </div>
 
             <div class="modal-header-btns">
@@ -436,19 +423,27 @@
         trackVols: Array(8).fill(80),
         trackNudges: Array(8).fill(-120),
         trackModalVols: Array(8).fill(220),
-        trackModalBackingVols: Array(8).fill(2.2)
+        trackModalBackingVols: Array(8).fill(2.2),
+        trackAttacks: Array(8).fill(15),
+        trackReleases: Array(8).fill(25)
     };
 
-    const tracks = [
-        { name: 'ds_kick1.wav', steps: [0, 4], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'ds_snare1.wav', steps: [8], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 }
-    ];
+    const tracks = [];
+    for(let i=0; i<8; i++) {
+        tracks.push({
+            name: 'EMPTY', steps: new Array(64).fill(false), bars: 1, choke: true, mute: false, solo: false, 
+            buffer: null, rawArrayBuffer: null, lastSource: null, lastEnvelope: null, 
+            volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2, attack: 15, release: 25
+        });
+    }
+
+    const defaultNames = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'];
+    const defaultSteps = [ [0, 4], [8], [0, 2, 4, 6, 8, 10, 12, 14], [], [], [], [], [] ];
+    
+    tracks.forEach((t, i) => {
+        t.name = defaultNames[i];
+        defaultSteps[i].forEach(idx => t.steps[idx] = true);
+    });
 
     const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
     const preFetchedBuffers = {};
@@ -468,12 +463,6 @@
     let targetBarLength = 16;
     let scheduleAheadTime = 0.50; 
     let sequenceStartTime = 0;
-
-    tracks.forEach(t => { 
-        let s = new Array(64).fill(false);
-        if(t.steps) t.steps.forEach(idx => s[idx] = true);
-        t.steps = s;
-    });
 
     // --- MEMORY FUNCTIONS (localStorage) ---
     function loadSettings() {
@@ -496,6 +485,8 @@
             t.nudge = appSettings.trackNudges && appSettings.trackNudges[i] !== undefined ? appSettings.trackNudges[i] : -120;
             t.modalVol = appSettings.trackModalVols && appSettings.trackModalVols[i] !== undefined ? appSettings.trackModalVols[i] : 220;
             t.modalBackingVol = appSettings.trackModalBackingVols && appSettings.trackModalBackingVols[i] !== undefined ? appSettings.trackModalBackingVols[i] : 2.2;
+            t.attack = appSettings.trackAttacks && appSettings.trackAttacks[i] !== undefined ? appSettings.trackAttacks[i] : 15;
+            t.release = appSettings.trackReleases && appSettings.trackReleases[i] !== undefined ? appSettings.trackReleases[i] : 25;
         });
 
         renderInitState();
@@ -543,22 +534,20 @@
                 trackVols: Array(8).fill(80),
                 trackNudges: Array(8).fill(savedNudge),
                 trackModalVols: Array(8).fill(220),
-                trackModalBackingVols: Array(8).fill(2.2)
+                trackModalBackingVols: Array(8).fill(2.2),
+                trackAttacks: Array(8).fill(15),
+                trackReleases: Array(8).fill(25)
             };
-
-            const defaultNames = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'];
-            const defaultSteps = [ [0, 4], [8], [0, 2, 4, 6, 8, 10, 12, 14], [], [], [], [], [] ];
 
             tracks.forEach((t, i) => {
                 t.name = defaultNames[i];
                 let s = new Array(64).fill(false);
                 defaultSteps[i].forEach(idx => s[idx] = true);
                 t.steps = s;
-                
                 t.bars = 1; t.choke = true; t.mute = false; t.solo = false;
-                t.rawArrayBuffer = null;
+                t.rawArrayBuffer = null; t.buffer = null; 
                 t.volume = 80; t.nudge = savedNudge; t.modalVol = 220; t.modalBackingVol = 2.2;
-                t.buffer = null; 
+                t.attack = 15; t.release = 25;
             });
 
             document.getElementById('tempo').value = 120;
@@ -573,42 +562,57 @@
         }
     }
 
-    function closeSettingsModal() {
-        document.getElementById('settings-modal').style.display = 'none';
+    // Modal logic for Calibration
+    let calibSourceMode = 'init';
+    function openCalibrationModal(sourceMode) {
+        calibSourceMode = sourceMode;
+        if(sourceMode === 'settings') {
+            document.getElementById('settings-modal').style.display = 'none';
+            document.getElementById('calib-modal-title').innerText = "System Calibration";
+            document.getElementById('calib-modal-text').innerText = "Run a quick audio test to measure your device's exact latency.";
+            document.getElementById('calib-cancel-btn').style.display = 'block';
+        } else {
+            document.getElementById('calib-modal-title').innerText = "Welcome! 👋";
+            document.getElementById('calib-modal-text').innerText = "Since it's your first time here, we need to run a quick, one-time audio test to measure your device's exact latency.";
+            document.getElementById('calib-cancel-btn').style.display = 'none';
+        }
+
+        document.getElementById('calib-step-1').style.display = 'block';
+        document.getElementById('calib-step-2').style.display = 'none';
+        document.getElementById('calib-step-3').style.display = 'none';
+        document.getElementById('calib-step-4').style.display = 'none';
         
-        document.getElementById('nudge-override-view').style.display = 'none';
-        document.getElementById('nudge-display-view').style.display = 'flex';
-        
-        if (isCalibrating) {
-            closeCalibrationFlowUIOnly('calib');
-            if (micSource) { micSource.disconnect(); micSource = null; }
-            micAnalyser = null;
-            if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
-            if (audioCtx) initAudioEngine(false); 
+        document.getElementById('calibration-modal').style.display = 'flex';
+    }
+
+    function closeCalibrationModal() {
+        document.getElementById('calibration-modal').style.display = 'none';
+        if(calibSourceMode === 'settings') {
+            document.getElementById('settings-modal').style.display = 'flex';
         }
     }
 
-    function showNudgeOverride() {
-        document.getElementById('nudge-display-view').style.display = 'none';
-        document.getElementById('nudge-override-view').style.display = 'flex';
+    function openOverrideModal() {
+        document.getElementById('settings-modal').style.display = 'none';
+        document.getElementById('override-modal').style.display = 'flex';
+    }
+
+    function closeOverrideModal() {
+        document.getElementById('override-modal').style.display = 'none';
+        document.getElementById('settings-modal').style.display = 'flex';
     }
 
     function applyGlobalNudgeToAll() {
         let val = document.getElementById('global-nudge-override').value;
         let parsed = parseInt(val) || 0;
         
-        if (confirm("Are you sure you want to change the Global Nudge?\n\nThis will instantly overwrite all individual track nudge adjustments in your current session.")) {
-            appSettings.globalNudge = parsed;
-            appSettings.isInitialized = true; 
-            tracks.forEach((t, i) => { updateLaneNudge(i, parsed); });
-            saveSettings();
-            renderInitState();
-            
-            document.getElementById('nudge-override-view').style.display = 'none';
-            document.getElementById('nudge-display-view').style.display = 'flex';
-        } else {
-            document.getElementById('global-nudge-override').value = appSettings.globalNudge;
-        }
+        appSettings.globalNudge = parsed;
+        appSettings.isInitialized = true; 
+        tracks.forEach((t, i) => { updateLaneNudge(i, parsed); });
+        saveSettings();
+        renderInitState();
+        
+        closeOverrideModal();
     }
 
     function updateTempo(val) { 
@@ -620,9 +624,7 @@
     function updateMasterVol(val) {
         appSettings.masterVol = parseFloat(val);
         document.getElementById('master-vol-val').innerText = Math.round(val * 100) + '%';
-        if (masterGain) {
-            masterGain.gain.setTargetAtTime(val, audioCtx.currentTime, 0.015);
-        }
+        if (masterGain) { masterGain.gain.setTargetAtTime(val, audioCtx.currentTime, 0.015); }
         saveSettings();
     }
 
@@ -631,8 +633,7 @@
             tracks[activeTrackIdx].modalBackingVol = parseFloat(this.value);
             appSettings.trackModalBackingVols[activeTrackIdx] = tracks[activeTrackIdx].modalBackingVol;
             document.getElementById('modal-backing-vol-val').innerText = Math.round(this.value * 100) + '%';
-            updateTrackGains(); 
-            saveSettings();
+            updateTrackGains(); saveSettings();
         }
     };
 
@@ -641,7 +642,24 @@
             tracks[activeTrackIdx].modalVol = parseInt(this.value);
             appSettings.trackModalVols[activeTrackIdx] = tracks[activeTrackIdx].modalVol;
             document.getElementById('modal-vol-val').innerText = this.value + '%';
-            updateTrackGains(); 
+            updateTrackGains(); saveSettings();
+        }
+    };
+    
+    document.getElementById('modal-attack').oninput = function() {
+        if(activeTrackIdx !== null) {
+            tracks[activeTrackIdx].attack = parseInt(this.value);
+            appSettings.trackAttacks[activeTrackIdx] = tracks[activeTrackIdx].attack;
+            document.getElementById('modal-attack-val').innerText = this.value + 'ms';
+            saveSettings();
+        }
+    };
+    
+    document.getElementById('modal-release').oninput = function() {
+        if(activeTrackIdx !== null) {
+            tracks[activeTrackIdx].release = parseInt(this.value);
+            appSettings.trackReleases[activeTrackIdx] = tracks[activeTrackIdx].release;
+            document.getElementById('modal-release-val').innerText = this.value + 'ms';
             saveSettings();
         }
     };
@@ -685,7 +703,6 @@
         tracks.forEach((t, i) => {
             if (trackGains[i]) {
                 let volTarget = 0;
-                
                 if (activeTrackIdx === null) {
                     if (anySolo) volTarget = t.solo ? (t.volume / 100) : 0;
                     else volTarget = t.mute ? 0 : (t.volume / 100);
@@ -985,25 +1002,45 @@
         const envelopeGain = audioCtx.createGain();
         source.buffer = buffer; 
         
-        envelopeGain.gain.value = 0;
         source.connect(envelopeGain); 
         envelopeGain.connect(trackGains[tIdx]); 
         
         let startTime = time + (nudgeMs / 1000);
         let actualPlayTime = startTime < audioCtx.currentTime ? audioCtx.currentTime : startTime;
         
-        envelopeGain.gain.setValueAtTime(0, actualPlayTime);
-        envelopeGain.gain.linearRampToValueAtTime(1, actualPlayTime + 0.015); 
+        // Retrieve ADSR envelopes
+        let att = (trackObj && trackObj.attack !== undefined) ? trackObj.attack / 1000 : 0.015;
+        let rel = (trackObj && trackObj.release !== undefined) ? trackObj.release / 1000 : 0.025;
+
+        // Calculate expected exact mathematical length of the loop
+        let secondsPerStep = (60 / appSettings.tempo) / 4;
+        let expectedDuration = (trackObj && trackObj.bars) ? (trackObj.bars * 16 * secondsPerStep) : 999;
         
+        // Hard cutoff either at sample end OR perfect loop end (fixes bleeding tail)
+        let playDuration = Math.min(buffer.duration, expectedDuration);
+        
+        // Safeties so fade isn't longer than the sample itself
+        let safeAtt = Math.max(0.005, Math.min(att, playDuration * 0.4));
+        let safeRel = Math.max(0.005, Math.min(rel, playDuration * 0.4));
+
+        // Fade Attack
+        envelopeGain.gain.setValueAtTime(0, actualPlayTime);
+        envelopeGain.gain.linearRampToValueAtTime(1, actualPlayTime + safeAtt); 
+        
+        // Fade Tail (Release) enforcing a mathematical cutoff to fix overlapping
+        envelopeGain.gain.setValueAtTime(1, actualPlayTime + playDuration - safeRel);
+        envelopeGain.gain.linearRampToValueAtTime(0, actualPlayTime + playDuration);
+        source.stop(actualPlayTime + playDuration);
+
         if (trackObj && trackObj.choke) {
             if (trackObj.lastSource && trackObj.lastEnvelope) {
                 try { 
                     let chokeTime = Math.max(time, actualPlayTime); 
                     const prevEnv = trackObj.lastEnvelope;
                     prevEnv.gain.cancelScheduledValues(chokeTime);
-                    prevEnv.gain.setValueAtTime(1, chokeTime);
-                    prevEnv.gain.linearRampToValueAtTime(0, chokeTime + 0.025); 
-                    trackObj.lastSource.stop(chokeTime + 0.025); 
+                    // smoothly choke down from whatever volume it's currently at
+                    prevEnv.gain.setTargetAtTime(0, chokeTime, safeRel / 3); 
+                    trackObj.lastSource.stop(chokeTime + safeRel); 
                 } catch (e) {}
             }
             trackObj.lastSource = source;
@@ -1060,11 +1097,6 @@
                 calibVuFill.style.width = percent + '%';
                 calibVuFill.style.background = percent > 50 ? 'var(--rec-red)' : 'var(--mic-orange)';
             }
-            const obVuFill = document.getElementById('ob-vu-fill');
-            if (obVuFill && obVuFill.offsetParent !== null) {
-                obVuFill.style.width = percent + '%';
-                obVuFill.style.background = percent > 50 ? 'var(--rec-red)' : 'var(--mic-orange)';
-            }
         }
         
         requestAnimationFrame(uiLoop);
@@ -1076,7 +1108,7 @@
 
     document.getElementById('play-btn').onclick = async function() {
         if (!appSettings.isInitialized) {
-            document.getElementById('onboarding-modal').style.display = 'flex';
+            openCalibrationModal('init');
             return; 
         }
 
@@ -1166,6 +1198,11 @@
         document.getElementById('modal-vol-val').innerText = tracks[i].modalVol + '%';
         document.getElementById('modal-backing-vol').value = tracks[i].modalBackingVol;
         document.getElementById('modal-backing-vol-val').innerText = Math.round(tracks[i].modalBackingVol * 100) + '%';
+        
+        document.getElementById('modal-attack').value = tracks[i].attack;
+        document.getElementById('modal-attack-val').innerText = tracks[i].attack + 'ms';
+        document.getElementById('modal-release').value = tracks[i].release;
+        document.getElementById('modal-release-val').innerText = tracks[i].release + 'ms';
         
         const modalTrackName = document.getElementById('modal-track-name');
         modalTrackName.innerText = tracks[i].name.toUpperCase();
@@ -1278,36 +1315,23 @@
         }
     }
 
-    let isCalibrating = false;
-
-    function startCalibrationFlow() {
-        forceStopEngine();
-        document.getElementById('init-calib-btn').style.display = 'none';
-        document.getElementById('calib-flow-container').style.display = 'block';
-        document.getElementById('calib-step-1').style.display = 'block';
-        document.getElementById('calib-step-2').style.display = 'none';
-        document.getElementById('calib-step-3').style.display = 'none';
-        document.getElementById('calib-step-4').style.display = 'none';
-        document.getElementById('last-calib-result').innerText = '';
-    }
-
-    async function initCalibrationMic(prefix) {
-        document.getElementById(`${prefix}-step-1`).style.display = 'none';
+    async function initCalibrationMic() {
+        document.getElementById('calib-step-1').style.display = 'none';
         isCalibrating = true;
         await initAudioEngine(true); 
         
         requestAnimationFrame(uiLoop);
-        document.getElementById(`${prefix}-step-2`).style.display = 'block';
+        document.getElementById('calib-step-2').style.display = 'block';
     }
 
-    async function executeCalibrationTest(prefix) {
+    async function executeCalibrationTest() {
         if (!audioCtx || !micAnalyser) return;
         
         if (audioCtx.state === 'suspended') await audioCtx.resume();
 
-        document.getElementById(`${prefix}-step-2`).style.display = 'none';
-        const step3 = document.getElementById(`${prefix}-step-3`);
-        const countdownText = document.getElementById(`${prefix}-countdown-text`);
+        document.getElementById('calib-step-2').style.display = 'none';
+        const step3 = document.getElementById('calib-step-3');
+        const countdownText = document.getElementById('calib-countdown-text');
         
         step3.style.display = 'block';
         
@@ -1359,13 +1383,13 @@
                         detected = true;
                         let latencyMs = Math.round((audioCtx.currentTime - triggerCtxTime) * 1000);
                         if(latencyMs < 5) latencyMs = 5; 
-                        finishCalibration(latencyMs, prefix);
+                        finishCalibration(latencyMs);
                         return;
                     }
 
                     if (audioCtx.currentTime > triggerCtxTime + 1.5) {
                         timeoutTriggered = true;
-                        finishCalibration(-1, prefix);
+                        finishCalibration(-1);
                         return;
                     }
                     requestAnimationFrame(checkPeak);
@@ -1376,17 +1400,15 @@
         }, 1000);
     }
 
-    function finishCalibration(latencyResult, prefix) {
-        document.getElementById(`${prefix}-step-3`).style.display = 'none';
-        document.getElementById(`${prefix}-step-4`).style.display = 'block';
+    function finishCalibration(latencyResult) {
+        document.getElementById('calib-step-3').style.display = 'none';
+        document.getElementById('calib-step-4').style.display = 'block';
         
-        const resultText = document.getElementById(`${prefix}-result-text`);
-        let successStr = "";
+        const resultText = document.getElementById('calib-result-text');
 
         if (latencyResult === -1) {
             resultText.style.color = "var(--rec-red)";
             resultText.innerHTML = "TEST FAILED.<br><span style='font-size:12px; font-weight:normal;'>Did not hear the click.</span>";
-            successStr = "Last Test: FAILED";
         } else {
             let actualNudge = latencyResult * 2;
             resultText.style.color = "var(--gh-green)";
@@ -1399,8 +1421,6 @@
             tracks.forEach((t, i) => { updateLaneNudge(i, newNudge); });
             saveSettings();
             renderInitState();
-            
-            successStr = `Last Test: SUCCESS (${newNudge}ms)`;
         }
 
         if (micSource) { micSource.disconnect(); micSource = null; }
@@ -1409,27 +1429,12 @@
         initAudioEngine(false); 
 
         setTimeout(() => {
-            if (prefix === 'ob') {
-                document.getElementById('onboarding-modal').style.display = 'none';
-                isCalibrating = false;
+            closeCalibrationModal();
+            isCalibrating = false;
+            if (calibSourceMode === 'init') {
                 document.getElementById('play-btn').click();
-            } else {
-                closeCalibrationFlowUIOnly('calib');
-                document.getElementById('last-calib-result').innerText = successStr;
-                if(latencyResult === -1) {
-                    document.getElementById('last-calib-result').style.color = "var(--rec-red)";
-                } else {
-                    document.getElementById('last-calib-result').style.color = "var(--gh-green)";
-                }
             }
         }, 2500);
-    }
-
-    function closeCalibrationFlowUIOnly(prefix) {
-        document.getElementById(`${prefix}-flow-container`).style.display = 'none';
-        document.getElementById(`${prefix}-step-4`).style.display = 'none';
-        document.getElementById(`init-${prefix}-btn`).style.display = 'block';
-        isCalibrating = false;
     }
 
     document.addEventListener('visibilitychange', () => {
