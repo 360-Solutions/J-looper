@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.31</title>
+    <title>J-looper v3.32</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -46,7 +46,6 @@
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .version-info { font-size: 10px; text-align: right; color: #666; font-weight: 600;}
         
-        /* Updated Header Icons: Wider gap and right margin */
         .header-icons { display: flex; gap: 15px; margin-right: 10px; }
         .icon-btn { font-size: 14px; font-weight: 900; padding: 4px 8px; color: var(--gh-purple); border-color: var(--border-color); }
 
@@ -149,7 +148,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.31</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.32</span>
         </div>
     </div>
     <div class="header-right">
@@ -186,22 +185,25 @@
 <div id="main-grid"></div>
 
 <div id="help-modal" class="modal">
-    <div class="modal-content" style="max-height: 80%;">
+    <div class="modal-content" style="max-height: 85%;">
         <h2 class="modal-title">Welcome to J-looper</h2>
         <p class="modal-text">
             Building a looper app that works on a typical smartphone without an audio interface or wired headphones comes with a unique challenge: preventing the microphone from hearing and recording the app's own backing track (audio bleed).
         </p>
         <p class="modal-text">
-            <strong>The J-looper Compromise:</strong><br>
-            To solve this, the backing track drops out the moment you hit record. It’s like a spotlight performance where the band stops and you play a solo phrase. To stay on beat, you'll need to rely on your internal rhythm and the visual metronome—the white node traveling across the grid.
+            <strong>The Latency & Bleed Compromise:</strong><br>
+            To solve this, J-looper uses a specific cycle. When you hit record, it waits one full cycle to sync up. Then, the backing track drops out while it records you. It’s like a spotlight breakdown moment where the band stops and you play alone, keeping perfect time on your own. Then, the rest of the band rejoins you at the beginning of the next cycle. To stay on beat, rely on your internal rhythm and the visual metronome—the white node traveling across the grid.
         </p>
         <p class="modal-text">
-            It’s a trade-off that not only makes wireless looping possible, but actively develops your internal timing skills.
+            <strong>The "Cheat Code":</strong><br>
+            J-looper is a free JavaScript webpage, not a full-fledged App Store program. It works by briefly fooling your smartphone into thinking you're on a speakerphone call while you're in the recording window. That’s why you’ll notice a slightly "lo-fi" quality while recording. But when you hit "DONE" and return to the main screen, it releases the microphone and switches back to higher-quality audio.
         </p>
-        <p class="modal-text" style="font-size: 11px; color: #666; margin-top: 10px;">
-            <em>Note: Like a classic analog stompbox, J-looper lives in the moment. Your audio loops are not saved permanently when you refresh the page. Have fun and don't take it too seriously!</em>
-        </p>
-        <button class="done-btn" style="margin-top: 10px;" onclick="document.getElementById('help-modal').style.display='none'">GOT IT</button>
+        <div style="background: var(--panel-color); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <p class="modal-text" style="font-size: 11px; color: #555; margin: 0;">
+                <em>Note: J-looper lives in the moment. Your loops are not saved permanently when you refresh the page. Think of it as a fun practice tool for when you have a quiet place to lay down a chord progression and solo over it, or to build up a beatbox loop. It isn't intended to be professional-grade—it's just a fun, easy-access looper.</em>
+            </p>
+        </div>
+        <button class="done-btn" style="margin-top: 15px;" onclick="document.getElementById('help-modal').style.display='none'">GOT IT</button>
     </div>
 </div>
 
@@ -213,7 +215,7 @@
             <span class="settings-label">About</span>
             <div class="modal-text" style="margin-bottom: 0;">
                 Created by Jeremiah Keller.<br>
-                Version: 3.31<br>
+                Version: 3.32<br>
                 <em>Audio engine optimized for mobile Safari conference-call routing.</em>
             </div>
         </div>
