@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.45</title>
+    <title>J-looper v3.46</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -56,10 +56,11 @@
         .creator-text { font-size: 11px; font-weight: 400; color: #57606a; letter-spacing: 0.2px; padding-left: 2px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
-        .header-icons { display: flex; gap: 4px; align-items: center;}
-        .icon-text-btn { font-size: 10px; font-weight: 800; padding: 6px 8px; color: var(--gh-purple); border-color: var(--border-color); letter-spacing: 0.5px;}
-        .icon-btn { font-size: 14px; font-weight: 800; padding: 4px 8px; color: var(--gh-purple); border-color: var(--border-color); }
-        .support-btn { text-decoration: none; font-size: 9px; font-weight: 800; padding: 4px 6px; }
+        .header-icons { display: flex; align-items: center;}
+        
+        .support-link { text-decoration: none; font-size: 10px; font-weight: 900; padding: 2px 4px; }
+        .sleek-text-btn { background: transparent; border: none; font-size: 10px; font-weight: 800; color: var(--gh-purple); cursor: pointer; padding: 4px; letter-spacing: 0.5px;}
+        .sleek-icon-btn { background: transparent; border: none; font-size: 22px; color: var(--gh-purple); cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center;}
 
         .reset-session-btn { font-size: 10px; font-weight: 800; padding: 6px 8px; color: #9e1c23; border: 1px solid #ff7b93; background: #ffe0e6; border-radius: 6px; cursor: pointer; letter-spacing: 0.5px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);}
         .reset-session-btn:active { background: #ffcadd; transform: translateY(1px); box-shadow: none; }
@@ -177,20 +178,20 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.45</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.46</span>
             </div>
-            <div class="creator-text">Created by Jeremiah Keller</div>
+            <div class="creator-text">By Jeremiah Keller</div>
         </div>
         
         <div class="header-right">
-            <div class="header-icons" style="margin-bottom: 2px;">
-                <a href="#" class="bubble-btn support-btn" style="color:#FF5E5B; border-color:#FF5E5B; background: #fff0f2;">☕ KO-FI</a>
-                <a href="#" class="bubble-btn support-btn" style="color:#FF813F; border-color:#FF813F; background: #fff5f0;">☕ BUY ME A COFFEE</a>
+            <div class="header-icons" style="margin-bottom: 4px; gap: 8px;">
+                <a href="#" class="support-link" style="color:#FF5E5B;">☕ KO-FI</a>
+                <a href="#" class="support-link" style="color:#FF813F;">☕ BUY ME A COFFEE</a>
             </div>
-            <div class="header-icons">
-                <button class="reset-session-btn" onclick="resetSession()">RESET</button>
-                <button class="bubble-btn icon-text-btn" onclick="document.getElementById('help-modal').style.display='flex'">HELP / ABOUT</button>
-                <button class="bubble-btn icon-btn" onclick="document.getElementById('settings-modal').style.display='flex'">⚙</button>
+            <div class="header-icons" style="gap: 12px;">
+                <button class="reset-session-btn" onclick="resetSession()" style="margin-right: 4px;">RESET</button>
+                <button class="sleek-text-btn" onclick="document.getElementById('help-modal').style.display='flex'">HELP / ABOUT</button>
+                <button class="sleek-icon-btn" onclick="document.getElementById('settings-modal').style.display='flex'">⚙</button>
             </div>
         </div>
     </header>
@@ -266,8 +267,8 @@
                     <div style="font-size: 11px; font-weight: bold; color: var(--bt-blue); user-select: all;">jk.360.workspace@gmail.com</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <a href="#" class="bubble-btn support-btn" style="color:#FF5E5B; border-color:#FF5E5B; background: #fff0f2;">☕ KO-FI</a>
-                    <a href="#" class="bubble-btn support-btn" style="color:#FF813F; border-color:#FF813F; background: #fff5f0;">☕ BUY ME A COFFEE</a>
+                    <a href="#" class="support-link" style="color:#FF5E5B;">☕ KO-FI</a>
+                    <a href="#" class="support-link" style="color:#FF813F;">☕ BUY ME A COFFEE</a>
                 </div>
             </div>
 
@@ -1121,7 +1122,6 @@
         modalTrackName.innerText = "EMPTY";
         modalTrackName.classList.add('empty-track');
         
-        // INSTANTLY KILL CURRENT PLAYING SAMPLE
         if(tracks[activeTrackIdx].lastEnvelope) {
             tracks[activeTrackIdx].lastEnvelope.gain.setTargetAtTime(0, audioCtx.currentTime, 0.015);
         }
@@ -1278,7 +1278,6 @@
         }
     }
 
-    // --- SHARED CALIBRATION LOGIC ---
     let isCalibrating = false;
 
     function startCalibrationFlow() {
@@ -1389,10 +1388,11 @@
             resultText.innerHTML = "TEST FAILED.<br><span style='font-size:12px; font-weight:normal;'>Did not hear the click.</span>";
             successStr = "Last Test: FAILED";
         } else {
+            let actualNudge = latencyResult * 2;
             resultText.style.color = "var(--gh-green)";
-            resultText.innerHTML = `SUCCESS!<br>Latency Detected: ${latencyResult}ms`;
+            resultText.innerHTML = `SUCCESS!<br><span style="font-size:11px; font-weight:bold;">Base: ${latencyResult}ms | Applied: ${actualNudge}ms</span>`;
             
-            let newNudge = -latencyResult;
+            let newNudge = -actualNudge;
             document.getElementById('global-nudge-override').value = newNudge;
             appSettings.globalNudge = newNudge;
             appSettings.isInitialized = true; 
@@ -1431,6 +1431,16 @@
         document.getElementById(`init-${prefix}-btn`).style.display = 'block';
         isCalibrating = false;
     }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            if (isPlaying) { forceStopEngine(); }
+        } else {
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+    });
 
     loadSettings();
     renderSequencer();
