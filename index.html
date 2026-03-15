@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.40</title>
+    <title>J-looper v3.41</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -50,12 +50,14 @@
         }
 
         header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; }
-        .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+        .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1; }
         #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px;}
         .title-box { background: var(--gh-purple); color: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #6b3ec2; box-shadow: inset 0 1px 2px rgba(255,255,255,0.2); letter-spacing: 0.5px; }
         .creator-text { font-size: 11px; font-weight: 400; color: #57606a; letter-spacing: 0.2px; padding-left: 2px; margin-top: 2px;}
 
-        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .header-center { display: flex; justify-content: center; align-items: flex-start; flex: 1; padding-top: 4px; }
+        
+        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: 1; }
         .header-icons { display: flex; gap: 6px; }
         .icon-text-btn { font-size: 10px; font-weight: 800; padding: 6px 10px; color: var(--gh-purple); border-color: var(--border-color); letter-spacing: 0.5px;}
         .support-btn { text-decoration: none; font-size: 9px; font-weight: 800; padding: 4px 6px; }
@@ -84,6 +86,7 @@
         
         input[type=range] { width: 100%; height: 20px; margin:0; accent-color: var(--gh-purple); }
         input[type=range].thick-blue-slider { height: 24px; accent-color: var(--bt-blue); }
+        input[type=range].orange-slider { accent-color: var(--mic-orange); }
 
         .track-lane { background: var(--panel-color); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid var(--border-color); }
         .track-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 4px; }
@@ -171,10 +174,15 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.40</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.41</span>
             </div>
             <div class="creator-text">Created by Jeremiah Keller</div>
         </div>
+        
+        <div class="header-center">
+            <button class="action-btn" onclick="resetSession()" style="padding: 6px 10px; color: var(--rec-red); border-color: #fca5a5; background: #fff0f2; box-shadow: none; font-size: 9px; margin-top: 2px;">RESET<br>SESSION</button>
+        </div>
+
         <div class="header-right">
             <div class="header-icons" style="margin-bottom: 2px;">
                 <a href="#" class="bubble-btn support-btn" style="color:#FF5E5B; border-color:#FF5E5B; background: #fff0f2;">☕ KO-FI</a>
@@ -319,7 +327,7 @@
             <div class="settings-section">
                 <span class="settings-label">System Reset</span>
                 <p class="modal-text" style="font-size: 11px; margin-bottom: 10px;">
-                    Reset all volume sliders, latency nudges, and memory, returning J-looper to its default state.
+                    Reset all volume sliders, latency nudges, and memory, returning J-looper to its absolute factory defaults. This erases the calibration memory.
                 </p>
                 <button class="action-btn" style="width: 100%;" onclick="factoryReset()">RESTORE FACTORY DEFAULTS</button>
             </div>
@@ -352,14 +360,14 @@
                         <span>Booth Master Vol (This Track Only)</span>
                         <span id="modal-master-vol-val">150%</span>
                     </span>
-                    <input type="range" id="modal-master-vol" min="0" max="3" value="1.5" step="0.05">
+                    <input type="range" id="modal-master-vol" class="thick-blue-slider" min="0" max="3" value="1.5" step="0.05">
                 </div>
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
                         <span>Booth Sample Vol (This Track Only)</span>
                         <span id="modal-vol-val">80%</span>
                     </span>
-                    <input type="range" id="modal-vol" min="0" max="300" value="80" step="5">
+                    <input type="range" id="modal-vol" class="orange-slider" min="0" max="300" value="80" step="5">
                 </div>
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
@@ -469,18 +477,65 @@
         if (!appSettings.isInitialized) {
             btn.innerText = "INITIALIZE";
             btn.classList.add('init-mode');
+            btn.classList.remove('stopped');
         } else {
-            if(!isPlaying) {
+            btn.classList.remove('init-mode');
+            if (!isPlaying) {
                 btn.innerText = "START";
-                btn.classList.remove('init-mode');
+                btn.classList.remove('stopped');
             }
         }
     }
 
     function factoryReset() {
-        if (confirm("Are you sure you want to reset J-looper?\n\nThis will clear all saved volume settings, latency nudges, and memory, returning it to factory defaults.")) {
+        if (confirm("Are you sure you want to reset J-looper?\n\nThis will clear all saved volume settings, latency nudges, and memory, returning it to absolute factory defaults.")) {
             localStorage.removeItem('jLooperSettings');
             location.reload(); 
+        }
+    }
+
+    function resetSession() {
+        if(confirm("Start a fresh session?\n\nThis will clear all grids, volumes, and recorded loops, but will preserve your calibrated latency setting.")) {
+            forceStopEngine();
+            
+            let savedNudge = appSettings.globalNudge;
+            let initialized = appSettings.isInitialized;
+            
+            appSettings = {
+                isInitialized: initialized,
+                tempo: 120,
+                masterVol: 0.8,
+                globalNudge: savedNudge,
+                trackVols: Array(8).fill(80),
+                trackNudges: Array(8).fill(savedNudge),
+                trackModalVols: Array(8).fill(80),
+                trackModalMasterVols: Array(8).fill(1.5)
+            };
+
+            const defaultNames = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'];
+            const defaultSteps = [ [0, 4], [8], [0, 2, 4, 6, 8, 10, 12, 14], [], [], [], [], [] ];
+
+            tracks.forEach((t, i) => {
+                t.name = defaultNames[i];
+                let s = new Array(64).fill(false);
+                defaultSteps[i].forEach(idx => s[idx] = true);
+                t.steps = s;
+                
+                t.bars = 1; t.choke = true; t.mute = false; t.solo = false;
+                t.rawArrayBuffer = null;
+                t.volume = 80; t.nudge = savedNudge; t.modalVol = 80; t.modalMasterVol = 1.5;
+                t.buffer = null; 
+            });
+
+            document.getElementById('tempo').value = 120;
+            document.getElementById('master-vol').value = 0.8;
+            updateTempo(120);
+            updateMasterVol(0.8);
+            
+            saveSettings();
+            renderSequencer();
+            
+            if(audioCtx) initAudioEngine(false);
         }
     }
 
@@ -500,7 +555,6 @@
             saveSettings();
             renderInitState();
             
-            // Hide override and show normal view again
             document.getElementById('nudge-override-view').style.display = 'none';
             document.getElementById('nudge-display-view').style.display = 'flex';
         } else {
@@ -660,7 +714,7 @@
                     <span>Volume (Overdrive up to 300%)</span>
                     <span id="lane-vol-val-${tIdx}" style="color:var(--text-color);">${track.volume}%</span>
                 </span>
-                <input type="range" min="0" max="300" value="${track.volume}" step="5" oninput="updateLaneVol(${tIdx}, this.value)">
+                <input type="range" class="orange-slider" min="0" max="300" value="${track.volume}" step="5" oninput="updateLaneVol(${tIdx}, this.value)">
             </div>
             <div class="dropdown-panel" id="nudge-panel-${tIdx}">
                 <span class="slider-label" style="display:flex; justify-content:space-between;">
@@ -792,14 +846,13 @@
     }
 
     function syncPlayButtons() {
+        renderInitState(); 
         const playBtn = document.getElementById('play-btn');
         const modalPlayBtn = document.getElementById('modal-play-btn');
         if (isPlaying) {
             playBtn.innerText = "STOP"; playBtn.classList.add('stopped');
-            playBtn.classList.remove('init-mode'); 
             if (modalPlayBtn) { modalPlayBtn.innerText = "STOP"; modalPlayBtn.classList.add('stopped'); }
         } else {
-            renderInitState(); 
             if (modalPlayBtn) { modalPlayBtn.innerText = "START"; modalPlayBtn.classList.remove('stopped'); }
         }
     }
