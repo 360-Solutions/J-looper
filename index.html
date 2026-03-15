@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.34</title>
+    <title>J-looper v3.35</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -29,13 +29,25 @@
             background-color: var(--bg-color); color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
             margin: 0 auto; 
-            padding: max(10px, env(safe-area-inset-top)) 10px 10px 10px;
+            padding: 0 10px 10px 10px; /* Top padding moved to sticky header */
             user-select: none; -webkit-tap-highlight-color: transparent;
             touch-action: manipulation; 
             max-width: 480px; 
             position: relative;
             box-shadow: 0 0 20px rgba(0,0,0,0.03);
             min-height: 100vh;
+        }
+
+        /* Sticky Header Zone */
+        .sticky-zone {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--bg-color);
+            padding-top: max(10px, env(safe-area-inset-top));
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 12px;
         }
 
         header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; }
@@ -51,7 +63,7 @@
 
         .transport {
             background: var(--panel-color); padding: 10px; border-radius: 10px;
-            display: flex; gap: 10px; margin-bottom: 12px;
+            display: flex; gap: 10px; 
             border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             align-items: stretch;
         }
@@ -106,17 +118,11 @@
         .node.playing, .modal-node.playing { background: var(--node-led) !important; box-shadow: 0 0 6px rgba(255,255,255,0.9), inset 0 1px 1px rgba(0,0,0,0.1) !important; border-color: #fff !important; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
-        
-        /* Updated Modal CSS: Separates scrolling body from fixed footer */
         .modal-content { background: var(--bg-color); width: 90%; max-width: 450px; border-radius: 12px; border: 3px solid var(--border-color); display: flex; flex-direction: column; max-height: 90%; overflow: hidden; }
         .modal-scroll-area { padding: 15px; overflow-y: auto; flex-grow: 1; -webkit-overflow-scrolling: touch; }
-        
-        /* Custom Scrollbar for visibility */
         .modal-scroll-area::-webkit-scrollbar { width: 8px; }
         .modal-scroll-area::-webkit-scrollbar-track { background: var(--panel-color); border-radius: 4px; }
         .modal-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; border: 1px solid var(--panel-color); }
-        
-        /* Fixed bottom bar area for the DONE button */
         .modal-footer { padding: 10px 15px calc(10px + env(safe-area-inset-bottom)); background: var(--bg-color); border-top: 1px solid var(--border-color); }
 
         .rec-visualizer-zone { background: var(--panel-color); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); position: relative; }
@@ -134,8 +140,6 @@
         
         .action-btn { background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color); font-weight: 900; border-radius: 8px; cursor: pointer; padding: 15px 10px; font-size: 12px; min-width: 80px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
         .action-btn:active { background: #f3f4f6; transform: translateY(1px); box-shadow: none; }
-        
-        /* Updated Delete Button Styling */
         #modal-clear-btn { color: var(--rec-red); border-color: #fca5a5; background: #fff0f2; }
         #modal-clear-btn:active { background: #ffe5e8; }
 
@@ -155,44 +159,49 @@
         .settings-section { background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
         .settings-label { font-size: 11px; font-weight: 800; color: var(--text-color); display: block; margin-bottom: 6px; text-transform: uppercase;}
         .nudge-input { width: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; text-align: center; }
+
+        .calib-flow { display: none; background: #fff0f2; border: 1px solid #fca5a5; padding: 10px; border-radius: 8px; margin-top: 10px; }
+        .calib-step { display: none; }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="header-left">
-        <div id="app-title">
-            <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.34</span>
+<div class="sticky-zone">
+    <header>
+        <div class="header-left">
+            <div id="app-title">
+                <span class="title-box">J-looper</span> 
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.35</span>
+            </div>
         </div>
-    </div>
-    <div class="header-right">
-        <div class="header-icons">
-            <button class="bubble-btn icon-btn" onclick="document.getElementById('help-modal').style.display='flex'">?</button>
-            <button class="bubble-btn icon-btn" onclick="document.getElementById('settings-modal').style.display='flex'">⚙</button>
+        <div class="header-right">
+            <div class="header-icons">
+                <button class="bubble-btn icon-btn" onclick="document.getElementById('help-modal').style.display='flex'">?</button>
+                <button class="bubble-btn icon-btn" onclick="document.getElementById('settings-modal').style.display='flex'">⚙</button>
+            </div>
+            <div class="version-info">Created by Jeremiah Keller</div>
         </div>
-        <div class="version-info">Created by Jeremiah Keller</div>
-    </div>
-</header>
+    </header>
 
-<div class="transport">
-    <button id="play-btn" class="main-play-btn">START</button>
-    
-    <div class="slider-stack">
-        <div class="slider-bubble">
-            <span class="slider-label">
-                <span>MASTER VOLUME</span>
-                <span id="master-vol-val">80%</span>
-            </span>
-            <input type="range" id="master-vol" class="thick-blue-slider" min="0" max="1" step="0.05" value="0.8" oninput="updateMasterVol(this.value)">
-        </div>
+    <div class="transport">
+        <button id="play-btn" class="main-play-btn">START</button>
+        
+        <div class="slider-stack">
+            <div class="slider-bubble">
+                <span class="slider-label">
+                    <span>MASTER VOLUME</span>
+                    <span id="master-vol-val">80%</span>
+                </span>
+                <input type="range" id="master-vol" class="thick-blue-slider" min="0" max="1" step="0.05" value="0.8" oninput="updateMasterVol(this.value)">
+            </div>
 
-        <div class="slider-bubble" id="master-tempo-bubble">
-            <span class="slider-label">
-                <span>MASTER TEMPO</span>
-                <span id="tempo-val">120 BPM</span>
-            </span>
-            <input type="range" id="tempo" min="40" max="220" value="120" oninput="updateTempo(this.value)">
+            <div class="slider-bubble" id="master-tempo-bubble">
+                <span class="slider-label">
+                    <span>MASTER TEMPO</span>
+                    <span id="tempo-val">120 BPM</span>
+                </span>
+                <input type="range" id="tempo" min="40" max="220" value="120" oninput="updateTempo(this.value)">
+            </div>
         </div>
     </div>
 </div>
@@ -235,7 +244,7 @@
                 <span class="settings-label">About</span>
                 <div class="modal-text" style="margin-bottom: 0;">
                     Created by Jeremiah Keller.<br>
-                    Version: 3.34<br>
+                    Version: 3.35<br>
                     <em>Audio engine optimized for mobile Safari conference-call routing.</em>
                 </div>
             </div>
@@ -243,9 +252,29 @@
             <div class="settings-section">
                 <span class="settings-label" style="color: var(--rec-red);">System Latency Calibration</span>
                 <p class="modal-text" style="font-size: 11px; margin-bottom: 10px;">
-                    Different devices process audio at different speeds. If your recordings sound out of sync (especially on Android), run this loopback test. It will emit a click, listen for it, and automatically adjust your timing.
+                    Different devices process audio at different speeds. If your recordings sound out of sync, run this loopback test. It will emit a click, listen for it, and adjust your timing automatically.
                 </p>
-                <button class="action-btn" id="run-calibration-btn" style="width: 100%; border-color: var(--mic-orange); color: var(--mic-orange); margin-bottom: 10px;">RUN LOOPBACK TEST</button>
+                <button class="action-btn" id="init-calib-btn" style="width: 100%; border-color: var(--mic-orange); color: var(--mic-orange); margin-bottom: 10px;" onclick="startCalibrationFlow()">RUN LOOPBACK TEST</button>
+                
+                <div id="calib-flow-container" class="calib-flow">
+                    <div id="calib-step-1" class="calib-step">
+                        <span class="settings-label" style="color: var(--rec-red);">Step 1: Init Microphone</span>
+                        <p class="modal-text" style="font-size: 11px;">J-looper needs to enter Conference Call mode to test the latency. Press below and accept any iOS warnings.</p>
+                        <button class="action-btn" style="width:100%; background: var(--gh-purple); color: white; border: none;" onclick="initCalibrationMic()">INITIALIZE MIC</button>
+                    </div>
+                    <div id="calib-step-2" class="calib-step">
+                        <span class="settings-label" style="color: var(--rec-red);">Step 2: Prepare Audio</span>
+                        <p class="modal-text" style="font-size: 11px;">1. Turn phone volume to at least 80%.<br>2. Disconnect Bluetooth headphones.<br>3. Keep quiet when you press start.</p>
+                        <button class="action-btn" style="width:100%; background: var(--gh-green); color: white; border: none;" onclick="executeCalibrationTest()">START TEST</button>
+                    </div>
+                    <div id="calib-step-3" class="calib-step">
+                        <p class="modal-text" style="text-align:center; font-weight:bold;">Listening for click...</p>
+                    </div>
+                    <div id="calib-step-4" class="calib-step">
+                        <p class="modal-text" id="calib-result-text" style="text-align:center; font-weight:bold;"></p>
+                        <button class="action-btn" style="width:100%;" onclick="closeCalibrationFlow()">DONE</button>
+                    </div>
+                </div>
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
                     <span class="settings-label" style="margin: 0;">Global Nudge Override:</span>
@@ -255,7 +284,6 @@
                     </div>
                 </div>
                 <button class="bubble-btn" style="width: 100%; margin-top: 8px; border-color: var(--gh-purple); color: var(--gh-purple);" onclick="applyGlobalNudgeToAll()">APPLY NUDGE TO ALL TRACKS</button>
-                
                 <p class="modal-text" style="font-size: 10px; margin-top: 6px; margin-bottom:0; color: #666;">
                     Use this to instantly overwrite and lock in all track adjustments to your favorite latency compensation instead of testing.
                 </p>
@@ -286,14 +314,14 @@
             <div style="margin-bottom: 15px; background: var(--panel-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display:flex; flex-direction:column; gap:12px;">
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
-                        <span>Studio Master Vol (Up to 300%)</span>
+                        <span>Booth Master Vol (This Track Only)</span>
                         <span id="modal-master-vol-val">150%</span>
                     </span>
                     <input type="range" id="modal-master-vol" min="0" max="3" value="1.5" step="0.05">
                 </div>
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
-                        <span>Sample Volume</span>
+                        <span>Booth Sample Vol (This Track Only)</span>
                         <span id="modal-vol-val">80%</span>
                     </span>
                     <input type="range" id="modal-vol" min="0" max="300" value="80" step="5">
@@ -327,21 +355,22 @@
     let appSettings = {
         tempo: 120,
         masterVol: 0.8,
-        modalMasterVol: 1.5,
         globalNudge: -120,
         trackVols: Array(8).fill(80),
-        trackNudges: Array(8).fill(-120)
+        trackNudges: Array(8).fill(-120),
+        trackModalVols: Array(8).fill(80),
+        trackModalMasterVols: Array(8).fill(1.5)
     };
 
     const tracks = [
-        { name: 'ds_kick1.wav', steps: [0, 4], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'ds_snare1.wav', steps: [8], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null }
+        { name: 'ds_kick1.wav', steps: [0, 4], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
+        { name: 'ds_snare1.wav', steps: [8], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
+        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 }
     ];
 
     const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
@@ -354,7 +383,6 @@
     let isPlaying = false, currentStep = 0, nextStepTime = 0, activeTrackIdx = null;
     let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false, isSecretlyRecording = false;
     let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
-    
     let justRecordedNewSample = false; 
 
     let mediaRecorder = null, audioChunks = [];
@@ -377,20 +405,19 @@
             try { appSettings = JSON.parse(saved); } catch(e) {}
         }
         
-        document.getElementById('tempo').value = appSettings.tempo;
-        document.getElementById('tempo-val').innerText = appSettings.tempo + ' BPM';
+        document.getElementById('tempo').value = appSettings.tempo || 120;
+        document.getElementById('tempo-val').innerText = (appSettings.tempo || 120) + ' BPM';
         
-        document.getElementById('master-vol').value = appSettings.masterVol;
-        document.getElementById('master-vol-val').innerText = Math.round(appSettings.masterVol * 100) + '%';
+        document.getElementById('master-vol').value = appSettings.masterVol !== undefined ? appSettings.masterVol : 0.8;
+        document.getElementById('master-vol-val').innerText = Math.round((appSettings.masterVol !== undefined ? appSettings.masterVol : 0.8) * 100) + '%';
         
-        document.getElementById('modal-master-vol').value = appSettings.modalMasterVol;
-        document.getElementById('modal-master-vol-val').innerText = Math.round(appSettings.modalMasterVol * 100) + '%';
-        
-        document.getElementById('global-nudge-override').value = appSettings.globalNudge;
+        document.getElementById('global-nudge-override').value = appSettings.globalNudge || -120;
 
         tracks.forEach((t, i) => {
-            t.volume = appSettings.trackVols[i] !== undefined ? appSettings.trackVols[i] : 80;
-            t.nudge = appSettings.trackNudges[i] !== undefined ? appSettings.trackNudges[i] : -120;
+            t.volume = appSettings.trackVols && appSettings.trackVols[i] !== undefined ? appSettings.trackVols[i] : 80;
+            t.nudge = appSettings.trackNudges && appSettings.trackNudges[i] !== undefined ? appSettings.trackNudges[i] : -120;
+            t.modalVol = appSettings.trackModalVols && appSettings.trackModalVols[i] !== undefined ? appSettings.trackModalVols[i] : 80;
+            t.modalMasterVol = appSettings.trackModalMasterVols && appSettings.trackModalMasterVols[i] !== undefined ? appSettings.trackModalMasterVols[i] : 1.5;
         });
     }
 
@@ -405,9 +432,7 @@
         
         if (confirm("Are you sure you want to change the Global Nudge?\n\nThis will instantly overwrite all individual track nudge adjustments in your current session.")) {
             appSettings.globalNudge = parsed;
-            tracks.forEach((t, i) => {
-                updateLaneNudge(i, parsed);
-            });
+            tracks.forEach((t, i) => { updateLaneNudge(i, parsed); });
             saveSettings();
         } else {
             document.getElementById('global-nudge-override').value = appSettings.globalNudge;
@@ -429,13 +454,27 @@
         saveSettings();
     }
 
+    // Modal Specific Vol
     document.getElementById('modal-master-vol').oninput = function() {
-        appSettings.modalMasterVol = parseFloat(this.value);
-        document.getElementById('modal-master-vol-val').innerText = Math.round(this.value * 100) + '%';
-        if (masterGain && activeTrackIdx !== null) {
-            masterGain.gain.setTargetAtTime(this.value, audioCtx.currentTime, 0.015);
+        if(activeTrackIdx !== null) {
+            tracks[activeTrackIdx].modalMasterVol = parseFloat(this.value);
+            appSettings.trackModalMasterVols[activeTrackIdx] = tracks[activeTrackIdx].modalMasterVol;
+            document.getElementById('modal-master-vol-val').innerText = Math.round(this.value * 100) + '%';
+            if (masterGain) masterGain.gain.setTargetAtTime(this.value, audioCtx.currentTime, 0.015);
+            saveSettings();
         }
-        saveSettings();
+    };
+
+    document.getElementById('modal-vol').oninput = function() {
+        if(activeTrackIdx !== null) {
+            tracks[activeTrackIdx].modalVol = parseInt(this.value);
+            appSettings.trackModalVols[activeTrackIdx] = tracks[activeTrackIdx].modalVol;
+            document.getElementById('modal-vol-val').innerText = this.value + '%';
+            if (trackGains[activeTrackIdx]) {
+                trackGains[activeTrackIdx].gain.setTargetAtTime(this.value / 100, audioCtx.currentTime, 0.015);
+            }
+            saveSettings();
+        }
     };
 
     function updateLaneNudge(tIdx, val) {
@@ -460,24 +499,12 @@
         tracks[tIdx].volume = parseInt(val);
         appSettings.trackVols[tIdx] = tracks[tIdx].volume;
         document.getElementById(`lane-vol-val-${tIdx}`).innerText = val + '%';
-        if (activeTrackIdx === tIdx) {
-            document.getElementById('modal-vol').value = val;
-            document.getElementById('modal-vol-val').innerText = val + '%';
-        }
-        updateTrackGains();
+        if(activeTrackIdx === null) updateTrackGains(); // Only update immediately if not in modal
         saveSettings();
     }
 
     document.getElementById('modal-nudge').oninput = function() {
-        if(activeTrackIdx !== null) {
-            updateLaneNudge(activeTrackIdx, this.value);
-        }
-    };
-
-    document.getElementById('modal-vol').oninput = function() {
-        if(activeTrackIdx !== null) {
-            updateLaneVol(activeTrackIdx, this.value);
-        }
+        if(activeTrackIdx !== null) updateLaneNudge(activeTrackIdx, this.value);
     };
 
     function updateTrackGains() {
@@ -487,10 +514,15 @@
         tracks.forEach((t, i) => {
             if (trackGains[i]) {
                 let volTarget = 0;
+                
+                // If in modal, the active track uses modalVol, all other backing tracks use regular volume
+                let baseVol = (activeTrackIdx === i) ? t.modalVol : t.volume; 
+                if (activeTrackIdx === null) baseVol = t.volume; // If not in modal, everyone uses regular volume
+                
                 if (anySolo) {
-                    if (t.solo) volTarget = t.volume / 100;
+                    if (t.solo) volTarget = baseVol / 100;
                 } else {
-                    if (!t.mute) volTarget = t.volume / 100;
+                    if (!t.mute) volTarget = baseVol / 100;
                 }
                 trackGains[i].gain.setTargetAtTime(volTarget, audioCtx.currentTime, 0.015);
             }
@@ -501,21 +533,15 @@
         if(activeTrackIdx === null) return;
         const mBtn = document.getElementById('modal-mute-btn');
         const sBtn = document.getElementById('modal-solo-btn');
-        
-        if(tracks[activeTrackIdx].mute) mBtn.classList.add('active-mute');
-        else mBtn.classList.remove('active-mute');
-        
-        if(tracks[activeTrackIdx].solo) sBtn.classList.add('active-solo');
-        else sBtn.classList.remove('active-solo');
+        if(tracks[activeTrackIdx].mute) mBtn.classList.add('active-mute'); else mBtn.classList.remove('active-mute');
+        if(tracks[activeTrackIdx].solo) sBtn.classList.add('active-solo'); else sBtn.classList.remove('active-solo');
     }
 
     document.getElementById('modal-mute-btn').onclick = () => {
         if(activeTrackIdx !== null) {
             tracks[activeTrackIdx].mute = !tracks[activeTrackIdx].mute;
             if (tracks[activeTrackIdx].mute) tracks[activeTrackIdx].solo = false; 
-            updateModalMuteSoloUI();
-            updateTrackGains();
-            renderSequencer();
+            updateModalMuteSoloUI(); updateTrackGains(); renderSequencer();
         }
     };
 
@@ -523,9 +549,7 @@
         if(activeTrackIdx !== null) {
             tracks[activeTrackIdx].solo = !tracks[activeTrackIdx].solo;
             if (tracks[activeTrackIdx].solo) tracks[activeTrackIdx].mute = false; 
-            updateModalMuteSoloUI();
-            updateTrackGains();
-            renderSequencer();
+            updateModalMuteSoloUI(); updateTrackGains(); renderSequencer();
         }
     };
 
@@ -616,7 +640,7 @@
         audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
         
         masterGain = audioCtx.createGain();
-        let targetVol = needsMic ? appSettings.modalMasterVol : appSettings.masterVol;
+        let targetVol = needsMic ? tracks[activeTrackIdx !== null ? activeTrackIdx : 0].modalMasterVol : appSettings.masterVol;
         masterGain.gain.value = targetVol;
         masterGain.connect(audioCtx.destination);
 
@@ -659,22 +683,22 @@
                 mediaRecorder.onstop = async () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                     const arrayBuffer = await audioBlob.arrayBuffer();
-                    tracks[activeTrackIdx].rawArrayBuffer = arrayBuffer.slice(0); 
-                    
-                    audioCtx.decodeAudioData(arrayBuffer, (decoded) => {
-                        userSampleCount++;
-                        tracks[activeTrackIdx].buffer = normalizeBuffer(decoded);
-                        tracks[activeTrackIdx].name = `USER_${userSampleCount}`;
-                        
-                        const modalTrackName = document.getElementById('modal-track-name');
-                        modalTrackName.innerText = tracks[activeTrackIdx].name.toUpperCase();
-                        modalTrackName.classList.remove('empty-track');
-
-                        justRecordedNewSample = true; 
-                        tracks[activeTrackIdx].steps[0] = true;
-
-                        renderSequencer();
-                    });
+                    if (activeTrackIdx !== null) {
+                        tracks[activeTrackIdx].rawArrayBuffer = arrayBuffer.slice(0); 
+                        audioCtx.decodeAudioData(arrayBuffer, (decoded) => {
+                            userSampleCount++;
+                            tracks[activeTrackIdx].buffer = normalizeBuffer(decoded);
+                            tracks[activeTrackIdx].name = `USER_${userSampleCount}`;
+                            const modalTrackName = document.getElementById('modal-track-name');
+                            if(modalTrackName) {
+                                modalTrackName.innerText = tracks[activeTrackIdx].name.toUpperCase();
+                                modalTrackName.classList.remove('empty-track');
+                            }
+                            justRecordedNewSample = true; 
+                            tracks[activeTrackIdx].steps[0] = true;
+                            renderSequencer();
+                        });
+                    }
                 };
 
                 micAnalyser = audioCtx.createAnalyser();
@@ -704,21 +728,12 @@
     function syncPlayButtons() {
         const playBtn = document.getElementById('play-btn');
         const modalPlayBtn = document.getElementById('modal-play-btn');
-        
         if (isPlaying) {
-            playBtn.innerText = "STOP";
-            playBtn.classList.add('stopped');
-            if (modalPlayBtn) {
-                modalPlayBtn.innerText = "STOP";
-                modalPlayBtn.classList.add('stopped');
-            }
+            playBtn.innerText = "STOP"; playBtn.classList.add('stopped');
+            if (modalPlayBtn) { modalPlayBtn.innerText = "STOP"; modalPlayBtn.classList.add('stopped'); }
         } else {
-            playBtn.innerText = "START";
-            playBtn.classList.remove('stopped');
-            if (modalPlayBtn) {
-                modalPlayBtn.innerText = "START";
-                modalPlayBtn.classList.remove('stopped');
-            }
+            playBtn.innerText = "START"; playBtn.classList.remove('stopped');
+            if (modalPlayBtn) { modalPlayBtn.innerText = "START"; modalPlayBtn.classList.remove('stopped'); }
         }
     }
 
@@ -726,7 +741,6 @@
         if (isPlaying) {
             isPlaying = false;
             document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing'));
-            
             if(masterGain && audioCtx) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
                 masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.015);
@@ -753,10 +767,8 @@
                     cycleCounter++;
                     if (cycleCounter >= targetBarLength && laneRelative === targetBarLength - 1) {
                         isWaitingFullCycle = false; isRecordingNow = true;
-                        
                         masterGain.gain.setTargetAtTime(0, nextStepTime, 0.015);
                         recordCounter = 0; audioChunks = []; 
-                        
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
                         setTimeout(() => { if(isPlaying && mediaRecorder) mediaRecorder.start(); updateRecBtnUI(); }, delay); 
                     }
@@ -773,8 +785,7 @@
                     recordCounter++;
                     if (laneRelative === 2) {
                         isSecretlyRecording = false;
-                        
-                        masterGain.gain.setTargetAtTime(appSettings.modalMasterVol, nextStepTime, 0.015);
+                        masterGain.gain.setTargetAtTime(tracks[activeTrackIdx].modalMasterVol, nextStepTime, 0.015);
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
                         setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
                     }
@@ -795,7 +806,6 @@
 
     function playSample(buffer, time, nudgeMs = 0, trackObj = null, tIdx) {
         if (!buffer || !audioCtx || !trackGains[tIdx]) return;
-        
         const source = audioCtx.createBufferSource();
         const envelopeGain = audioCtx.createGain();
         source.buffer = buffer; 
@@ -850,7 +860,7 @@
             }
         }
 
-        if (activeTrackIdx !== null && micAnalyser) {
+        if (activeTrackIdx !== null && micAnalyser && !isCalibrating) {
             const dataArray = new Uint8Array(micAnalyser.frequencyBinCount);
             micAnalyser.getByteFrequencyData(dataArray);
             let max = 0;
@@ -877,7 +887,7 @@
             if (audioCtx.state === 'suspended') { await audioCtx.resume(); }
             if (masterGain) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-                let currentVol = activeTrackIdx !== null ? appSettings.modalMasterVol : appSettings.masterVol;
+                let currentVol = activeTrackIdx !== null ? tracks[activeTrackIdx].modalMasterVol : appSettings.masterVol;
                 masterGain.gain.setTargetAtTime(currentVol, audioCtx.currentTime, 0.015);
             }
             
@@ -948,13 +958,21 @@
         
         document.getElementById('modal-nudge').value = tracks[i].nudge;
         document.getElementById('modal-nudge-val').innerText = tracks[i].nudge + 'ms';
-        document.getElementById('modal-vol').value = tracks[i].volume;
-        document.getElementById('modal-vol-val').innerText = tracks[i].volume + '%';
+        
+        // Load the private booth volumes for this specific track!
+        document.getElementById('modal-vol').value = tracks[i].modalVol;
+        document.getElementById('modal-vol-val').innerText = tracks[i].modalVol + '%';
+        document.getElementById('modal-master-vol').value = tracks[i].modalMasterVol;
+        document.getElementById('modal-master-vol-val').innerText = Math.round(tracks[i].modalMasterVol * 100) + '%';
         
         const modalTrackName = document.getElementById('modal-track-name');
         modalTrackName.innerText = tracks[i].name.toUpperCase();
         if (tracks[i].name === 'EMPTY') modalTrackName.classList.add('empty-track');
         else modalTrackName.classList.remove('empty-track');
+        
+        // Update bar button text accurately when opening
+        const modalBtn = document.getElementById('modal-bar-cycle');
+        if(modalBtn) modalBtn.innerText = tracks[i].bars + (tracks[i].bars > 1 ? ' BARS' : ' BAR');
 
         updateModalMuteSoloUI();
 
@@ -987,13 +1005,12 @@
         if (activeTrackIdx !== null) {
             tracks[activeTrackIdx].mute = false;
             tracks[activeTrackIdx].solo = false;
-            updateTrackGains();
         }
         
         activeTrackIdx = null; 
         document.getElementById('sample-modal').style.display = 'none'; 
+        
         renderSequencer();
-
         await initAudioEngine(false);
 
         if (wasPlaying) {
@@ -1053,7 +1070,124 @@
     function cycleBars(i) { 
         tracks[i].bars = [1, 2, 4][([1, 2, 4].indexOf(tracks[i].bars) + 1) % 3]; 
         renderSequencer(); 
-        if(activeTrackIdx === i) renderModalLane(); 
+        if(activeTrackIdx === i) {
+            renderModalLane(); 
+            // Fix: Update the button text itself so the user sees it change!
+            const modalBtn = document.getElementById('modal-bar-cycle');
+            if(modalBtn) modalBtn.innerText = tracks[i].bars + (tracks[i].bars > 1 ? ' BARS' : ' BAR');
+        }
+    }
+
+    // --- LOOPBACK CALIBRATION LOGIC ---
+    let isCalibrating = false;
+
+    function startCalibrationFlow() {
+        forceStopEngine();
+        document.getElementById('init-calib-btn').style.display = 'none';
+        document.getElementById('calib-flow-container').style.display = 'block';
+        document.getElementById('calib-step-1').style.display = 'block';
+    }
+
+    async function initCalibrationMic() {
+        document.getElementById('calib-step-1').style.display = 'none';
+        isCalibrating = true;
+        await initAudioEngine(true); // Forces iOS Mic Permission Modal
+        document.getElementById('calib-step-2').style.display = 'block';
+    }
+
+    function executeCalibrationTest() {
+        if (!audioCtx || !micAnalyser) return;
+        
+        document.getElementById('calib-step-2').style.display = 'none';
+        document.getElementById('calib-step-3').style.display = 'block';
+
+        // Set master gain up for the test beep
+        masterGain.gain.value = 1.0;
+
+        // Build a short, loud click sound
+        const osc = audioCtx.createOscillator();
+        const env = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = 1000;
+        osc.connect(env);
+        env.connect(masterGain);
+
+        env.gain.setValueAtTime(0, audioCtx.currentTime);
+        env.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.01);
+        env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+
+        // Schedule it slightly in the future
+        const triggerTime = audioCtx.currentTime + 0.2;
+        const triggerPerfTime = performance.now() + 200; 
+        
+        osc.start(triggerTime);
+        osc.stop(triggerTime + 0.1);
+
+        let detected = false;
+        
+        const checkPeak = () => {
+            if (detected) return;
+            const data = new Uint8Array(micAnalyser.fftSize);
+            micAnalyser.getByteTimeDomainData(data);
+            
+            let max = 0;
+            for(let i=0; i<data.length; i++) {
+                let val = Math.abs(data[i] - 128); // Standardize wave
+                if(val > max) max = val;
+            }
+
+            // If we are past the trigger time and detect a loud signal
+            if (performance.now() > triggerPerfTime && max > 30) { 
+                detected = true;
+                let latencyMs = Math.round(performance.now() - triggerPerfTime);
+                finishCalibration(latencyMs);
+                return;
+            }
+
+            // Timeout after 1.5 seconds if nothing is heard
+            if (performance.now() > triggerPerfTime + 1500) {
+                finishCalibration(-1);
+                return;
+            }
+            requestAnimationFrame(checkPeak);
+        };
+        requestAnimationFrame(checkPeak);
+    }
+
+    function finishCalibration(latencyResult) {
+        document.getElementById('calib-step-3').style.display = 'none';
+        document.getElementById('calib-step-4').style.display = 'block';
+        
+        const resultText = document.getElementById('calib-result-text');
+        
+        if (latencyResult === -1) {
+            resultText.style.color = "var(--rec-red)";
+            resultText.innerHTML = "TEST FAILED.<br><span style='font-size:10px; font-weight:normal;'>Did not hear the click. Ensure volume is up and run again.</span>";
+        } else {
+            resultText.style.color = "var(--gh-green)";
+            resultText.innerHTML = `SUCCESS!<br>Latency Detected: ${latencyResult}ms`;
+            
+            // Automatically apply and save the new offset (inverted)
+            let newNudge = -latencyResult;
+            document.getElementById('global-nudge-override').value = newNudge;
+            appSettings.globalNudge = newNudge;
+            tracks.forEach((t, i) => { updateLaneNudge(i, newNudge); });
+            saveSettings();
+        }
+    }
+
+    async function closeCalibrationFlow() {
+        // Reset UI
+        document.getElementById('calib-flow-container').style.display = 'none';
+        document.getElementById('calib-step-4').style.display = 'none';
+        document.getElementById('init-calib-btn').style.display = 'block';
+        isCalibrating = false;
+        
+        // Teardown mic engine and return to high-fidelity mode
+        if (micSource) { micSource.disconnect(); micSource = null; }
+        micAnalyser = null;
+        if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
+        await initAudioEngine(false);
     }
 
     loadSettings();
