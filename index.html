@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.30</title>
+    <title>J-looper v3.31</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -25,7 +25,6 @@
             --node-led: #ffffff;
         }
 
-        /* Desktop Constraint: Centers the app and acts like a phone screen on large monitors */
         body {
             background-color: var(--bg-color); color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
@@ -33,7 +32,7 @@
             padding: max(10px, env(safe-area-inset-top)) 10px 10px 10px;
             user-select: none; -webkit-tap-highlight-color: transparent;
             touch-action: manipulation; 
-            max-width: 480px; /* Locks it to mobile width */
+            max-width: 480px; 
             position: relative;
             box-shadow: 0 0 20px rgba(0,0,0,0.03);
             min-height: 100vh;
@@ -47,8 +46,8 @@
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
         .version-info { font-size: 10px; text-align: right; color: #666; font-weight: 600;}
         
-        /* New Header Icons */
-        .header-icons { display: flex; gap: 6px; }
+        /* Updated Header Icons: Wider gap and right margin */
+        .header-icons { display: flex; gap: 15px; margin-right: 10px; }
         .icon-btn { font-size: 14px; font-weight: 900; padding: 4px 8px; color: var(--gh-purple); border-color: var(--border-color); }
 
         .transport {
@@ -107,7 +106,6 @@
         .node.active { background: var(--node-on); box-shadow: inset 0 1px 2px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.5); }
         .node.playing, .modal-node.playing { background: var(--node-led) !important; box-shadow: 0 0 6px rgba(255,255,255,0.9), inset 0 1px 1px rgba(0,0,0,0.1) !important; border-color: #fff !important; }
 
-        /* Modified Modal CSS to respect desktop width */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
         .modal-content { background: var(--bg-color); width: 90%; max-width: 450px; padding: 15px; border-radius: 12px; border: 3px solid var(--border-color); display: flex; flex-direction: column; max-height: 92%; overflow-y: auto; }
         
@@ -138,7 +136,6 @@
         .modal-node.the-only-one { background: var(--the-one) !important; box-shadow: 0 0 8px var(--the-one); border-color:#fff;}
         .modal-node.the-only-one.playing { background: var(--node-led) !important; box-shadow: 0 0 8px #fff !important; }
 
-        /* Typography for Help/Settings */
         .modal-title { font-size: 18px; font-weight: 900; margin-top: 0; margin-bottom: 10px; color: var(--gh-purple); border-bottom: 2px solid var(--border-color); padding-bottom: 5px;}
         .modal-text { font-size: 13px; line-height: 1.5; margin-bottom: 15px; color: #333; }
         .settings-section { background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
@@ -152,7 +149,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.30</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.31</span>
         </div>
     </div>
     <div class="header-right">
@@ -192,16 +189,17 @@
     <div class="modal-content" style="max-height: 80%;">
         <h2 class="modal-title">Welcome to J-looper</h2>
         <p class="modal-text">
-            <strong>What is this?</strong><br>
-            J-looper is a lightweight, zero-latency looping tool designed for quick instrument practice, beatboxing, and having fun making noise. It runs entirely inside your browser, turning your device into an instant jam station.
+            Building a looper app that works on a typical smartphone without an audio interface or wired headphones comes with a unique challenge: preventing the microphone from hearing and recording the app's own backing track (audio bleed).
         </p>
         <p class="modal-text">
-            <strong>How does it work?</strong><br>
-            Tap a track name that says <span style="color: var(--empty-pink); font-weight: bold;">EMPTY</span> to record a new sound using your device's microphone. You can layer up to 8 tracks, adjust their volumes instantly, and draw out your rhythm on the step sequencer grid.
+            <strong>The J-looper Compromise:</strong><br>
+            To solve this, the backing track drops out the moment you hit record. It’s like a spotlight performance where the band stops and you play a solo phrase. To stay on beat, you'll need to rely on your internal rhythm and the visual metronome—the white node traveling across the grid.
         </p>
         <p class="modal-text">
-            <strong>Important Note on Memory:</strong><br>
-            Just like a classic analog stompbox pedal, this tool lives in the moment. <strong>Your audio loops are not saved permanently.</strong> When you close the browser tab or refresh the page, your recorded sounds will be cleared. Have fun, practice hard, and don't take it too seriously!
+            It’s a trade-off that not only makes wireless looping possible, but actively develops your internal timing skills.
+        </p>
+        <p class="modal-text" style="font-size: 11px; color: #666; margin-top: 10px;">
+            <em>Note: Like a classic analog stompbox, J-looper lives in the moment. Your audio loops are not saved permanently when you refresh the page. Have fun and don't take it too seriously!</em>
         </p>
         <button class="done-btn" style="margin-top: 10px;" onclick="document.getElementById('help-modal').style.display='none'">GOT IT</button>
     </div>
@@ -215,7 +213,7 @@
             <span class="settings-label">About</span>
             <div class="modal-text" style="margin-bottom: 0;">
                 Created by Jeremiah Keller.<br>
-                Version: 3.30<br>
+                Version: 3.31<br>
                 <em>Audio engine optimized for mobile Safari conference-call routing.</em>
             </div>
         </div>
