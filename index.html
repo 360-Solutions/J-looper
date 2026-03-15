@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.44</title>
+    <title>J-looper v3.45</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -177,7 +177,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.44</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.45</span>
             </div>
             <div class="creator-text">Created by Jeremiah Keller</div>
         </div>
@@ -390,17 +390,17 @@
             <div style="margin-bottom: 15px; background: var(--panel-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display:flex; flex-direction:column; gap:12px;">
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
-                        <span>Backing Tracks Vol (Booth)</span>
-                        <span id="modal-backing-vol-val">100%</span>
+                        <span>Backing Tracks Vol</span>
+                        <span id="modal-backing-vol-val">220%</span>
                     </span>
-                    <input type="range" id="modal-backing-vol" class="blue-slider" min="0" max="3" value="1.0" step="0.05">
+                    <input type="range" id="modal-backing-vol" class="blue-slider" min="0" max="3" value="2.2" step="0.05">
                 </div>
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
                         <span>Booth Sample Vol (This Track Only)</span>
-                        <span id="modal-vol-val">80%</span>
+                        <span id="modal-vol-val">220%</span>
                     </span>
-                    <input type="range" id="modal-vol" class="orange-slider" min="0" max="300" value="80" step="5">
+                    <input type="range" id="modal-vol" class="orange-slider" min="0" max="300" value="220" step="5">
                 </div>
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
@@ -434,19 +434,19 @@
         globalNudge: -120,
         trackVols: Array(8).fill(80),
         trackNudges: Array(8).fill(-120),
-        trackModalVols: Array(8).fill(80),
-        trackModalBackingVols: Array(8).fill(1.0)
+        trackModalVols: Array(8).fill(220),
+        trackModalBackingVols: Array(8).fill(2.2)
     };
 
     const tracks = [
-        { name: 'ds_kick1.wav', steps: [0, 4], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
-        { name: 'ds_snare1.wav', steps: [8], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
-        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 }
+        { name: 'ds_kick1.wav', steps: [0, 4], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
+        { name: 'ds_snare1.wav', steps: [8], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
+        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, lastEnvelope: null, volume: 80, nudge: -120, modalVol: 220, modalBackingVol: 2.2 }
     ];
 
     const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
@@ -465,7 +465,7 @@
     let currentMicStream = null, micAnalyser = null, micSource = null;
 
     let targetBarLength = 16;
-    let scheduleAheadTime = 0.15; 
+    let scheduleAheadTime = 0.50; 
     let sequenceStartTime = 0;
 
     tracks.forEach(t => { 
@@ -493,8 +493,8 @@
         tracks.forEach((t, i) => {
             t.volume = appSettings.trackVols && appSettings.trackVols[i] !== undefined ? appSettings.trackVols[i] : 80;
             t.nudge = appSettings.trackNudges && appSettings.trackNudges[i] !== undefined ? appSettings.trackNudges[i] : -120;
-            t.modalVol = appSettings.trackModalVols && appSettings.trackModalVols[i] !== undefined ? appSettings.trackModalVols[i] : 80;
-            t.modalBackingVol = appSettings.trackModalBackingVols && appSettings.trackModalBackingVols[i] !== undefined ? appSettings.trackModalBackingVols[i] : 1.0;
+            t.modalVol = appSettings.trackModalVols && appSettings.trackModalVols[i] !== undefined ? appSettings.trackModalVols[i] : 220;
+            t.modalBackingVol = appSettings.trackModalBackingVols && appSettings.trackModalBackingVols[i] !== undefined ? appSettings.trackModalBackingVols[i] : 2.2;
         });
 
         renderInitState();
@@ -541,8 +541,8 @@
                 globalNudge: savedNudge,
                 trackVols: Array(8).fill(80),
                 trackNudges: Array(8).fill(savedNudge),
-                trackModalVols: Array(8).fill(80),
-                trackModalBackingVols: Array(8).fill(1.0)
+                trackModalVols: Array(8).fill(220),
+                trackModalBackingVols: Array(8).fill(2.2)
             };
 
             const defaultNames = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'];
@@ -556,7 +556,7 @@
                 
                 t.bars = 1; t.choke = true; t.mute = false; t.solo = false;
                 t.rawArrayBuffer = null;
-                t.volume = 80; t.nudge = savedNudge; t.modalVol = 80; t.modalBackingVol = 1.0;
+                t.volume = 80; t.nudge = savedNudge; t.modalVol = 220; t.modalBackingVol = 2.2;
                 t.buffer = null; 
             });
 
@@ -679,7 +679,6 @@
         if (!audioCtx || !masterGain) return;
         const anySolo = tracks.some(t => t.solo);
         
-        // Master gain is ALWAYS global master volume.
         masterGain.gain.setTargetAtTime(appSettings.masterVol, audioCtx.currentTime, 0.015);
 
         tracks.forEach((t, i) => {
@@ -687,17 +686,13 @@
                 let volTarget = 0;
                 
                 if (activeTrackIdx === null) {
-                    // Main View
                     if (anySolo) volTarget = t.solo ? (t.volume / 100) : 0;
                     else volTarget = t.mute ? 0 : (t.volume / 100);
                 } else {
-                    // Modal View (Recording/Editing)
                     if (i === activeTrackIdx) {
-                        // The track being edited ignores the backing volume multiplier
                         if (anySolo) volTarget = t.solo ? (t.modalVol / 100) : 0;
                         else volTarget = t.mute ? 0 : (t.modalVol / 100);
                     } else {
-                        // All other tracks are multiplied by the Backing Tracks Vol slider
                         let backingMult = tracks[activeTrackIdx].modalBackingVol;
                         if (anySolo) volTarget = t.solo ? (t.volume / 100) * backingMult : 0;
                         else volTarget = t.mute ? 0 : (t.volume / 100) * backingMult;
@@ -1126,6 +1121,11 @@
         modalTrackName.innerText = "EMPTY";
         modalTrackName.classList.add('empty-track');
         
+        // INSTANTLY KILL CURRENT PLAYING SAMPLE
+        if(tracks[activeTrackIdx].lastEnvelope) {
+            tracks[activeTrackIdx].lastEnvelope.gain.setTargetAtTime(0, audioCtx.currentTime, 0.015);
+        }
+
         renderSequencer(); renderModalLane();
     };
 
