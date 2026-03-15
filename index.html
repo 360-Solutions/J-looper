@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v4.00</title>
+    <title>J-looper v4.01</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -159,6 +159,7 @@
 
         .sample-list { overflow-y: auto; background: var(--panel-color); border-radius: 5px; max-height: 150px; margin-bottom: 10px; border: 1px solid var(--border-color); }
         .sample-item { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 14px; color: var(--text-color); font-weight: bold; cursor: pointer; }
+        .sample-item:active { background: #e1e4e8; color: var(--gh-purple); }
         
         .modal-node.the-only-one { background: var(--the-one) !important; box-shadow: 0 0 8px var(--the-one); border-color:#fff;}
         .modal-node.the-only-one.playing { background: var(--node-led) !important; box-shadow: 0 0 8px #fff !important; }
@@ -180,7 +181,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v4.00</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v4.01</span>
             </div>
             <div class="creator-text">By Jeremiah Keller</div>
         </div>
@@ -493,7 +494,7 @@
     
     let isPlaying = false, currentStep = 0, nextStepTime = 0, activeTrackIdx = null;
     let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false, isSecretlyRecording = false;
-    let cycleCounter = 0, recordCounter = 0, userSampleCount = 0;
+    let userSampleCount = 0;
     let justRecordedNewSample = false; 
 
     const RECORD_LOOKAHEAD_STEPS = 4; // 1 full beat (quarter note) early recording buffer
@@ -622,6 +623,7 @@
 
     function closeSettingsModal() {
         document.getElementById('settings-modal').style.display = 'none';
+        showSettingsView('settings-main-view'); // Reset for next open
         
         if (isCalibrating) {
             closeCalibrationFlowUIOnly('calib');
@@ -1001,43 +1003,34 @@
                 targetBarLength = tracks[activeTrackIdx].bars * 16;
                 const laneRelative = currentStep % targetBarLength;
                 
+                // Absolute grid-based recording logic, replacing the buggy counter logic
                 if (isWaitingForFirstOne && laneRelative === 0) {
-                    isWaitingForFirstOne = false; isWaitingFullCycle = true; cycleCounter = 0; 
-                    setTimeout(updateRecBtnUI, (nextStepTime - audioCtx.currentTime) * 1000);
+                    isWaitingForFirstOne = false; 
+                    isWaitingFullCycle = true; 
+                    setTimeout(updateRecBtnUI, Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000));
                 }
-                
-                if (isWaitingFullCycle) {
-                    cycleCounter++;
-                    // Lookahead: Record X steps BEFORE the 1
-                    if (cycleCounter >= targetBarLength - RECORD_LOOKAHEAD_STEPS && laneRelative === targetBarLength - RECORD_LOOKAHEAD_STEPS) {
-                        isWaitingFullCycle = false; isRecordingNow = true;
-                        masterGain.gain.setTargetAtTime(0, nextStepTime, 0.015);
-                        recordCounter = 0; audioChunks = []; 
-                        let delay = (nextStepTime - audioCtx.currentTime) * 1000;
-                        if(delay < 0) delay = 0;
-                        setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'inactive') mediaRecorder.start(); updateRecBtnUI(); }, delay); 
-                    }
+                else if (isWaitingFullCycle && laneRelative === targetBarLength - RECORD_LOOKAHEAD_STEPS) {
+                    // Turn mic on exactly 1 beat BEFORE the downbeat
+                    isWaitingFullCycle = false; 
+                    isRecordingNow = true;
+                    masterGain.gain.setTargetAtTime(0, nextStepTime, 0.015);
+                    audioChunks = []; 
+                    let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
+                    setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'inactive') mediaRecorder.start(); updateRecBtnUI(); }, delay); 
                 }
-                
-                if (isRecordingNow) {
-                    recordCounter++;
-                    // The "1" happens when laneRelative === 0
-                    if (recordCounter > RECORD_LOOKAHEAD_STEPS && laneRelative === 0) {
-                        isRecordingNow = false; isSecretlyRecording = true; 
-                        let delay = (nextStepTime - audioCtx.currentTime) * 1000;
-                        if(delay < 0) delay = 0;
-                        setTimeout(updateRecBtnUI, delay); 
-                    }
-                } else if (isSecretlyRecording) {
-                    recordCounter++;
-                    // Lookbehind Tail: Stop recording X steps AFTER the 1
-                    if (laneRelative === RECORD_LOOKAHEAD_STEPS) {
-                        isSecretlyRecording = false;
-                        masterGain.gain.setTargetAtTime(appSettings.masterVol, nextStepTime, 0.015);
-                        let delay = (nextStepTime - audioCtx.currentTime) * 1000;
-                        if(delay < 0) delay = 0;
-                        setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
-                    }
+                else if (isRecordingNow && laneRelative === 0) {
+                    // The actual downbeat hits, flip the UI logic to capture the user's intended 1
+                    isRecordingNow = false; 
+                    isSecretlyRecording = true; 
+                    let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
+                    setTimeout(updateRecBtnUI, delay); 
+                }
+                else if (isSecretlyRecording && laneRelative === RECORD_LOOKAHEAD_STEPS) {
+                    // Turn mic off exactly 1 beat AFTER the downbeat for the crossfade tail
+                    isSecretlyRecording = false;
+                    masterGain.gain.setTargetAtTime(appSettings.masterVol, nextStepTime, 0.015);
+                    let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
+                    setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
                 }
             }
 
@@ -1063,7 +1056,7 @@
         if (trackObj) {
             if (typeof trackObj.attack === 'number') aSec = trackObj.attack / 1000;
             if (typeof trackObj.release === 'number') rSec = trackObj.release / 1000;
-            // The magic skip calculation
+            // Only trim file offset if it is a user sample containing lookahead buffer noise
             if (trackObj.isUserSample) {
                 lookaheadSecs = (60 / appSettings.tempo) * (RECORD_LOOKAHEAD_STEPS / 4);
             }
@@ -1077,14 +1070,11 @@
         source.connect(envelopeGain); 
         envelopeGain.connect(trackGains[tIdx]); 
         
-        let finalOffset = lookaheadSecs - (nudgeMs / 1000);
-        let actualPlayTime = time;
+        // This was the fatal flaw. Latency nudge shifts the GRID schedule time, NOT the file offset.
+        let actualPlayTime = time + (nudgeMs / 1000); 
+        let finalOffset = lookaheadSecs;
 
-        if (finalOffset < 0) {
-            actualPlayTime += Math.abs(finalOffset);
-            finalOffset = 0;
-        }
-
+        // Safety catch if the calculated time is somehow in the past
         if (actualPlayTime < audioCtx.currentTime) {
              finalOffset += (audioCtx.currentTime - actualPlayTime);
              actualPlayTime = audioCtx.currentTime;
@@ -1362,6 +1352,11 @@
                     const bufferCopy = preFetchedBuffers[file].slice(0);
                     audioCtx.decodeAudioData(bufferCopy, (decoded) => { tracks[activeTrackIdx].buffer = decoded; });
                 } else { tracks[activeTrackIdx].buffer = null; }
+                
+                // Snap dropdown shut immediately on selection
+                document.getElementById('modal-sample-list').style.display = 'none';
+                document.getElementById('toggle-samples-btn').innerText = "PRELOADED SAMPLES";
+
                 renderSequencer(); renderModalLane(); 
             };
             list.appendChild(item);
