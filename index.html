@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.38</title>
+    <title>J-looper v3.39</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -43,22 +43,22 @@
             top: 0;
             z-index: 10;
             background-color: var(--bg-color);
-            padding-top: max(10px, env(safe-area-inset-top));
+            padding-top: max(4px, env(safe-area-inset-top)); /* Reduced top padding */
             padding-bottom: 4px;
             border-bottom: 1px solid var(--border-color);
             margin-bottom: 12px;
         }
 
-        header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; }
-        .header-left { display: flex; align-items: center; gap: 10px; }
+        header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; }
+        .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
         #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px;}
         .title-box { background: var(--gh-purple); color: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #6b3ec2; box-shadow: inset 0 1px 2px rgba(255,255,255,0.2); letter-spacing: 0.5px; }
+        .creator-text { font-size: 11px; font-weight: 900; color: #000000; letter-spacing: 0.2px; padding-left: 2px;}
 
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-        .version-info { font-size: 10px; text-align: right; color: #666; font-weight: 600;}
-        
-        .header-icons { display: flex; gap: 15px; margin-right: 10px; }
-        .icon-btn { font-size: 14px; font-weight: 900; padding: 4px 8px; color: var(--gh-purple); border-color: var(--border-color); }
+        .header-icons { display: flex; gap: 8px; }
+        .icon-btn { font-size: 14px; font-weight: 900; padding: 4px 10px; color: var(--gh-purple); border-color: var(--border-color); }
+        .support-btn { text-decoration: none; font-size: 9px; font-weight: 800; padding: 4px 6px; }
 
         .transport {
             background: var(--panel-color); padding: 10px; border-radius: 10px;
@@ -153,7 +153,7 @@
         .modal-node.the-only-one { background: var(--the-one) !important; box-shadow: 0 0 8px var(--the-one); border-color:#fff;}
         .modal-node.the-only-one.playing { background: var(--node-led) !important; box-shadow: 0 0 8px #fff !important; }
 
-        .modal-title { font-size: 18px; font-weight: 900; margin-top: 0; margin-bottom: 10px; color: var(--gh-purple); border-bottom: 2px solid var(--border-color); padding-bottom: 5px;}
+        .modal-title { font-size: 18px; font-weight: 900; margin: 0; color: var(--gh-purple); }
         .modal-text { font-size: 13px; line-height: 1.5; margin-bottom: 15px; color: #333; }
         .settings-section { background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
         .settings-label { font-size: 11px; font-weight: 800; color: var(--text-color); display: block; margin-bottom: 6px; text-transform: uppercase;}
@@ -170,15 +170,19 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.38</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.39</span>
             </div>
+            <div class="creator-text">Created by Jeremiah Keller</div>
         </div>
         <div class="header-right">
+            <div class="header-icons" style="margin-bottom: 2px;">
+                <a href="#" class="bubble-btn support-btn" style="color:#FF5E5B; border-color:#FF5E5B; background: #fff0f2;">☕ KO-FI</a>
+                <a href="#" class="bubble-btn support-btn" style="color:#FF813F; border-color:#FF813F; background: #fff5f0;">☕ COFFEE</a>
+            </div>
             <div class="header-icons">
                 <button class="bubble-btn icon-btn" onclick="document.getElementById('help-modal').style.display='flex'">?</button>
                 <button class="bubble-btn icon-btn" onclick="document.getElementById('settings-modal').style.display='flex'">⚙</button>
             </div>
-            <div class="version-info">Created by Jeremiah Keller</div>
         </div>
     </header>
 
@@ -210,7 +214,21 @@
 <div id="help-modal" class="modal">
     <div class="modal-content">
         <div class="modal-scroll-area">
-            <h2 class="modal-title">Welcome to J-looper</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); margin-bottom: 10px; padding-bottom: 5px;">
+                <h2 class="modal-title">About & Help</h2>
+            </div>
+            
+            <div style="background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                <div>
+                    <strong style="font-size: 12px; color: #000; display: block; margin-bottom: 2px;">Created by Jeremiah Keller</strong>
+                    <a href="mailto:jkeller@example.com" style="font-size: 11px; color: var(--bt-blue); text-decoration: none; font-weight: 600;">Contact Support</a>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <a href="#" class="bubble-btn support-btn" style="color:#FF5E5B; border-color:#FF5E5B; background: #fff0f2;">☕ KO-FI</a>
+                    <a href="#" class="bubble-btn support-btn" style="color:#FF813F; border-color:#FF813F; background: #fff5f0;">☕ BUY ME A COFFEE</a>
+                </div>
+            </div>
+
             <p class="modal-text">
                 Building a looper app that works on a typical smartphone without an audio interface or wired headphones comes with a unique challenge: preventing the microphone from hearing and recording the app's own backing track (audio bleed).
             </p>
@@ -237,15 +255,10 @@
 <div id="settings-modal" class="modal">
     <div class="modal-content">
         <div class="modal-scroll-area">
-            <h2 class="modal-title">System Settings</h2>
             
-            <div class="settings-section">
-                <span class="settings-label">About</span>
-                <div class="modal-text" style="margin-bottom: 0;">
-                    Created by Jeremiah Keller.<br>
-                    Version: 3.38<br>
-                    <em>Audio engine optimized for mobile Safari conference-call routing.</em>
-                </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); margin-bottom: 10px; padding-bottom: 5px;">
+                <h2 class="modal-title">System Settings</h2>
+                <button class="bubble-btn icon-btn" onclick="document.getElementById('settings-modal').style.display='none'; document.getElementById('help-modal').style.display='flex'">?</button>
             </div>
 
             <div class="settings-section" style="border-color: #fca5a5; background: #fff0f2;">
@@ -272,6 +285,8 @@
                     </div>
                     <div id="calib-step-3" class="calib-step">
                         <p id="calib-countdown-text" class="modal-text" style="text-align:center; font-weight:bold; color: var(--rec-red);">Brace yourself... Beeping in 2s</p>
+                        <p class="modal-text" style="font-size:10px; text-align:center; margin-bottom:4px;">Live Mic Debugger:</p>
+                        <div class="vu-meter" style="margin-bottom: 20px;"><div class="vu-fill" id="calib-vu-fill" style="background:var(--mic-orange);"></div></div>
                     </div>
                     <div id="calib-step-4" class="calib-step">
                         <p class="modal-text" id="calib-result-text" style="text-align:center; font-weight:bold;"></p>
@@ -885,6 +900,20 @@
                 vuFill.style.background = percent > 90 ? 'var(--rec-red)' : (percent > 70 ? 'var(--mic-orange)' : '#238636');
             }
         }
+        
+        if (isCalibrating && micAnalyser) {
+            const dataArray = new Uint8Array(micAnalyser.frequencyBinCount);
+            micAnalyser.getByteFrequencyData(dataArray);
+            let max = 0;
+            for(let i=0; i<dataArray.length; i++) { if(dataArray[i] > max) max = dataArray[i]; }
+            let percent = (max / 255) * 100;
+            const calibVuFill = document.getElementById('calib-vu-fill');
+            if (calibVuFill) {
+                calibVuFill.style.width = percent + '%';
+                calibVuFill.style.background = percent > 50 ? 'var(--rec-red)' : 'var(--mic-orange)';
+            }
+        }
+        
         requestAnimationFrame(uiLoop);
     }
 
@@ -1088,7 +1117,7 @@
         }
     }
 
-    // --- LOOPBACK CALIBRATION LOGIC REPAIRED ---
+    // --- LOOPBACK CALIBRATION LOGIC W/ LIVE DEBUG METER ---
     let isCalibrating = false;
 
     function startCalibrationFlow() {
@@ -1105,6 +1134,10 @@
         document.getElementById('calib-step-1').style.display = 'none';
         isCalibrating = true;
         await initAudioEngine(true); 
+        
+        // Start UI loop so the debug meter works immediately
+        requestAnimationFrame(uiLoop);
+        
         document.getElementById('calib-step-2').style.display = 'block';
     }
 
@@ -1127,12 +1160,10 @@
             countdownText.innerHTML = "Brace yourself... Beeping in 1s";
             
             setTimeout(() => {
-                // START LISTENING FIRST
                 countdownText.innerHTML = "Listening for click...";
                 countdownText.style.color = "var(--mic-orange)";
                 countdownText.style.animation = "pulse 1s infinite";
 
-                // SCHEDULE THE BEEP IN THE FUTURE
                 const osc = audioCtx.createOscillator();
                 const env = audioCtx.createGain();
                 osc.type = 'square';
@@ -1141,21 +1172,19 @@
                 osc.connect(env);
                 env.connect(audioCtx.destination);
 
-                // EXACTLY 500ms into the future
                 let triggerCtxTime = audioCtx.currentTime + 0.5; 
                 
                 env.gain.setValueAtTime(0, audioCtx.currentTime);
                 env.gain.linearRampToValueAtTime(1, triggerCtxTime);
-                env.gain.setValueAtTime(1, triggerCtxTime + 0.05);
-                env.gain.exponentialRampToValueAtTime(0.001, triggerCtxTime + 0.15);
+                env.gain.setValueAtTime(1, triggerCtxTime + 0.05);  // Made the beep slightly longer
+                env.gain.exponentialRampToValueAtTime(0.001, triggerCtxTime + 0.20);
 
                 osc.start(triggerCtxTime);
-                osc.stop(triggerCtxTime + 0.2);
+                osc.stop(triggerCtxTime + 0.25);
 
                 let detected = false;
                 let timeoutTriggered = false;
                 
-                // BEGIN LOOP
                 const checkPeak = () => {
                     if (detected || timeoutTriggered) return;
                     const data = new Uint8Array(micAnalyser.fftSize);
@@ -1167,8 +1196,8 @@
                         if(val > max) max = val;
                     }
 
-                    // Only count peaks that happen AFTER the beep was supposed to start
-                    if (audioCtx.currentTime > triggerCtxTime && max > 20) { 
+                    // Lowered detection threshold slightly in case AEC is dampening it
+                    if (audioCtx.currentTime > triggerCtxTime && max > 8) { 
                         detected = true;
                         let latencyMs = Math.round((audioCtx.currentTime - triggerCtxTime) * 1000);
                         if(latencyMs < 5) latencyMs = 5; 
@@ -1197,7 +1226,7 @@
         
         if (latencyResult === -1) {
             resultText.style.color = "var(--rec-red)";
-            resultText.innerHTML = "TEST FAILED.<br><span style='font-size:10px; font-weight:normal;'>Did not hear the click. Ensure volume is up and run again.</span>";
+            resultText.innerHTML = "TEST FAILED.<br><span style='font-size:10px; font-weight:normal;'>Did not hear the click. (Check the debug meter: if it didn't jump during the beep, your device is aggressively noise-canceling it out.)</span>";
         } else {
             resultText.style.color = "var(--gh-green)";
             resultText.innerHTML = `SUCCESS!<br>Latency Detected: ${latencyResult}ms`;
