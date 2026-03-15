@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.47</title>
+    <title>J-looper v3.48</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -177,7 +177,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.47</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.48</span>
             </div>
             <div class="creator-text">By Jeremiah Keller</div>
         </div>
@@ -828,7 +828,14 @@
     }
 
     async function initAudioEngine(needsMic) {
-        if (audioCtx) { await audioCtx.close(); audioCtx = null; }
+        if (audioCtx) { 
+            await audioCtx.close(); 
+            audioCtx = null; 
+            // CRITICAL FIX: The audio buffers belong to the dead AudioContext. 
+            // We must clear them so the app knows to re-translate them for the new context.
+            tracks.forEach(t => t.buffer = null);
+        }
+        
         audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
         
         masterGain = audioCtx.createGain();
@@ -999,35 +1006,35 @@
     function playSample(buffer, time, nudgeMs = 0, trackObj = null, tIdx) {
         if (!buffer || !audioCtx || !trackGains[tIdx]) return;
         const source = audioCtx.createBufferSource();
-        const envelopeGain = audioCtx.createGain();
-        source.buffer = buffer; 
         
+        // Safety Catch: If the buffer is still somehow corrupted, exit cleanly instead of crashing the sequencer
+        try {
+            source.buffer = buffer; 
+        } catch (e) {
+            return;
+        }
+
+        const envelopeGain = audioCtx.createGain();
         source.connect(envelopeGain); 
         envelopeGain.connect(trackGains[tIdx]); 
         
         let startTime = time + (nudgeMs / 1000);
         let actualPlayTime = startTime < audioCtx.currentTime ? audioCtx.currentTime : startTime;
         
-        // Retrieve ADSR envelopes
         let att = (trackObj && trackObj.attack !== undefined) ? trackObj.attack / 1000 : 0.015;
         let rel = (trackObj && trackObj.release !== undefined) ? trackObj.release / 1000 : 0.025;
 
-        // Calculate expected exact mathematical length of the loop
         let secondsPerStep = (60 / appSettings.tempo) / 4;
         let expectedDuration = (trackObj && trackObj.bars) ? (trackObj.bars * 16 * secondsPerStep) : 999;
         
-        // Hard cutoff either at sample end OR perfect loop end (fixes bleeding tail)
         let playDuration = Math.min(buffer.duration, expectedDuration);
         
-        // Safeties so fade isn't longer than the sample itself
         let safeAtt = Math.max(0.005, Math.min(att, playDuration * 0.4));
         let safeRel = Math.max(0.005, Math.min(rel, playDuration * 0.4));
 
-        // Fade Attack
         envelopeGain.gain.setValueAtTime(0, actualPlayTime);
         envelopeGain.gain.linearRampToValueAtTime(1, actualPlayTime + safeAtt); 
         
-        // Fade Tail (Release) enforcing a mathematical cutoff to fix overlapping
         envelopeGain.gain.setValueAtTime(1, actualPlayTime + playDuration - safeRel);
         envelopeGain.gain.linearRampToValueAtTime(0, actualPlayTime + playDuration);
         source.stop(actualPlayTime + playDuration);
@@ -1038,7 +1045,6 @@
                     let chokeTime = Math.max(time, actualPlayTime); 
                     const prevEnv = trackObj.lastEnvelope;
                     prevEnv.gain.cancelScheduledValues(chokeTime);
-                    // smoothly choke down from whatever volume it's currently at
                     prevEnv.gain.setTargetAtTime(0, chokeTime, safeRel / 3); 
                     trackObj.lastSource.stop(chokeTime + safeRel); 
                 } catch (e) {}
