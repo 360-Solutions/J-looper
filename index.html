@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.49</title>
+    <title>J-looper v3.47</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -177,7 +177,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.49</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.47</span>
             </div>
             <div class="creator-text">By Jeremiah Keller</div>
         </div>
@@ -446,6 +446,7 @@
     });
 
     const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
+    const preFetchedBuffers = {};
 
     let audioCtx = null;
     let masterGain = null;
@@ -462,8 +463,6 @@
     let targetBarLength = 16;
     let scheduleAheadTime = 0.50; 
     let sequenceStartTime = 0;
-    
-    let isInitializingAudio = false;
 
     // --- MEMORY FUNCTIONS (localStorage) ---
     function loadSettings() {
@@ -817,105 +816,87 @@
         updateTrackGains(); renderSequencer(); 
     }
 
+    let fetchPromise = preFetchAll();
+    async function preFetchAll() {
+        const promises = sampleFiles.map(async (file) => {
+            try {
+                const res = await fetch(`samples/${file}`);
+                if(res.ok) preFetchedBuffers[file] = await res.arrayBuffer();
+            } catch (e) { console.warn("Missing file:", file); }
+        });
+        await Promise.all(promises);
+    }
+
     async function initAudioEngine(needsMic) {
-        // Prevent concurrent rebuilds
-        while(isInitializingAudio) {
-            await new Promise(r => setTimeout(r, 50));
+        if (audioCtx) { await audioCtx.close(); audioCtx = null; }
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+        
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = appSettings.masterVol;
+        masterGain.connect(audioCtx.destination);
+
+        for(let i=0; i<8; i++) {
+            trackGains[i] = audioCtx.createGain();
+            trackGains[i].connect(masterGain);
         }
-        isInitializingAudio = true;
+        updateTrackGains();
 
-        try {
-            if (audioCtx) { 
-                await audioCtx.close(); 
-                audioCtx = null; 
-                tracks.forEach(t => t.buffer = null);
-            }
-            
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
-            
-            masterGain = audioCtx.createGain();
-            masterGain.gain.value = appSettings.masterVol;
-            masterGain.connect(audioCtx.destination);
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        await fetchPromise; 
+        
+        const decodePromises = [];
+        for (let i = 0; i < tracks.length; i++) {
+            if (tracks[i].name !== 'EMPTY' && !tracks[i].buffer) {
+                let bufferToDecode = null;
+                let isUserSample = false;
 
-            for(let i=0; i<8; i++) {
-                trackGains[i] = audioCtx.createGain();
-                trackGains[i].connect(masterGain);
-            }
-            updateTrackGains();
+                if (tracks[i].rawArrayBuffer) { bufferToDecode = tracks[i].rawArrayBuffer.slice(0); isUserSample = true; } 
+                else if (preFetchedBuffers[tracks[i].name]) { bufferToDecode = preFetchedBuffers[tracks[i].name].slice(0); }
 
-            if (audioCtx.state === 'suspended') {
-                try { await audioCtx.resume(); } catch(e) {}
-            }
-            
-            const decodePromises = [];
-            for (let i = 0; i < tracks.length; i++) {
-                if (tracks[i].name !== 'EMPTY' && !tracks[i].buffer) {
-                    const p = new Promise(async (resolve) => {
-                        try {
-                            let arrayBuf;
-                            let isUserSample = false;
-                            
-                            if (tracks[i].rawArrayBuffer) {
-                                // Safe copy of the recorded blob buffer
-                                arrayBuf = tracks[i].rawArrayBuffer.slice(0);
-                                isUserSample = true;
-                            } else {
-                                // Force fresh fetch to bypass Safari detachment errors completely
-                                const res = await fetch(`samples/${tracks[i].name}`);
-                                arrayBuf = await res.arrayBuffer();
-                            }
-                            
-                            audioCtx.decodeAudioData(arrayBuf, decoded => { 
-                                tracks[i].buffer = isUserSample ? normalizeBuffer(decoded) : decoded; 
-                                resolve();
-                            }, (err) => {
-                                console.warn("Failed decoding track:", tracks[i].name, err);
-                                resolve();
-                            });
-                        } catch (e) {
-                            console.warn("Exception grabbing track:", tracks[i].name, e);
+                if (bufferToDecode) {
+                    const p = new Promise(resolve => {
+                        audioCtx.decodeAudioData(bufferToDecode, decoded => { 
+                            tracks[i].buffer = isUserSample ? normalizeBuffer(decoded) : decoded; 
                             resolve();
-                        }
+                        }, () => resolve()); 
                     });
                     decodePromises.push(p);
                 }
             }
-            await Promise.all(decodePromises);
+        }
+        await Promise.all(decodePromises);
 
-            if (needsMic) {
-                try {
-                    currentMicStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
-                    mediaRecorder = new MediaRecorder(currentMicStream);
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    mediaRecorder.onstop = async () => {
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                        const arrayBuffer = await audioBlob.arrayBuffer();
-                        if (activeTrackIdx !== null) {
-                            tracks[activeTrackIdx].rawArrayBuffer = arrayBuffer.slice(0); 
-                            audioCtx.decodeAudioData(arrayBuffer, (decoded) => {
-                                userSampleCount++;
-                                tracks[activeTrackIdx].buffer = normalizeBuffer(decoded);
-                                tracks[activeTrackIdx].name = `USER_${userSampleCount}`;
-                                const modalTrackName = document.getElementById('modal-track-name');
-                                if(modalTrackName) {
-                                    modalTrackName.innerText = tracks[activeTrackIdx].name.toUpperCase();
-                                    modalTrackName.classList.remove('empty-track');
-                                }
-                                justRecordedNewSample = true; 
-                                tracks[activeTrackIdx].steps[0] = true;
-                                renderSequencer();
-                            });
-                        }
-                    };
+        if (needsMic) {
+            try {
+                currentMicStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
+                mediaRecorder = new MediaRecorder(currentMicStream);
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    if (activeTrackIdx !== null) {
+                        tracks[activeTrackIdx].rawArrayBuffer = arrayBuffer.slice(0); 
+                        audioCtx.decodeAudioData(arrayBuffer, (decoded) => {
+                            userSampleCount++;
+                            tracks[activeTrackIdx].buffer = normalizeBuffer(decoded);
+                            tracks[activeTrackIdx].name = `USER_${userSampleCount}`;
+                            const modalTrackName = document.getElementById('modal-track-name');
+                            if(modalTrackName) {
+                                modalTrackName.innerText = tracks[activeTrackIdx].name.toUpperCase();
+                                modalTrackName.classList.remove('empty-track');
+                            }
+                            justRecordedNewSample = true; 
+                            tracks[activeTrackIdx].steps[0] = true;
+                            renderSequencer();
+                        });
+                    }
+                };
 
-                    micAnalyser = audioCtx.createAnalyser();
-                    micAnalyser.fftSize = 128; 
-                    micSource = audioCtx.createMediaStreamSource(currentMicStream);
-                    micSource.connect(micAnalyser); 
-                } catch (err) { console.error("Mic error: " + err); }
-            }
-        } finally {
-            isInitializingAudio = false;
+                micAnalyser = audioCtx.createAnalyser();
+                micAnalyser.fftSize = 128; 
+                micSource = audioCtx.createMediaStreamSource(currentMicStream);
+                micSource.connect(micAnalyser); 
+            } catch (err) { console.error("Mic error: " + err); }
         }
     }
 
@@ -971,7 +952,7 @@
                 
                 if (isWaitingForFirstOne && laneRelative === 0) {
                     isWaitingForFirstOne = false; isWaitingFullCycle = true; cycleCounter = 0; 
-                    setTimeout(updateRecBtnUI, Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000));
+                    setTimeout(updateRecBtnUI, (nextStepTime - audioCtx.currentTime) * 1000);
                 }
                 
                 if (isWaitingFullCycle) {
@@ -980,13 +961,8 @@
                         isWaitingFullCycle = false; isRecordingNow = true;
                         masterGain.gain.setTargetAtTime(0, nextStepTime, 0.015);
                         recordCounter = 0; audioChunks = []; 
-                        let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
-                        setTimeout(() => { 
-                            try {
-                                if(isPlaying && mediaRecorder && mediaRecorder.state === 'inactive') mediaRecorder.start(); 
-                            } catch(e) { console.warn("Mic Start Blocked:", e); }
-                            updateRecBtnUI(); 
-                        }, delay); 
+                        let delay = (nextStepTime - audioCtx.currentTime) * 1000;
+                        setTimeout(() => { if(isPlaying && mediaRecorder) mediaRecorder.start(); updateRecBtnUI(); }, delay); 
                     }
                 }
                 
@@ -994,7 +970,7 @@
                     recordCounter++;
                     if (recordCounter > 10 && laneRelative === 0) {
                         isRecordingNow = false; isSecretlyRecording = true; 
-                        let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
+                        let delay = (nextStepTime - audioCtx.currentTime) * 1000;
                         setTimeout(updateRecBtnUI, delay); 
                     }
                 } else if (isSecretlyRecording) {
@@ -1002,13 +978,8 @@
                     if (laneRelative === 2) {
                         isSecretlyRecording = false;
                         masterGain.gain.setTargetAtTime(appSettings.masterVol, nextStepTime, 0.015);
-                        let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
-                        setTimeout(() => { 
-                            try {
-                                if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); 
-                            } catch(e) {}
-                            updateRecBtnUI();
-                        }, delay); 
+                        let delay = (nextStepTime - audioCtx.currentTime) * 1000;
+                        setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
                     }
                 }
             }
@@ -1027,35 +998,36 @@
 
     function playSample(buffer, time, nudgeMs = 0, trackObj = null, tIdx) {
         if (!buffer || !audioCtx || !trackGains[tIdx]) return;
-        
         const source = audioCtx.createBufferSource();
-        try {
-            source.buffer = buffer; 
-        } catch(e) {
-            return; // Fail gracefully if buffer is invalid
-        }
-
         const envelopeGain = audioCtx.createGain();
+        source.buffer = buffer; 
+        
         source.connect(envelopeGain); 
         envelopeGain.connect(trackGains[tIdx]); 
         
         let startTime = time + (nudgeMs / 1000);
         let actualPlayTime = startTime < audioCtx.currentTime ? audioCtx.currentTime : startTime;
         
+        // Retrieve ADSR envelopes
         let att = (trackObj && trackObj.attack !== undefined) ? trackObj.attack / 1000 : 0.015;
         let rel = (trackObj && trackObj.release !== undefined) ? trackObj.release / 1000 : 0.025;
 
+        // Calculate expected exact mathematical length of the loop
         let secondsPerStep = (60 / appSettings.tempo) / 4;
         let expectedDuration = (trackObj && trackObj.bars) ? (trackObj.bars * 16 * secondsPerStep) : 999;
         
+        // Hard cutoff either at sample end OR perfect loop end (fixes bleeding tail)
         let playDuration = Math.min(buffer.duration, expectedDuration);
         
+        // Safeties so fade isn't longer than the sample itself
         let safeAtt = Math.max(0.005, Math.min(att, playDuration * 0.4));
         let safeRel = Math.max(0.005, Math.min(rel, playDuration * 0.4));
 
+        // Fade Attack
         envelopeGain.gain.setValueAtTime(0, actualPlayTime);
         envelopeGain.gain.linearRampToValueAtTime(1, actualPlayTime + safeAtt); 
         
+        // Fade Tail (Release) enforcing a mathematical cutoff to fix overlapping
         envelopeGain.gain.setValueAtTime(1, actualPlayTime + playDuration - safeRel);
         envelopeGain.gain.linearRampToValueAtTime(0, actualPlayTime + playDuration);
         source.stop(actualPlayTime + playDuration);
@@ -1066,6 +1038,7 @@
                     let chokeTime = Math.max(time, actualPlayTime); 
                     const prevEnv = trackObj.lastEnvelope;
                     prevEnv.gain.cancelScheduledValues(chokeTime);
+                    // smoothly choke down from whatever volume it's currently at
                     prevEnv.gain.setTargetAtTime(0, chokeTime, safeRel / 3); 
                     trackObj.lastSource.stop(chokeTime + safeRel); 
                 } catch (e) {}
@@ -1143,9 +1116,7 @@
 
         if (!isPlaying) { 
             isPlaying = true;
-            if (audioCtx.state === 'suspended') { 
-                try { await audioCtx.resume(); } catch(e) {}
-            }
+            if (audioCtx.state === 'suspended') { await audioCtx.resume(); }
             if (masterGain) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
                 masterGain.gain.setTargetAtTime(appSettings.masterVol, audioCtx.currentTime, 0.015);
@@ -1255,7 +1226,7 @@
             setTimeout(() => {
                 const playBtn = document.getElementById('play-btn');
                 if (playBtn) playBtn.click();
-            }, 100); 
+            }, 50); 
         }
     }
     
@@ -1284,7 +1255,7 @@
             setTimeout(() => {
                 const playBtn = document.getElementById('play-btn');
                 if (playBtn) playBtn.click();
-            }, 100); 
+            }, 50); 
         }
     }
     
@@ -1292,7 +1263,7 @@
         const list = document.getElementById('modal-sample-list'); list.innerHTML = '';
         sampleFiles.forEach(file => {
             const item = document.createElement('div'); item.className = 'sample-item'; item.innerText = file;
-            item.onclick = async () => { 
+            item.onclick = () => { 
                 tracks[activeTrackIdx].name = file; 
                 tracks[activeTrackIdx].rawArrayBuffer = null; 
                 
@@ -1300,21 +1271,18 @@
                 updateLaneNudge(activeTrackIdx, newNudge);
 
                 justRecordedNewSample = true; 
+                
                 tracks[activeTrackIdx].steps[0] = true;
 
                 const modalTrackName = document.getElementById('modal-track-name');
                 modalTrackName.innerText = file.toUpperCase();
                 modalTrackName.classList.remove('empty-track');
 
-                try {
-                    const res = await fetch(`samples/${file}`);
-                    const arrayBuf = await res.arrayBuffer();
-                    audioCtx.decodeAudioData(arrayBuf, (decoded) => { 
-                        tracks[activeTrackIdx].buffer = decoded; 
-                        renderSequencer(); 
-                        renderModalLane(); 
-                    });
-                } catch(e) { console.warn("Could not load sample", e); }
+                if(preFetchedBuffers[file]) {
+                    const bufferCopy = preFetchedBuffers[file].slice(0);
+                    audioCtx.decodeAudioData(bufferCopy, (decoded) => { tracks[activeTrackIdx].buffer = decoded; });
+                } else { tracks[activeTrackIdx].buffer = null; }
+                renderSequencer(); renderModalLane(); 
             };
             list.appendChild(item);
         });
@@ -1359,9 +1327,7 @@
     async function executeCalibrationTest() {
         if (!audioCtx || !micAnalyser) return;
         
-        if (audioCtx.state === 'suspended') {
-            try { await audioCtx.resume(); } catch(e){}
-        }
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
 
         document.getElementById('calib-step-2').style.display = 'none';
         const step3 = document.getElementById('calib-step-3');
@@ -1434,7 +1400,7 @@
         }, 1000);
     }
 
-    async function finishCalibration(latencyResult) {
+    function finishCalibration(latencyResult) {
         document.getElementById('calib-step-3').style.display = 'none';
         document.getElementById('calib-step-4').style.display = 'block';
         
@@ -1460,9 +1426,7 @@
         if (micSource) { micSource.disconnect(); micSource = null; }
         micAnalyser = null;
         if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
-        
-        // Critical: Await this rebuild so it doesn't collide with other actions
-        await initAudioEngine(false); 
+        initAudioEngine(false); 
 
         setTimeout(() => {
             closeCalibrationModal();
@@ -1470,7 +1434,7 @@
             if (calibSourceMode === 'init') {
                 document.getElementById('play-btn').click();
             }
-        }, 800);
+        }, 2500);
     }
 
     document.addEventListener('visibilitychange', () => {
@@ -1478,7 +1442,7 @@
             if (isPlaying) { forceStopEngine(); }
         } else {
             if (audioCtx && audioCtx.state === 'suspended') {
-                try { audioCtx.resume(); } catch(e) {}
+                audioCtx.resume();
             }
         }
     });
