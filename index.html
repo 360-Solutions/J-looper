@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.33</title>
+    <title>J-looper v3.34</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -106,8 +106,19 @@
         .node.playing, .modal-node.playing { background: var(--node-led) !important; box-shadow: 0 0 6px rgba(255,255,255,0.9), inset 0 1px 1px rgba(0,0,0,0.1) !important; border-color: #fff !important; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
-        .modal-content { background: var(--bg-color); width: 90%; max-width: 450px; padding: 15px; border-radius: 12px; border: 3px solid var(--border-color); display: flex; flex-direction: column; max-height: 92%; overflow-y: auto; }
         
+        /* Updated Modal CSS: Separates scrolling body from fixed footer */
+        .modal-content { background: var(--bg-color); width: 90%; max-width: 450px; border-radius: 12px; border: 3px solid var(--border-color); display: flex; flex-direction: column; max-height: 90%; overflow: hidden; }
+        .modal-scroll-area { padding: 15px; overflow-y: auto; flex-grow: 1; -webkit-overflow-scrolling: touch; }
+        
+        /* Custom Scrollbar for visibility */
+        .modal-scroll-area::-webkit-scrollbar { width: 8px; }
+        .modal-scroll-area::-webkit-scrollbar-track { background: var(--panel-color); border-radius: 4px; }
+        .modal-scroll-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; border: 1px solid var(--panel-color); }
+        
+        /* Fixed bottom bar area for the DONE button */
+        .modal-footer { padding: 10px 15px calc(10px + env(safe-area-inset-bottom)); background: var(--bg-color); border-top: 1px solid var(--border-color); }
+
         .rec-visualizer-zone { background: var(--panel-color); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); position: relative; }
         .vu-meter { width: 100%; height: 6px; background: #111; border-radius: 3px; margin-bottom: 10px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8); }
         .vu-fill { width: 0%; height: 100%; background: #238636; transition: width 0.05s ease-out, background-color 0.1s; }
@@ -124,7 +135,11 @@
         .action-btn { background: #ffffff; border: 1px solid var(--border-color); color: var(--text-color); font-weight: 900; border-radius: 8px; cursor: pointer; padding: 15px 10px; font-size: 12px; min-width: 80px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
         .action-btn:active { background: #f3f4f6; transform: translateY(1px); box-shadow: none; }
         
-        .done-btn { background: var(--panel-color); border: 2px solid var(--border-color); color: var(--text-color); font-weight: 900; border-radius: 8px; cursor: pointer; padding: 15px; font-size: 14px; width: 100%; margin-top: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        /* Updated Delete Button Styling */
+        #modal-clear-btn { color: var(--rec-red); border-color: #fca5a5; background: #fff0f2; }
+        #modal-clear-btn:active { background: #ffe5e8; }
+
+        .done-btn { background: var(--panel-color); border: 2px solid var(--border-color); color: var(--text-color); font-weight: 900; border-radius: 8px; cursor: pointer; padding: 15px; font-size: 14px; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .done-btn:active { background: #e1e4e8; transform: translateY(1px); box-shadow: none; }
 
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
@@ -148,7 +163,7 @@
     <div class="header-left">
         <div id="app-title">
             <span class="title-box">J-looper</span> 
-            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.33</span>
+            <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.34</span>
         </div>
     </div>
     <div class="header-right">
@@ -185,113 +200,125 @@
 <div id="main-grid"></div>
 
 <div id="help-modal" class="modal">
-    <div class="modal-content" style="max-height: 85%;">
-        <h2 class="modal-title">Welcome to J-looper</h2>
-        <p class="modal-text">
-            Building a looper app that works on a typical smartphone without an audio interface or wired headphones comes with a unique challenge: preventing the microphone from hearing and recording the app's own backing track (audio bleed).
-        </p>
-        <p class="modal-text">
-            <strong>The Latency & Bleed Compromise:</strong><br>
-            To solve this, J-looper uses a specific cycle. When you hit record, it waits one full cycle to sync up. Then, the backing track drops out while it records you. It’s like a spotlight breakdown moment where the band stops and you play alone, keeping perfect time on your own. Then, the rest of the band rejoins you at the beginning of the next cycle. To stay on beat, rely on your internal rhythm and the visual metronome—the white node traveling across the grid.
-        </p>
-        <p class="modal-text">
-            <strong>The "Cheat Code":</strong><br>
-            J-looper is a free JavaScript webpage, not a full-fledged App Store program. It works by briefly fooling your smartphone into thinking you're on a speakerphone call while you're in the recording window. That’s why you’ll notice a slightly "lo-fi" quality while recording. But when you hit "DONE" and return to the main screen, it releases the microphone and switches back to higher-quality audio.
-        </p>
-        <div style="background: var(--panel-color); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-            <p class="modal-text" style="font-size: 11px; color: #555; margin: 0;">
-                <em>Note: J-looper lives in the moment. Your loops are not saved permanently when you refresh the page. Think of it as a fun practice tool for when you have a quiet place to lay down a chord progression and solo over it, or to build up a beatbox loop. It isn't intended to be professional-grade—it's just a fun, easy-access looper.</em>
+    <div class="modal-content">
+        <div class="modal-scroll-area">
+            <h2 class="modal-title">Welcome to J-looper</h2>
+            <p class="modal-text">
+                Building a looper app that works on a typical smartphone without an audio interface or wired headphones comes with a unique challenge: preventing the microphone from hearing and recording the app's own backing track (audio bleed).
             </p>
+            <p class="modal-text">
+                <strong>The Latency & Bleed Compromise:</strong><br>
+                To solve this, J-looper uses a specific cycle. When you hit record, it waits one full cycle to sync up. Then, the backing track drops out while it records you. It’s like a spotlight breakdown moment where the band stops and you play alone, keeping perfect time on your own. Then, the rest of the band rejoins you at the beginning of the next cycle. To stay on beat, rely on your internal rhythm and the visual metronome—the white node traveling across the grid.
+            </p>
+            <p class="modal-text">
+                <strong>The "Cheat Code":</strong><br>
+                J-looper is a free JavaScript webpage, not a full-fledged App Store program. It works by briefly fooling your smartphone into thinking you're on a speakerphone call while you're in the recording window. That’s why you’ll notice a slightly "lo-fi" quality while recording. But when you hit "DONE" and return to the main screen, it releases the microphone and switches back to higher-quality audio.
+            </p>
+            <div style="background: var(--panel-color); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <p class="modal-text" style="font-size: 11px; color: #555; margin: 0;">
+                    <em>Note: J-looper lives in the moment. Your loops are not saved permanently when you refresh the page. Think of it as a fun practice tool for when you have a quiet place to lay down a chord progression and solo over it, or to build up a beatbox loop. It isn't intended to be professional-grade—it's just a fun, easy-access looper.</em>
+                </p>
+            </div>
         </div>
-        <button class="done-btn" style="margin-top: 15px;" onclick="document.getElementById('help-modal').style.display='none'">GOT IT</button>
+        <div class="modal-footer">
+            <button class="done-btn" onclick="document.getElementById('help-modal').style.display='none'">GOT IT</button>
+        </div>
     </div>
 </div>
 
 <div id="settings-modal" class="modal">
-    <div class="modal-content" style="max-height: 85%;">
-        <h2 class="modal-title">System Settings</h2>
-        
-        <div class="settings-section">
-            <span class="settings-label">About</span>
-            <div class="modal-text" style="margin-bottom: 0;">
-                Created by Jeremiah Keller.<br>
-                Version: 3.33<br>
-                <em>Audio engine optimized for mobile Safari conference-call routing.</em>
-            </div>
-        </div>
-
-        <div class="settings-section">
-            <span class="settings-label" style="color: var(--rec-red);">System Latency Calibration</span>
-            <p class="modal-text" style="font-size: 11px; margin-bottom: 10px;">
-                Different devices process audio at different speeds. If your recordings sound out of sync (especially on Android), run this loopback test. It will emit a click, listen for it, and automatically adjust your timing.
-            </p>
-            <button class="action-btn" id="run-calibration-btn" style="width: 100%; border-color: var(--mic-orange); color: var(--mic-orange); margin-bottom: 10px;">RUN LOOPBACK TEST</button>
+    <div class="modal-content">
+        <div class="modal-scroll-area">
+            <h2 class="modal-title">System Settings</h2>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
-                <span class="settings-label" style="margin: 0;">Global Nudge Override:</span>
-                <div style="display: flex; align-items: center; gap: 4px;">
-                    <input type="number" id="global-nudge-override" class="nudge-input" value="-120" oninput="updateGlobalNudge(this.value)">
-                    <span style="font-size: 11px; font-weight: bold;">ms</span>
+            <div class="settings-section">
+                <span class="settings-label">About</span>
+                <div class="modal-text" style="margin-bottom: 0;">
+                    Created by Jeremiah Keller.<br>
+                    Version: 3.34<br>
+                    <em>Audio engine optimized for mobile Safari conference-call routing.</em>
                 </div>
             </div>
-            <p class="modal-text" style="font-size: 10px; margin-top: 6px; margin-bottom:0; color: #666;">
-                Use this to manually lock in your favorite latency compensation instead of testing. This value becomes the default for all new tracks.
-            </p>
-        </div>
 
-        <button class="done-btn" style="margin-top: auto;" onclick="document.getElementById('settings-modal').style.display='none'">SAVE & CLOSE</button>
+            <div class="settings-section">
+                <span class="settings-label" style="color: var(--rec-red);">System Latency Calibration</span>
+                <p class="modal-text" style="font-size: 11px; margin-bottom: 10px;">
+                    Different devices process audio at different speeds. If your recordings sound out of sync (especially on Android), run this loopback test. It will emit a click, listen for it, and automatically adjust your timing.
+                </p>
+                <button class="action-btn" id="run-calibration-btn" style="width: 100%; border-color: var(--mic-orange); color: var(--mic-orange); margin-bottom: 10px;">RUN LOOPBACK TEST</button>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                    <span class="settings-label" style="margin: 0;">Global Nudge Override:</span>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <input type="number" id="global-nudge-override" class="nudge-input" value="-120">
+                        <span style="font-size: 11px; font-weight: bold;">ms</span>
+                    </div>
+                </div>
+                <button class="bubble-btn" style="width: 100%; margin-top: 8px; border-color: var(--gh-purple); color: var(--gh-purple);" onclick="applyGlobalNudgeToAll()">APPLY NUDGE TO ALL TRACKS</button>
+                
+                <p class="modal-text" style="font-size: 10px; margin-top: 6px; margin-bottom:0; color: #666;">
+                    Use this to instantly overwrite and lock in all track adjustments to your favorite latency compensation instead of testing.
+                </p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="done-btn" onclick="document.getElementById('settings-modal').style.display='none'">SAVE & CLOSE</button>
+        </div>
     </div>
 </div>
 
 <div id="sample-modal" class="modal">
     <div class="modal-content">
-        <div class="rec-visualizer-zone">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <div style="display:flex; gap:6px; align-items:center; flex-wrap: wrap;">
-                    <span id="modal-track-name" class="sample-name-btn" style="min-width: 65px; border-radius:6px; border: 1px solid var(--border-color);">READY</span>
-                    <button class="bubble-btn" id="modal-mute-btn" style="padding: 6px 10px;">MUTE SAMPLE</button>
-                    <button class="bubble-btn" id="modal-solo-btn" style="padding: 6px 10px;">SOLO SAMPLE</button>
+        <div class="modal-scroll-area">
+            <div class="rec-visualizer-zone">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="display:flex; gap:6px; align-items:center; flex-wrap: wrap;">
+                        <span id="modal-track-name" class="sample-name-btn" style="min-width: 65px; border-radius:6px; border: 1px solid var(--border-color);">READY</span>
+                        <button class="bubble-btn" id="modal-mute-btn" style="padding: 6px 10px;">MUTE SAMPLE</button>
+                        <button class="bubble-btn" id="modal-solo-btn" style="padding: 6px 10px;">SOLO SAMPLE</button>
+                    </div>
+                    <button class="bubble-btn" id="modal-bar-cycle" style="min-width: 45px;">1 BAR</button>
                 </div>
-                <button class="bubble-btn" id="modal-bar-cycle" style="min-width: 45px;">1 BAR</button>
+                <div class="vu-meter"><div class="vu-fill" id="vu-fill"></div></div>
+                <div id="modal-bars-container"></div>
             </div>
-            <div class="vu-meter"><div class="vu-fill" id="vu-fill"></div></div>
-            <div id="modal-bars-container"></div>
-        </div>
-        
-        <div style="margin-bottom: 15px; background: var(--panel-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display:flex; flex-direction:column; gap:12px;">
-            <div>
-                <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
-                    <span>Studio Master Vol (Up to 300%)</span>
-                    <span id="modal-master-vol-val">150%</span>
-                </span>
-                <input type="range" id="modal-master-vol" min="0" max="3" value="1.5" step="0.05">
+            
+            <div style="margin-bottom: 15px; background: var(--panel-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
+                        <span>Studio Master Vol (Up to 300%)</span>
+                        <span id="modal-master-vol-val">150%</span>
+                    </span>
+                    <input type="range" id="modal-master-vol" min="0" max="3" value="1.5" step="0.05">
+                </div>
+                <div>
+                    <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
+                        <span>Sample Volume</span>
+                        <span id="modal-vol-val">80%</span>
+                    </span>
+                    <input type="range" id="modal-vol" min="0" max="300" value="80" step="5">
+                </div>
+                <div>
+                    <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
+                        <span>Start Point Nudge (Mic Latency)</span>
+                        <span id="modal-nudge-val">-120ms</span>
+                    </span>
+                    <input type="range" id="modal-nudge" min="-300" max="100" value="-120" step="5">
+                </div>
             </div>
-            <div>
-                <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
-                    <span>Sample Volume</span>
-                    <span id="modal-vol-val">80%</span>
-                </span>
-                <input type="range" id="modal-vol" min="0" max="300" value="80" step="5">
-            </div>
-            <div>
-                <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
-                    <span>Start Point Nudge (Mic Latency)</span>
-                    <span id="modal-nudge-val">-120ms</span>
-                </span>
-                <input type="range" id="modal-nudge" min="-300" max="100" value="-120" step="5">
-            </div>
-        </div>
 
-        <div class="modal-header-btns">
-            <button class="modal-play-btn" id="modal-play-btn">START</button>
-            <button class="rec-btn" id="rec-action-btn">● RECORD</button>
-            <button class="action-btn" id="modal-clear-btn" style="padding: 15px 0;">DELETE</button>
-        </div>
+            <div class="modal-header-btns">
+                <button class="modal-play-btn" id="modal-play-btn">START</button>
+                <button class="rec-btn" id="rec-action-btn">● RECORD</button>
+                <button class="action-btn" id="modal-clear-btn" style="padding: 15px 0;">✖ DELETE</button>
+            </div>
 
-        <button id="toggle-samples-btn" class="action-btn" style="width:100%; margin-bottom: 10px; padding: 12px; font-weight:600;">PRELOADED SAMPLES</button>
-        <div class="sample-list" id="modal-sample-list" style="display: none;"></div>
-        
-        <button class="done-btn" onclick="closeModal()">DONE</button>
+            <button id="toggle-samples-btn" class="action-btn" style="width:100%; margin-bottom: 10px; padding: 12px; font-weight:600;">PRELOADED SAMPLES</button>
+            <div class="sample-list" id="modal-sample-list" style="display: none;"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="done-btn" onclick="closeModal()">DONE</button>
+        </div>
     </div>
 </div>
 
@@ -350,7 +377,6 @@
             try { appSettings = JSON.parse(saved); } catch(e) {}
         }
         
-        // Apply Global Settings
         document.getElementById('tempo').value = appSettings.tempo;
         document.getElementById('tempo-val').innerText = appSettings.tempo + ' BPM';
         
@@ -362,10 +388,9 @@
         
         document.getElementById('global-nudge-override').value = appSettings.globalNudge;
 
-        // Apply Track Specific Settings
         tracks.forEach((t, i) => {
-            t.volume = appSettings.trackVols[i];
-            t.nudge = appSettings.trackNudges[i];
+            t.volume = appSettings.trackVols[i] !== undefined ? appSettings.trackVols[i] : 80;
+            t.nudge = appSettings.trackNudges[i] !== undefined ? appSettings.trackNudges[i] : -120;
         });
     }
 
@@ -373,9 +398,20 @@
         localStorage.setItem('jLooperSettings', JSON.stringify(appSettings));
     }
 
-    function updateGlobalNudge(val) {
-        appSettings.globalNudge = parseInt(val) || 0;
-        saveSettings();
+    // --- GLOBAL NUDGE OVERRIDE ---
+    function applyGlobalNudgeToAll() {
+        let val = document.getElementById('global-nudge-override').value;
+        let parsed = parseInt(val) || 0;
+        
+        if (confirm("Are you sure you want to change the Global Nudge?\n\nThis will instantly overwrite all individual track nudge adjustments in your current session.")) {
+            appSettings.globalNudge = parsed;
+            tracks.forEach((t, i) => {
+                updateLaneNudge(i, parsed);
+            });
+            saveSettings();
+        } else {
+            document.getElementById('global-nudge-override').value = appSettings.globalNudge;
+        }
     }
 
     function updateTempo(val) { 
@@ -403,12 +439,19 @@
     };
 
     function updateLaneNudge(tIdx, val) {
-        tracks[tIdx].nudge = parseInt(val);
-        appSettings.trackNudges[tIdx] = tracks[tIdx].nudge;
-        document.getElementById(`lane-nudge-val-${tIdx}`).innerText = val + 'ms';
+        let parsed = parseInt(val) || 0;
+        tracks[tIdx].nudge = parsed;
+        appSettings.trackNudges[tIdx] = parsed;
+        
+        const mainDisplay = document.getElementById(`lane-nudge-val-${tIdx}`);
+        if(mainDisplay) mainDisplay.innerText = parsed + 'ms';
+        
+        const mainInput = document.querySelector(`#nudge-panel-${tIdx} input[type="range"]`);
+        if(mainInput) mainInput.value = parsed;
+
         if (activeTrackIdx === tIdx) {
-            document.getElementById('modal-nudge').value = val;
-            document.getElementById('modal-nudge-val').innerText = val + 'ms';
+            document.getElementById('modal-nudge').value = parsed;
+            document.getElementById('modal-nudge-val').innerText = parsed + 'ms';
         }
         saveSettings();
     }
@@ -425,7 +468,6 @@
         saveSettings();
     }
 
-    // Modal Specific Slider Listeners
     document.getElementById('modal-nudge').oninput = function() {
         if(activeTrackIdx !== null) {
             updateLaneNudge(activeTrackIdx, this.value);
@@ -864,7 +906,6 @@
         tracks[activeTrackIdx].steps.fill(false); 
         justRecordedNewSample = false; 
         
-        // Grab the global nudge override instead of defaulting to -120
         let newNudge = appSettings.globalNudge;
         updateLaneNudge(activeTrackIdx, newNudge);
         
@@ -1015,7 +1056,6 @@
         if(activeTrackIdx === i) renderModalLane(); 
     }
 
-    // Initialize the app by loading settings first
     loadSettings();
     renderSequencer();
 </script>
