@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.39</title>
+    <title>J-looper v3.40</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -43,7 +43,7 @@
             top: 0;
             z-index: 10;
             background-color: var(--bg-color);
-            padding-top: max(4px, env(safe-area-inset-top)); /* Reduced top padding */
+            padding-top: max(4px, env(safe-area-inset-top)); 
             padding-bottom: 4px;
             border-bottom: 1px solid var(--border-color);
             margin-bottom: 12px;
@@ -53,11 +53,11 @@
         .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
         #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px;}
         .title-box { background: var(--gh-purple); color: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #6b3ec2; box-shadow: inset 0 1px 2px rgba(255,255,255,0.2); letter-spacing: 0.5px; }
-        .creator-text { font-size: 11px; font-weight: 900; color: #000000; letter-spacing: 0.2px; padding-left: 2px;}
+        .creator-text { font-size: 11px; font-weight: 400; color: #57606a; letter-spacing: 0.2px; padding-left: 2px; margin-top: 2px;}
 
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-        .header-icons { display: flex; gap: 8px; }
-        .icon-btn { font-size: 14px; font-weight: 900; padding: 4px 10px; color: var(--gh-purple); border-color: var(--border-color); }
+        .header-icons { display: flex; gap: 6px; }
+        .icon-text-btn { font-size: 10px; font-weight: 800; padding: 6px 10px; color: var(--gh-purple); border-color: var(--border-color); letter-spacing: 0.5px;}
         .support-btn { text-decoration: none; font-size: 9px; font-weight: 800; padding: 4px 6px; }
 
         .transport {
@@ -74,6 +74,7 @@
             box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.1);
         }
         .main-play-btn.stopped { background: var(--rec-red) !important; border-color: #b02826 !important; }
+        .main-play-btn.init-mode { background: var(--gh-purple) !important; border-color: #6b3ec2 !important; font-size: 11px; animation: pulse 2s infinite;}
         .main-play-btn:active { transform: translateY(1px); box-shadow: none; }
 
         .slider-stack { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
@@ -170,18 +171,18 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.39</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.40</span>
             </div>
             <div class="creator-text">Created by Jeremiah Keller</div>
         </div>
         <div class="header-right">
             <div class="header-icons" style="margin-bottom: 2px;">
                 <a href="#" class="bubble-btn support-btn" style="color:#FF5E5B; border-color:#FF5E5B; background: #fff0f2;">☕ KO-FI</a>
-                <a href="#" class="bubble-btn support-btn" style="color:#FF813F; border-color:#FF813F; background: #fff5f0;">☕ COFFEE</a>
+                <a href="#" class="bubble-btn support-btn" style="color:#FF813F; border-color:#FF813F; background: #fff5f0;">☕ BUY ME A COFFEE</a>
             </div>
             <div class="header-icons">
-                <button class="bubble-btn icon-btn" onclick="document.getElementById('help-modal').style.display='flex'">?</button>
-                <button class="bubble-btn icon-btn" onclick="document.getElementById('settings-modal').style.display='flex'">⚙</button>
+                <button class="bubble-btn icon-text-btn" onclick="document.getElementById('help-modal').style.display='flex'">HELP / ABOUT</button>
+                <button class="bubble-btn icon-text-btn" onclick="document.getElementById('settings-modal').style.display='flex'">SETTINGS</button>
             </div>
         </div>
     </header>
@@ -220,8 +221,8 @@
             
             <div style="background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
                 <div>
-                    <strong style="font-size: 12px; color: #000; display: block; margin-bottom: 2px;">Created by Jeremiah Keller</strong>
-                    <a href="mailto:jkeller@example.com" style="font-size: 11px; color: var(--bt-blue); text-decoration: none; font-weight: 600;">Contact Support</a>
+                    <strong style="font-size: 12px; color: #000; display: block; margin-bottom: 4px;">Created by Jeremiah Keller</strong>
+                    <div style="font-size: 11px; font-weight: bold; color: var(--bt-blue); user-select: all;">jk.360.workspace@gmail.com</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
                     <a href="#" class="bubble-btn support-btn" style="color:#FF5E5B; border-color:#FF5E5B; background: #fff0f2;">☕ KO-FI</a>
@@ -258,7 +259,6 @@
             
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); margin-bottom: 10px; padding-bottom: 5px;">
                 <h2 class="modal-title">System Settings</h2>
-                <button class="bubble-btn icon-btn" onclick="document.getElementById('settings-modal').style.display='none'; document.getElementById('help-modal').style.display='flex'">?</button>
             </div>
 
             <div class="settings-section" style="border-color: #fca5a5; background: #fff0f2;">
@@ -294,17 +294,26 @@
                     </div>
                 </div>
                 
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #fca5a5; padding-top: 10px; margin-top: 10px;">
-                    <span class="settings-label" style="margin: 0; color: var(--rec-red);">Global Nudge Override:</span>
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <input type="number" id="global-nudge-override" class="nudge-input" value="-120" style="border-color: #fca5a5;">
-                        <span style="font-size: 11px; font-weight: bold;">ms</span>
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #fca5a5;">
+                    <div id="nudge-display-view" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="settings-label" style="margin:0; color:var(--text-color);">Current Global Latency: <span id="current-nudge-text" style="color:var(--rec-red);">-120ms</span></span>
+                        <button class="bubble-btn" style="color:#666; border:none; box-shadow:none; text-decoration:underline; font-size:10px;" onclick="showNudgeOverride()">Override</button>
+                    </div>
+                    
+                    <div id="nudge-override-view" style="display:none; flex-direction:column; gap:8px; margin-top:10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="settings-label" style="margin: 0; color: var(--rec-red);">Global Nudge Override:</span>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <input type="number" id="global-nudge-override" class="nudge-input" value="-120" style="border-color: #fca5a5;">
+                                <span style="font-size: 11px; font-weight: bold;">ms</span>
+                            </div>
+                        </div>
+                        <button class="bubble-btn" style="width: 100%; padding: 10px; border-color: var(--rec-red); color: var(--rec-red); background: #ffffff;" onclick="applyGlobalNudgeToAll()">APPLY NUDGE TO ALL TRACKS</button>
+                        <p class="modal-text" style="font-size: 10px; margin-bottom:0; color: #c53030;">
+                            Use this to instantly overwrite and lock in all track adjustments to your favorite latency compensation instead of testing.
+                        </p>
                     </div>
                 </div>
-                <button class="bubble-btn" style="width: 100%; margin-top: 8px; border-color: var(--rec-red); color: var(--rec-red); background: #ffffff;" onclick="applyGlobalNudgeToAll()">APPLY NUDGE TO ALL TRACKS</button>
-                <p class="modal-text" style="font-size: 10px; margin-top: 6px; margin-bottom:0; color: #c53030;">
-                    Use this to instantly overwrite and lock in all track adjustments to your favorite latency compensation instead of testing.
-                </p>
             </div>
 
             <div class="settings-section">
@@ -378,6 +387,7 @@
 
 <script>
     let appSettings = {
+        isInitialized: false,
         tempo: 120,
         masterVol: 0.8,
         globalNudge: -120,
@@ -437,6 +447,7 @@
         document.getElementById('master-vol-val').innerText = Math.round((appSettings.masterVol !== undefined ? appSettings.masterVol : 0.8) * 100) + '%';
         
         document.getElementById('global-nudge-override').value = appSettings.globalNudge || -120;
+        document.getElementById('current-nudge-text').innerText = (appSettings.globalNudge || -120) + 'ms';
 
         tracks.forEach((t, i) => {
             t.volume = appSettings.trackVols && appSettings.trackVols[i] !== undefined ? appSettings.trackVols[i] : 80;
@@ -444,17 +455,38 @@
             t.modalVol = appSettings.trackModalVols && appSettings.trackModalVols[i] !== undefined ? appSettings.trackModalVols[i] : 80;
             t.modalMasterVol = appSettings.trackModalMasterVols && appSettings.trackModalMasterVols[i] !== undefined ? appSettings.trackModalMasterVols[i] : 1.5;
         });
+
+        renderInitState();
     }
 
     function saveSettings() {
         localStorage.setItem('jLooperSettings', JSON.stringify(appSettings));
+        document.getElementById('current-nudge-text').innerText = appSettings.globalNudge + 'ms';
+    }
+
+    function renderInitState() {
+        const btn = document.getElementById('play-btn');
+        if (!appSettings.isInitialized) {
+            btn.innerText = "INITIALIZE";
+            btn.classList.add('init-mode');
+        } else {
+            if(!isPlaying) {
+                btn.innerText = "START";
+                btn.classList.remove('init-mode');
+            }
+        }
     }
 
     function factoryReset() {
-        if (confirm("Are you sure you want to reset J-looper?\n\nThis will clear all saved volume settings, latency nudges, and memory, restoring the original factory defaults.")) {
+        if (confirm("Are you sure you want to reset J-looper?\n\nThis will clear all saved volume settings, latency nudges, and memory, returning it to factory defaults.")) {
             localStorage.removeItem('jLooperSettings');
             location.reload(); 
         }
+    }
+
+    function showNudgeOverride() {
+        document.getElementById('nudge-display-view').style.display = 'none';
+        document.getElementById('nudge-override-view').style.display = 'flex';
     }
 
     function applyGlobalNudgeToAll() {
@@ -463,8 +495,14 @@
         
         if (confirm("Are you sure you want to change the Global Nudge?\n\nThis will instantly overwrite all individual track nudge adjustments in your current session.")) {
             appSettings.globalNudge = parsed;
+            appSettings.isInitialized = true; 
             tracks.forEach((t, i) => { updateLaneNudge(i, parsed); });
             saveSettings();
+            renderInitState();
+            
+            // Hide override and show normal view again
+            document.getElementById('nudge-override-view').style.display = 'none';
+            document.getElementById('nudge-display-view').style.display = 'flex';
         } else {
             document.getElementById('global-nudge-override').value = appSettings.globalNudge;
         }
@@ -758,9 +796,10 @@
         const modalPlayBtn = document.getElementById('modal-play-btn');
         if (isPlaying) {
             playBtn.innerText = "STOP"; playBtn.classList.add('stopped');
+            playBtn.classList.remove('init-mode'); 
             if (modalPlayBtn) { modalPlayBtn.innerText = "STOP"; modalPlayBtn.classList.add('stopped'); }
         } else {
-            playBtn.innerText = "START"; playBtn.classList.remove('stopped');
+            renderInitState(); 
             if (modalPlayBtn) { modalPlayBtn.innerText = "START"; modalPlayBtn.classList.remove('stopped'); }
         }
     }
@@ -922,6 +961,11 @@
     };
 
     document.getElementById('play-btn').onclick = async function() {
+        if (!appSettings.isInitialized) {
+            document.getElementById('settings-modal').style.display = 'flex';
+            return; 
+        }
+
         if (!audioCtx) { await initAudioEngine(false); }
 
         if (!isPlaying) { 
@@ -1117,7 +1161,7 @@
         }
     }
 
-    // --- LOOPBACK CALIBRATION LOGIC W/ LIVE DEBUG METER ---
+    // --- LOOPBACK CALIBRATION LOGIC ---
     let isCalibrating = false;
 
     function startCalibrationFlow() {
@@ -1135,7 +1179,6 @@
         isCalibrating = true;
         await initAudioEngine(true); 
         
-        // Start UI loop so the debug meter works immediately
         requestAnimationFrame(uiLoop);
         
         document.getElementById('calib-step-2').style.display = 'block';
@@ -1176,7 +1219,7 @@
                 
                 env.gain.setValueAtTime(0, audioCtx.currentTime);
                 env.gain.linearRampToValueAtTime(1, triggerCtxTime);
-                env.gain.setValueAtTime(1, triggerCtxTime + 0.05);  // Made the beep slightly longer
+                env.gain.setValueAtTime(1, triggerCtxTime + 0.05);  
                 env.gain.exponentialRampToValueAtTime(0.001, triggerCtxTime + 0.20);
 
                 osc.start(triggerCtxTime);
@@ -1196,7 +1239,6 @@
                         if(val > max) max = val;
                     }
 
-                    // Lowered detection threshold slightly in case AEC is dampening it
                     if (audioCtx.currentTime > triggerCtxTime && max > 8) { 
                         detected = true;
                         let latencyMs = Math.round((audioCtx.currentTime - triggerCtxTime) * 1000);
@@ -1234,8 +1276,10 @@
             let newNudge = -latencyResult;
             document.getElementById('global-nudge-override').value = newNudge;
             appSettings.globalNudge = newNudge;
+            appSettings.isInitialized = true; 
             tracks.forEach((t, i) => { updateLaneNudge(i, newNudge); });
             saveSettings();
+            renderInitState();
         }
     }
 
