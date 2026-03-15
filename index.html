@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.37</title>
+    <title>J-looper v3.38</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -159,7 +159,7 @@
         .settings-label { font-size: 11px; font-weight: 800; color: var(--text-color); display: block; margin-bottom: 6px; text-transform: uppercase;}
         .nudge-input { width: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; text-align: center; }
 
-        .calib-flow { display: none; background: #fff0f2; border: 1px solid #fca5a5; padding: 10px; border-radius: 8px; margin-top: 10px; }
+        .calib-flow { display: none; background: #ffffff; padding: 10px; border-radius: 8px; margin-top: 10px; }
         .calib-step { display: none; }
     </style>
 </head>
@@ -170,7 +170,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.37</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.38</span>
             </div>
         </div>
         <div class="header-right">
@@ -243,17 +243,17 @@
                 <span class="settings-label">About</span>
                 <div class="modal-text" style="margin-bottom: 0;">
                     Created by Jeremiah Keller.<br>
-                    Version: 3.37<br>
+                    Version: 3.38<br>
                     <em>Audio engine optimized for mobile Safari conference-call routing.</em>
                 </div>
             </div>
 
-            <div class="settings-section">
+            <div class="settings-section" style="border-color: #fca5a5; background: #fff0f2;">
                 <span class="settings-label" style="color: var(--rec-red);">System Latency Calibration</span>
                 <p class="modal-text" style="font-size: 11px; margin-bottom: 10px;">
                     Different devices process audio at different speeds. If your recordings sound out of sync, run this loopback test. It will emit a click, listen for it, and adjust your timing automatically.
                 </p>
-                <button class="action-btn" id="init-calib-btn" style="width: 100%; border-color: var(--mic-orange); color: var(--mic-orange); margin-bottom: 10px;" onclick="startCalibrationFlow()">RUN LOOPBACK TEST</button>
+                <button class="action-btn" id="init-calib-btn" style="width: 100%; border-color: var(--rec-red); color: var(--rec-red); margin-bottom: 10px;" onclick="startCalibrationFlow()">RUN LOOPBACK TEST</button>
                 
                 <div id="calib-flow-container" class="calib-flow">
                     <div id="calib-step-1" class="calib-step">
@@ -275,29 +275,29 @@
                     </div>
                     <div id="calib-step-4" class="calib-step">
                         <p class="modal-text" id="calib-result-text" style="text-align:center; font-weight:bold;"></p>
-                        <button class="action-btn" style="width:100%;" onclick="closeCalibrationFlow()">DONE</button>
+                        <button class="action-btn" style="width:100%; border-color: var(--rec-red); color: var(--rec-red);" onclick="closeCalibrationFlow()">DONE</button>
                     </div>
                 </div>
                 
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 10px;">
-                    <span class="settings-label" style="margin: 0;">Global Nudge Override:</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #fca5a5; padding-top: 10px; margin-top: 10px;">
+                    <span class="settings-label" style="margin: 0; color: var(--rec-red);">Global Nudge Override:</span>
                     <div style="display: flex; align-items: center; gap: 4px;">
-                        <input type="number" id="global-nudge-override" class="nudge-input" value="-120">
+                        <input type="number" id="global-nudge-override" class="nudge-input" value="-120" style="border-color: #fca5a5;">
                         <span style="font-size: 11px; font-weight: bold;">ms</span>
                     </div>
                 </div>
-                <button class="bubble-btn" style="width: 100%; margin-top: 8px; border-color: var(--gh-purple); color: var(--gh-purple);" onclick="applyGlobalNudgeToAll()">APPLY NUDGE TO ALL TRACKS</button>
-                <p class="modal-text" style="font-size: 10px; margin-top: 6px; margin-bottom:0; color: #666;">
+                <button class="bubble-btn" style="width: 100%; margin-top: 8px; border-color: var(--rec-red); color: var(--rec-red); background: #ffffff;" onclick="applyGlobalNudgeToAll()">APPLY NUDGE TO ALL TRACKS</button>
+                <p class="modal-text" style="font-size: 10px; margin-top: 6px; margin-bottom:0; color: #c53030;">
                     Use this to instantly overwrite and lock in all track adjustments to your favorite latency compensation instead of testing.
                 </p>
             </div>
 
-            <div class="settings-section" style="border-color: #fca5a5; background: #fff0f2;">
-                <span class="settings-label" style="color: var(--rec-red);">Danger Zone</span>
+            <div class="settings-section">
+                <span class="settings-label">System Reset</span>
                 <p class="modal-text" style="font-size: 11px; margin-bottom: 10px;">
-                    Having issues? This will delete all saved memory, clear your track volumes, and restore the original hardcoded factory defaults.
+                    Reset all volume sliders, latency nudges, and memory, returning J-looper to its default state.
                 </p>
-                <button class="action-btn" style="width: 100%; color: var(--rec-red); border-color: var(--rec-red);" onclick="factoryReset()">RESTORE FACTORY DEFAULTS</button>
+                <button class="action-btn" style="width: 100%;" onclick="factoryReset()">RESTORE FACTORY DEFAULTS</button>
             </div>
         </div>
         <div class="modal-footer">
@@ -1119,7 +1119,6 @@
         
         step3.style.display = 'block';
         
-        // 2 Second Safety and Buffer Spin-up Countdown
         countdownText.innerHTML = "Brace yourself... Beeping in 2s";
         countdownText.style.color = "var(--rec-red)";
         countdownText.style.animation = "none";
@@ -1128,10 +1127,12 @@
             countdownText.innerHTML = "Brace yourself... Beeping in 1s";
             
             setTimeout(() => {
+                // START LISTENING FIRST
                 countdownText.innerHTML = "Listening for click...";
                 countdownText.style.color = "var(--mic-orange)";
                 countdownText.style.animation = "pulse 1s infinite";
 
+                // SCHEDULE THE BEEP IN THE FUTURE
                 const osc = audioCtx.createOscillator();
                 const env = audioCtx.createGain();
                 osc.type = 'square';
@@ -1140,7 +1141,8 @@
                 osc.connect(env);
                 env.connect(audioCtx.destination);
 
-                let triggerCtxTime = audioCtx.currentTime + 0.1; 
+                // EXACTLY 500ms into the future
+                let triggerCtxTime = audioCtx.currentTime + 0.5; 
                 
                 env.gain.setValueAtTime(0, audioCtx.currentTime);
                 env.gain.linearRampToValueAtTime(1, triggerCtxTime);
@@ -1153,6 +1155,7 @@
                 let detected = false;
                 let timeoutTriggered = false;
                 
+                // BEGIN LOOP
                 const checkPeak = () => {
                     if (detected || timeoutTriggered) return;
                     const data = new Uint8Array(micAnalyser.fftSize);
@@ -1164,6 +1167,7 @@
                         if(val > max) max = val;
                     }
 
+                    // Only count peaks that happen AFTER the beep was supposed to start
                     if (audioCtx.currentTime > triggerCtxTime && max > 20) { 
                         detected = true;
                         let latencyMs = Math.round((audioCtx.currentTime - triggerCtxTime) * 1000);
