@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.41</title>
+    <title>J-looper v3.42</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -49,15 +49,17 @@
             margin-bottom: 12px;
         }
 
-        header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; }
-        .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1; }
-        #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px;}
+        header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; position: relative; }
+        .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex-shrink: 0; }
+        #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px; white-space: nowrap;}
         .title-box { background: var(--gh-purple); color: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #6b3ec2; box-shadow: inset 0 1px 2px rgba(255,255,255,0.2); letter-spacing: 0.5px; }
-        .creator-text { font-size: 11px; font-weight: 400; color: #57606a; letter-spacing: 0.2px; padding-left: 2px; margin-top: 2px;}
+        .creator-text { font-size: 11px; font-weight: 400; color: #57606a; letter-spacing: 0.2px; padding-left: 2px; margin-top: 2px; white-space: nowrap;}
 
-        .header-center { display: flex; justify-content: center; align-items: flex-start; flex: 1; padding-top: 4px; }
+        .header-center { position: absolute; left: 50%; transform: translateX(-50%); top: 0; }
+        .reset-session-btn { padding: 4px 8px; color: #9e1c23; border: 1px solid #ff7b93; background: #ffe0e6; font-size: 8px; font-weight: 900; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer; text-align: center; line-height: 1.2; letter-spacing: 0.3px;}
+        .reset-session-btn:active { background: #ffcadd; transform: translateY(1px); box-shadow: none; }
         
-        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: 1; }
+        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
         .header-icons { display: flex; gap: 6px; }
         .icon-text-btn { font-size: 10px; font-weight: 800; padding: 6px 10px; color: var(--gh-purple); border-color: var(--border-color); letter-spacing: 0.5px;}
         .support-btn { text-decoration: none; font-size: 9px; font-weight: 800; padding: 4px 6px; }
@@ -86,6 +88,7 @@
         
         input[type=range] { width: 100%; height: 20px; margin:0; accent-color: var(--gh-purple); }
         input[type=range].thick-blue-slider { height: 24px; accent-color: var(--bt-blue); }
+        input[type=range].blue-slider { accent-color: var(--bt-blue); }
         input[type=range].orange-slider { accent-color: var(--mic-orange); }
 
         .track-lane { background: var(--panel-color); margin-bottom: 8px; border-radius: 8px; padding: 6px; border: 1px solid var(--border-color); }
@@ -174,13 +177,13 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.41</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.42</span>
             </div>
             <div class="creator-text">Created by Jeremiah Keller</div>
         </div>
         
         <div class="header-center">
-            <button class="action-btn" onclick="resetSession()" style="padding: 6px 10px; color: var(--rec-red); border-color: #fca5a5; background: #fff0f2; box-shadow: none; font-size: 9px; margin-top: 2px;">RESET<br>SESSION</button>
+            <button class="reset-session-btn" onclick="resetSession()">RESET<br>SESSION</button>
         </div>
 
         <div class="header-right">
@@ -274,7 +277,8 @@
                 <p class="modal-text" style="font-size: 11px; margin-bottom: 10px;">
                     Different devices process audio at different speeds. If your recordings sound out of sync, run this loopback test. It will emit a click, listen for it, and adjust your timing automatically.
                 </p>
-                <button class="action-btn" id="init-calib-btn" style="width: 100%; border-color: var(--rec-red); color: var(--rec-red); margin-bottom: 10px;" onclick="startCalibrationFlow()">RUN LOOPBACK TEST</button>
+                <button class="action-btn" id="init-calib-btn" style="width: 100%; border-color: var(--rec-red); color: var(--rec-red); margin-bottom: 4px;" onclick="startCalibrationFlow()">RUN LOOPBACK TEST</button>
+                <div id="last-calib-result" style="font-size: 10px; color: var(--gh-green); text-align: center; margin-bottom: 10px; font-weight: bold; min-height: 12px;"></div>
                 
                 <div id="calib-flow-container" class="calib-flow">
                     <div id="calib-step-1" class="calib-step">
@@ -297,8 +301,8 @@
                         <div class="vu-meter" style="margin-bottom: 20px;"><div class="vu-fill" id="calib-vu-fill" style="background:var(--mic-orange);"></div></div>
                     </div>
                     <div id="calib-step-4" class="calib-step">
-                        <p class="modal-text" id="calib-result-text" style="text-align:center; font-weight:bold;"></p>
-                        <button class="action-btn" style="width:100%; border-color: var(--rec-red); color: var(--rec-red);" onclick="closeCalibrationFlow()">DONE</button>
+                        <p class="modal-text" id="calib-result-text" style="text-align:center; font-weight:bold; margin-bottom: 5px;"></p>
+                        <p style="font-size: 9px; text-align: center; color: #666; margin-top: 0;">Saving and releasing microphone...</p>
                     </div>
                 </div>
                 
@@ -333,7 +337,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="done-btn" onclick="document.getElementById('settings-modal').style.display='none'">SAVE & CLOSE</button>
+            <button class="done-btn" onclick="closeSettingsModal()">SAVE & CLOSE</button>
         </div>
     </div>
 </div>
@@ -360,7 +364,7 @@
                         <span>Booth Master Vol (This Track Only)</span>
                         <span id="modal-master-vol-val">150%</span>
                     </span>
-                    <input type="range" id="modal-master-vol" class="thick-blue-slider" min="0" max="3" value="1.5" step="0.05">
+                    <input type="range" id="modal-master-vol" class="blue-slider" min="0" max="3" value="1.5" step="0.05">
                 </div>
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
@@ -536,6 +540,23 @@
             renderSequencer();
             
             if(audioCtx) initAudioEngine(false);
+        }
+    }
+
+    function closeSettingsModal() {
+        document.getElementById('settings-modal').style.display = 'none';
+        
+        // Hide override view so it starts closed next time
+        document.getElementById('nudge-override-view').style.display = 'none';
+        document.getElementById('nudge-display-view').style.display = 'flex';
+        
+        // Safety: If they close the settings modal while the mic is calibrating
+        if (isCalibrating) {
+            closeCalibrationFlowUIOnly();
+            if (micSource) { micSource.disconnect(); micSource = null; }
+            micAnalyser = null;
+            if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
+            if (audioCtx) initAudioEngine(false); 
         }
     }
 
@@ -851,6 +872,7 @@
         const modalPlayBtn = document.getElementById('modal-play-btn');
         if (isPlaying) {
             playBtn.innerText = "STOP"; playBtn.classList.add('stopped');
+            playBtn.classList.remove('init-mode'); 
             if (modalPlayBtn) { modalPlayBtn.innerText = "STOP"; modalPlayBtn.classList.add('stopped'); }
         } else {
             if (modalPlayBtn) { modalPlayBtn.innerText = "START"; modalPlayBtn.classList.remove('stopped'); }
@@ -1214,7 +1236,7 @@
         }
     }
 
-    // --- LOOPBACK CALIBRATION LOGIC ---
+    // --- LOOPBACK CALIBRATION LOGIC W/ INSTANT MIC DROP ---
     let isCalibrating = false;
 
     function startCalibrationFlow() {
@@ -1225,6 +1247,7 @@
         document.getElementById('calib-step-2').style.display = 'none';
         document.getElementById('calib-step-3').style.display = 'none';
         document.getElementById('calib-step-4').style.display = 'none';
+        document.getElementById('last-calib-result').innerText = '';
     }
 
     async function initCalibrationMic() {
@@ -1319,9 +1342,12 @@
         
         const resultText = document.getElementById('calib-result-text');
         
+        let successStr = "";
+
         if (latencyResult === -1) {
             resultText.style.color = "var(--rec-red)";
-            resultText.innerHTML = "TEST FAILED.<br><span style='font-size:10px; font-weight:normal;'>Did not hear the click. (Check the debug meter: if it didn't jump during the beep, your device is aggressively noise-canceling it out.)</span>";
+            resultText.innerHTML = "TEST FAILED.<br><span style='font-size:10px; font-weight:normal;'>Did not hear the click.</span>";
+            successStr = "Last Test: FAILED";
         } else {
             resultText.style.color = "var(--gh-green)";
             resultText.innerHTML = `SUCCESS!<br>Latency Detected: ${latencyResult}ms`;
@@ -1333,19 +1359,33 @@
             tracks.forEach((t, i) => { updateLaneNudge(i, newNudge); });
             saveSettings();
             renderInitState();
+            
+            successStr = `Last Test: SUCCESS (${newNudge}ms)`;
         }
+
+        // 1. INSTANTLY KILL MIC TO PREVENT AUDIO LEAKAGE
+        if (micSource) { micSource.disconnect(); micSource = null; }
+        micAnalyser = null;
+        if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
+        initAudioEngine(false); // Reboot into output-only mode behind the scenes
+
+        // 2. WAIT 2.5 SECONDS, THEN CLEAN UP UI AUTOMATICALLY
+        setTimeout(() => {
+            closeCalibrationFlowUIOnly();
+            document.getElementById('last-calib-result').innerText = successStr;
+            if(latencyResult === -1) {
+                document.getElementById('last-calib-result').style.color = "var(--rec-red)";
+            } else {
+                document.getElementById('last-calib-result').style.color = "var(--gh-green)";
+            }
+        }, 2500);
     }
 
-    async function closeCalibrationFlow() {
+    function closeCalibrationFlowUIOnly() {
         document.getElementById('calib-flow-container').style.display = 'none';
         document.getElementById('calib-step-4').style.display = 'none';
         document.getElementById('init-calib-btn').style.display = 'block';
         isCalibrating = false;
-        
-        if (micSource) { micSource.disconnect(); micSource = null; }
-        micAnalyser = null;
-        if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
-        await initAudioEngine(false);
     }
 
     loadSettings();
