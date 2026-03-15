@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v4.01</title>
+    <title>J-looper v4.02</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -181,7 +181,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v4.01</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v4.02</span>
             </div>
             <div class="creator-text">By Jeremiah Keller</div>
         </div>
@@ -303,14 +303,9 @@
             <p class="modal-text" style="font-size: 11px; margin-bottom: 15px; color: #666;">
                 Manage your global latency compensation and application memory below.
             </p>
-
-            <button class="menu-btn" onclick="showSettingsView('settings-calib-view')">
-                <span style="color: var(--rec-red);">Run Audio Loopback Test</span>
-                <span style="color: #8c959f;">></span>
-            </button>
             
             <button class="menu-btn" onclick="showSettingsView('settings-override-view')">
-                <span>Manual Latency Override</span>
+                <span>Global Latency Compensation</span>
                 <span style="color: #8c959f;">></span>
             </button>
 
@@ -319,52 +314,13 @@
             </button>
         </div>
 
-        <div class="modal-scroll-area" id="settings-calib-view" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); margin-bottom: 15px; padding-bottom: 5px;">
-                <h2 class="modal-title" style="color: var(--rec-red);">Loopback Test</h2>
-            </div>
-            
-            <div id="init-calib-btn-container">
-                <p class="modal-text" style="font-size: 12px; margin-bottom: 15px;">
-                    This test will emit a click, listen for it, and adjust your timing automatically.
-                </p>
-                <button class="action-btn" style="width: 100%; border-color: var(--rec-red); color: var(--rec-red); margin-bottom: 10px;" onclick="initCalibrationMic('calib')">START TEST PROCESS</button>
-                <div id="last-calib-result" style="font-size: 11px; color: var(--gh-green); text-align: center; font-weight: bold; min-height: 14px;"></div>
-            </div>
-
-            <div id="calib-flow-container" class="calib-flow" style="display: none; padding: 0; margin-top: 0;">
-                <div id="calib-step-1" class="calib-step">
-                    <span class="settings-label" style="color: var(--rec-red);">Step 1: Init Microphone</span>
-                    <p class="modal-text" style="font-size: 11px;">J-looper needs to enter Conference Call mode to test the latency. Press below and accept any warnings.</p>
-                </div>
-                <div id="calib-step-2" class="calib-step">
-                    <span class="settings-label" style="color: var(--rec-red);">Step 2: SAFETY PREP</span>
-                    <div style="background: #fff; padding: 12px; border-radius: 6px; border-left: 4px solid var(--rec-red); margin-bottom: 15px;">
-                        <p class="modal-text" style="font-size: 12px; font-weight: bold; margin: 0; color: var(--rec-red);">⚠️ WARNING: LOUD BEEP</p>
-                        <p class="modal-text" style="font-size: 11px; margin: 4px 0 0 0;">Remove earbuds or headphones NOW.</p>
-                    </div>
-                    <p class="modal-text" style="font-size: 12px;">1. Turn phone media volume up.<br>2. Disconnect Bluetooth.<br>3. Keep quiet when you press start.</p>
-                    <button class="action-btn" style="width:100%; background: var(--gh-green); color: white; border: none; padding: 15px;" onclick="executeCalibrationTest('calib')">EMIT BEEP & MEASURE</button>
-                </div>
-                <div id="calib-step-3" class="calib-step">
-                    <p id="calib-countdown-text" class="modal-text" style="text-align:center; font-weight:bold; color: var(--rec-red);">Brace yourself... Beeping in 2s</p>
-                    <p class="modal-text" style="font-size:10px; text-align:center; margin-bottom:4px;">Live Mic Debugger:</p>
-                    <div class="vu-meter" style="margin-bottom: 20px;"><div class="vu-fill" id="calib-vu-fill" style="background:var(--mic-orange);"></div></div>
-                </div>
-                <div id="calib-step-4" class="calib-step">
-                    <p class="modal-text" id="calib-result-text" style="text-align:center; font-weight:bold; margin-bottom: 5px; font-size: 15px;"></p>
-                    <p style="font-size: 11px; text-align: center; color: #666; margin-top: 0;">Saving and releasing microphone...</p>
-                </div>
-            </div>
-        </div>
-
         <div class="modal-scroll-area" id="settings-override-view" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); margin-bottom: 15px; padding-bottom: 5px;">
-                <h2 class="modal-title">Manual Override</h2>
+                <h2 class="modal-title">Global Latency</h2>
             </div>
             
             <p class="modal-text" style="font-size: 12px; margin-bottom: 15px;">
-                Bypass the test and manually force a specific Global Latency Nudge across all tracks.
+                <strong>Warning:</strong> Modifying this will force a new Global Latency setting across the entire application to compensate for your device's Bluetooth or microphone lag.
             </p>
 
             <div style="background: #f0f3f6; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px;">
@@ -375,6 +331,7 @@
                         <span style="font-size: 12px; font-weight: bold;">ms</span>
                     </div>
                 </div>
+                <p class="modal-text" style="font-size: 10px; color: #666; margin-bottom: 15px;">(Negative numbers play earlier. Positive numbers play later.)</p>
                 <button class="action-btn" style="width: 100%; border-color: var(--bt-blue); color: var(--bt-blue);" onclick="applyGlobalNudgeToAll()">APPLY NUDGE TO ALL TRACKS</button>
             </div>
             <p class="modal-text" style="font-size: 11px; color: #666; text-align: center;">
@@ -424,7 +381,7 @@
                 </div>
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
-                        <span>Start Point Nudge (Mic Latency)</span>
+                        <span>Track Nudge (Left = Earlier | Right = Later)</span>
                         <span id="modal-nudge-val">-120ms</span>
                     </span>
                     <input type="range" id="modal-nudge" min="-300" max="100" value="-120" step="5">
@@ -493,15 +450,21 @@
     let trackGains = new Array(8).fill(null); 
     
     let isPlaying = false, currentStep = 0, nextStepTime = 0, activeTrackIdx = null;
-    let isWaitingForFirstOne = false, isWaitingFullCycle = false, isRecordingNow = false, isSecretlyRecording = false;
-    let userSampleCount = 0;
-    let justRecordedNewSample = false; 
+    
+    // Solid Absolute State Machine for Recording
+    let recState = 'IDLE'; // IDLE, WAITING_SYNC, PRE_ROLL, MIC_STARTING, VISUAL_RECORDING, TAIL_RECORDING
+    let targetRecordStartStep = 0;
+    let targetRecordEndStep = 0;
+    let targetMicStopStep = 0;
 
-    const RECORD_LOOKAHEAD_STEPS = 4; // 1 full beat (quarter note) early recording buffer
+    const RECORD_LOOKAHEAD_STEPS = 8; // Full 2 Beats early to allow iPhone mic spin-up time
+    const RECORD_TAIL_STEPS = 4;      // 1 Beat late for the crossfade tail
     let targetBarLength = 16;
     let scheduleAheadTime = 0.50; 
     let sequenceStartTime = 0;
 
+    let userSampleCount = 0;
+    let justRecordedNewSample = false; 
     let mediaRecorder = null, audioChunks = [];
     let currentMicStream = null, micAnalyser = null, micSource = null;
     let isCalibrating = false;
@@ -623,7 +586,7 @@
 
     function closeSettingsModal() {
         document.getElementById('settings-modal').style.display = 'none';
-        showSettingsView('settings-main-view'); // Reset for next open
+        showSettingsView('settings-main-view'); 
         
         if (isCalibrating) {
             closeCalibrationFlowUIOnly('calib');
@@ -636,7 +599,6 @@
 
     function showSettingsView(viewId) {
         document.getElementById('settings-main-view').style.display = 'none';
-        document.getElementById('settings-calib-view').style.display = 'none';
         document.getElementById('settings-override-view').style.display = 'none';
         
         document.getElementById(viewId).style.display = 'block';
@@ -652,15 +614,17 @@
     }
 
     function applyGlobalNudgeToAll() {
-        let val = document.getElementById('global-nudge-override').value;
-        let parsed = parseInt(val) || 0;
-        
-        appSettings.globalNudge = parsed;
-        appSettings.isInitialized = true; 
-        tracks.forEach((t, i) => { updateLaneNudge(i, parsed); });
-        saveSettings();
-        renderInitState();
-        showSettingsView('settings-main-view');
+        if(confirm("Are you sure? This will change the new global latency compensation setting for the program.")){
+            let val = document.getElementById('global-nudge-override').value;
+            let parsed = parseInt(val) || 0;
+            
+            appSettings.globalNudge = parsed;
+            appSettings.isInitialized = true; 
+            tracks.forEach((t, i) => { updateLaneNudge(i, parsed); });
+            saveSettings();
+            renderInitState();
+            closeSettingsModal(); // Instantly close out per user request
+        }
     }
 
     function updateTempo(val) { 
@@ -843,7 +807,7 @@
             </div>
             <div class="dropdown-panel" id="nudge-panel-${tIdx}">
                 <span class="slider-label" style="display:flex; justify-content:space-between;">
-                    <span>Track Nudge (-300ms to 100ms)</span>
+                    <span>Track Nudge (Left=Earlier | Right=Later)</span>
                     <span id="lane-nudge-val-${tIdx}" style="color:var(--text-color);">${track.nudge}ms</span>
                 </span>
                 <input type="range" min="-300" max="100" value="${track.nudge}" step="5" oninput="updateLaneNudge(${tIdx}, this.value)">
@@ -985,6 +949,7 @@
     function forceStopEngine() {
         if (isPlaying) {
             isPlaying = false;
+            recState = 'IDLE'; // Failsafe state reset
             document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing'));
             if(masterGain && audioCtx) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
@@ -1003,34 +968,53 @@
                 targetBarLength = tracks[activeTrackIdx].bars * 16;
                 const laneRelative = currentStep % targetBarLength;
                 
-                // Absolute grid-based recording logic, replacing the buggy counter logic
-                if (isWaitingForFirstOne && laneRelative === 0) {
-                    isWaitingForFirstOne = false; 
-                    isWaitingFullCycle = true; 
-                    setTimeout(updateRecBtnUI, Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000));
+                // Absolute Step State Machine for Recording
+                
+                // STATE 1: Waiting for the cycle to begin counting down
+                if (recState === 'WAITING_SYNC' && laneRelative === 0) {
+                    recState = 'PRE_ROLL';
                 }
-                else if (isWaitingFullCycle && laneRelative === targetBarLength - RECORD_LOOKAHEAD_STEPS) {
-                    // Turn mic on exactly 1 beat BEFORE the downbeat
-                    isWaitingFullCycle = false; 
-                    isRecordingNow = true;
-                    masterGain.gain.setTargetAtTime(0, nextStepTime, 0.015);
+
+                // STATE 2: Pre-roll cycle hits the lookahead trigger, start the hardware mic
+                if (recState === 'PRE_ROLL' && laneRelative === ((targetBarLength - RECORD_LOOKAHEAD_STEPS) % targetBarLength)) {
+                    recState = 'MIC_STARTING';
+                    targetRecordStartStep = currentStep + RECORD_LOOKAHEAD_STEPS; // Absolute step locking
+                    
+                    masterGain.gain.setTargetAtTime(0, nextStepTime, 0.015); // Drop backing track
                     audioChunks = []; 
                     let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
-                    setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'inactive') mediaRecorder.start(); updateRecBtnUI(); }, delay); 
+                    setTimeout(() => { 
+                        if(isPlaying && mediaRecorder && mediaRecorder.state === 'inactive') mediaRecorder.start(); 
+                        updateRecBtnUI(); 
+                    }, delay); 
                 }
-                else if (isRecordingNow && laneRelative === 0) {
-                    // The actual downbeat hits, flip the UI logic to capture the user's intended 1
-                    isRecordingNow = false; 
-                    isSecretlyRecording = true; 
+
+                // STATE 3: The actual musical 1 hits. Flip UI button to red.
+                if (recState === 'MIC_STARTING' && currentStep === targetRecordStartStep) {
+                    recState = 'VISUAL_RECORDING';
+                    targetRecordEndStep = currentStep + targetBarLength; // Lock absolute end step
                     let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
                     setTimeout(updateRecBtnUI, delay); 
                 }
-                else if (isSecretlyRecording && laneRelative === RECORD_LOOKAHEAD_STEPS) {
-                    // Turn mic off exactly 1 beat AFTER the downbeat for the crossfade tail
-                    isSecretlyRecording = false;
-                    masterGain.gain.setTargetAtTime(appSettings.masterVol, nextStepTime, 0.015);
+
+                // STATE 4: The musical loop length completes. Drop UI button, but keep mic running for tail.
+                if (recState === 'VISUAL_RECORDING' && currentStep === targetRecordEndStep) {
+                    recState = 'TAIL_RECORDING';
+                    targetMicStopStep = currentStep + RECORD_TAIL_STEPS;
+                    
+                    masterGain.gain.setTargetAtTime(appSettings.masterVol, nextStepTime, 0.015); // Bring backing track back
                     let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
-                    setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
+                    setTimeout(updateRecBtnUI, delay); 
+                }
+
+                // STATE 5: Tail completes. Stop the hardware mic.
+                if (recState === 'TAIL_RECORDING' && currentStep === targetMicStopStep) {
+                    recState = 'IDLE';
+                    let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
+                    setTimeout(() => { 
+                        if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); 
+                        updateRecBtnUI();
+                    }, delay); 
                 }
             }
 
@@ -1056,7 +1040,7 @@
         if (trackObj) {
             if (typeof trackObj.attack === 'number') aSec = trackObj.attack / 1000;
             if (typeof trackObj.release === 'number') rSec = trackObj.release / 1000;
-            // Only trim file offset if it is a user sample containing lookahead buffer noise
+            // Trim exact amount of lookahead math from the file offset
             if (trackObj.isUserSample) {
                 lookaheadSecs = (60 / appSettings.tempo) * (RECORD_LOOKAHEAD_STEPS / 4);
             }
@@ -1070,11 +1054,11 @@
         source.connect(envelopeGain); 
         envelopeGain.connect(trackGains[tIdx]); 
         
-        // This was the fatal flaw. Latency nudge shifts the GRID schedule time, NOT the file offset.
+        // This is where latency nudge shifts the actual schedule time on the sequencer grid.
         let actualPlayTime = time + (nudgeMs / 1000); 
         let finalOffset = lookaheadSecs;
 
-        // Safety catch if the calculated time is somehow in the past
+        // Safety catch if the calculated time pushes it slightly into the past
         if (actualPlayTime < audioCtx.currentTime) {
              finalOffset += (audioCtx.currentTime - actualPlayTime);
              actualPlayTime = audioCtx.currentTime;
@@ -1204,8 +1188,10 @@
 
     document.getElementById('rec-action-btn').onclick = () => { 
         if(!isPlaying) { document.getElementById('play-btn').click(); }
-        isWaitingForFirstOne = true; 
-        updateRecBtnUI(); 
+        if (recState === 'IDLE') {
+            recState = 'WAITING_SYNC'; 
+            updateRecBtnUI(); 
+        }
     };
     
     document.getElementById('modal-clear-btn').onclick = () => {
@@ -1245,9 +1231,15 @@
 
     function updateRecBtnUI() {
         const btn = document.getElementById('rec-action-btn');
-        if (isWaitingForFirstOne || isWaitingFullCycle) { btn.innerText = "WAITING..."; btn.className = "rec-btn waiting"; }
-        else if (isRecordingNow) { btn.innerText = "RECORDING!"; btn.className = "rec-btn recording"; }
-        else { btn.innerText = "● RECORD"; btn.className = "rec-btn"; }
+        if (recState === 'WAITING_SYNC' || recState === 'PRE_ROLL' || recState === 'MIC_STARTING') { 
+            btn.innerText = "WAITING..."; btn.className = "rec-btn waiting"; 
+        }
+        else if (recState === 'VISUAL_RECORDING') { 
+            btn.innerText = "RECORDING!"; btn.className = "rec-btn recording"; 
+        }
+        else { 
+            btn.innerText = "● RECORD"; btn.className = "rec-btn"; 
+        }
     }
 
     function tglNode(t, s, el) { tracks[t].steps[s] = !tracks[t].steps[s]; el.classList.toggle('active'); }
@@ -1353,7 +1345,6 @@
                     audioCtx.decodeAudioData(bufferCopy, (decoded) => { tracks[activeTrackIdx].buffer = decoded; });
                 } else { tracks[activeTrackIdx].buffer = null; }
                 
-                // Snap dropdown shut immediately on selection
                 document.getElementById('modal-sample-list').style.display = 'none';
                 document.getElementById('toggle-samples-btn').innerText = "PRELOADED SAMPLES";
 
@@ -1392,7 +1383,7 @@
 
     function initCalibrationMic(prefix) {
         document.getElementById(`${prefix}-step-1`).style.display = 'none';
-        document.getElementById('init-calib-btn-container').style.display = 'none';
+        document.getElementById('ob-step-1').style.display = 'none';
         document.getElementById('calib-flow-container').style.display = 'block';
         
         isCalibrating = true;
@@ -1483,12 +1474,10 @@
         document.getElementById(`${prefix}-step-4`).style.display = 'block';
         
         const resultText = document.getElementById(`${prefix}-result-text`);
-        let successStr = "";
 
         if (latencyResult === -1) {
             resultText.style.color = "var(--rec-red)";
             resultText.innerHTML = "TEST FAILED.<br><span style='font-size:12px; font-weight:normal;'>Did not hear the click.</span>";
-            successStr = "Last Test: FAILED";
         } else {
             let actualNudge = latencyResult * 2;
             resultText.style.color = "var(--gh-green)";
@@ -1501,8 +1490,6 @@
             tracks.forEach((t, i) => { updateLaneNudge(i, newNudge); });
             saveSettings();
             renderInitState();
-            
-            successStr = `Last Test: SUCCESS (${newNudge}ms)`;
         }
 
         if (micSource) { micSource.disconnect(); micSource = null; }
@@ -1515,25 +1502,13 @@
                 document.getElementById('onboarding-modal').style.display = 'none';
                 isCalibrating = false;
                 document.getElementById('play-btn').click();
-            } else {
-                closeCalibrationFlowUIOnly('calib');
-                document.getElementById('last-calib-result').innerText = successStr;
-                if(latencyResult === -1) {
-                    document.getElementById('last-calib-result').style.color = "var(--rec-red)";
-                } else {
-                    document.getElementById('last-calib-result').style.color = "var(--gh-green)";
-                }
             }
         }, 2500);
     }
 
     function closeCalibrationFlowUIOnly(prefix) {
-        document.getElementById(`${prefix}-flow-container`).style.display = 'none';
-        document.getElementById(`${prefix}-step-4`).style.display = 'none';
-        
-        if (prefix === 'calib') {
-            document.getElementById('init-calib-btn-container').style.display = 'block';
-        }
+        document.getElementById('calib-flow-container').style.display = 'none';
+        if (document.getElementById(`${prefix}-step-4`)) document.getElementById(`${prefix}-step-4`).style.display = 'none';
         isCalibrating = false;
     }
 
