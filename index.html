@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.43</title>
+    <title>J-looper v3.44</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -50,17 +50,18 @@
         }
 
         header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; }
-        .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex-shrink: 0; }
+        .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex-shrink: 1; overflow: hidden; }
         #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px; white-space: nowrap;}
         .title-box { background: var(--gh-purple); color: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #6b3ec2; box-shadow: inset 0 1px 2px rgba(255,255,255,0.2); letter-spacing: 0.5px; }
-        .creator-text { font-size: 11px; font-weight: 400; color: #57606a; letter-spacing: 0.2px; padding-left: 2px; margin-top: 2px; white-space: nowrap;}
+        .creator-text { font-size: 11px; font-weight: 400; color: #57606a; letter-spacing: 0.2px; padding-left: 2px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
-        .header-icons { display: flex; gap: 6px; }
-        .icon-text-btn { font-size: 10px; font-weight: 800; padding: 6px 10px; color: var(--gh-purple); border-color: var(--border-color); letter-spacing: 0.5px;}
+        .header-icons { display: flex; gap: 4px; align-items: center;}
+        .icon-text-btn { font-size: 10px; font-weight: 800; padding: 6px 8px; color: var(--gh-purple); border-color: var(--border-color); letter-spacing: 0.5px;}
+        .icon-btn { font-size: 14px; font-weight: 800; padding: 4px 8px; color: var(--gh-purple); border-color: var(--border-color); }
         .support-btn { text-decoration: none; font-size: 9px; font-weight: 800; padding: 4px 6px; }
 
-        .reset-session-btn { font-size: 10px; font-weight: 800; padding: 6px 10px; color: #9e1c23; border: 1px solid #ff7b93; background: #ffe0e6; border-radius: 6px; cursor: pointer; letter-spacing: 0.5px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);}
+        .reset-session-btn { font-size: 10px; font-weight: 800; padding: 6px 8px; color: #9e1c23; border: 1px solid #ff7b93; background: #ffe0e6; border-radius: 6px; cursor: pointer; letter-spacing: 0.5px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);}
         .reset-session-btn:active { background: #ffcadd; transform: translateY(1px); box-shadow: none; }
 
         .transport {
@@ -176,7 +177,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.43</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.44</span>
             </div>
             <div class="creator-text">Created by Jeremiah Keller</div>
         </div>
@@ -187,9 +188,9 @@
                 <a href="#" class="bubble-btn support-btn" style="color:#FF813F; border-color:#FF813F; background: #fff5f0;">☕ BUY ME A COFFEE</a>
             </div>
             <div class="header-icons">
-                <button class="reset-session-btn" onclick="resetSession()">RESET SESSION</button>
+                <button class="reset-session-btn" onclick="resetSession()">RESET</button>
                 <button class="bubble-btn icon-text-btn" onclick="document.getElementById('help-modal').style.display='flex'">HELP / ABOUT</button>
-                <button class="bubble-btn icon-text-btn" onclick="document.getElementById('settings-modal').style.display='flex'">SETTINGS</button>
+                <button class="bubble-btn icon-btn" onclick="document.getElementById('settings-modal').style.display='flex'">⚙</button>
             </div>
         </div>
     </header>
@@ -313,7 +314,7 @@
                     <div id="calib-step-1" class="calib-step">
                         <span class="settings-label" style="color: var(--rec-red);">Step 1: Init Microphone</span>
                         <p class="modal-text" style="font-size: 11px;">J-looper needs to enter Conference Call mode to test the latency. Press below and accept any warnings.</p>
-                        </div>
+                    </div>
                     <div id="calib-step-2" class="calib-step">
                         <span class="settings-label" style="color: var(--rec-red);">Step 2: SAFETY PREP</span>
                         <div style="background: #fff; padding: 8px; border-radius: 4px; border-left: 3px solid var(--rec-red); margin-bottom: 10px;">
@@ -389,10 +390,10 @@
             <div style="margin-bottom: 15px; background: var(--panel-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display:flex; flex-direction:column; gap:12px;">
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
-                        <span>Booth Master Vol (This Track Only)</span>
-                        <span id="modal-master-vol-val">150%</span>
+                        <span>Backing Tracks Vol (Booth)</span>
+                        <span id="modal-backing-vol-val">100%</span>
                     </span>
-                    <input type="range" id="modal-master-vol" class="blue-slider" min="0" max="3" value="1.5" step="0.05">
+                    <input type="range" id="modal-backing-vol" class="blue-slider" min="0" max="3" value="1.0" step="0.05">
                 </div>
                 <div>
                     <span class="slider-label" style="display:flex; justify-content:space-between; color: var(--text-color);">
@@ -434,18 +435,18 @@
         trackVols: Array(8).fill(80),
         trackNudges: Array(8).fill(-120),
         trackModalVols: Array(8).fill(80),
-        trackModalMasterVols: Array(8).fill(1.5)
+        trackModalBackingVols: Array(8).fill(1.0)
     };
 
     const tracks = [
-        { name: 'ds_kick1.wav', steps: [0, 4], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
-        { name: 'ds_snare1.wav', steps: [8], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
-        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 },
-        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalMasterVol: 1.5 }
+        { name: 'ds_kick1.wav', steps: [0, 4], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
+        { name: 'ds_snare1.wav', steps: [8], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
+        { name: 'ds_hihat1.wav', steps: [0, 2, 4, 6, 8, 10, 12, 14], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 },
+        { name: 'EMPTY', steps: [], bars: 1, choke: true, mute: false, solo: false, buffer: null, rawArrayBuffer: null, lastSource: null, lastGain: null, volume: 80, nudge: -120, modalVol: 80, modalBackingVol: 1.0 }
     ];
 
     const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
@@ -493,7 +494,7 @@
             t.volume = appSettings.trackVols && appSettings.trackVols[i] !== undefined ? appSettings.trackVols[i] : 80;
             t.nudge = appSettings.trackNudges && appSettings.trackNudges[i] !== undefined ? appSettings.trackNudges[i] : -120;
             t.modalVol = appSettings.trackModalVols && appSettings.trackModalVols[i] !== undefined ? appSettings.trackModalVols[i] : 80;
-            t.modalMasterVol = appSettings.trackModalMasterVols && appSettings.trackModalMasterVols[i] !== undefined ? appSettings.trackModalMasterVols[i] : 1.5;
+            t.modalBackingVol = appSettings.trackModalBackingVols && appSettings.trackModalBackingVols[i] !== undefined ? appSettings.trackModalBackingVols[i] : 1.0;
         });
 
         renderInitState();
@@ -541,7 +542,7 @@
                 trackVols: Array(8).fill(80),
                 trackNudges: Array(8).fill(savedNudge),
                 trackModalVols: Array(8).fill(80),
-                trackModalMasterVols: Array(8).fill(1.5)
+                trackModalBackingVols: Array(8).fill(1.0)
             };
 
             const defaultNames = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY', 'EMPTY'];
@@ -555,7 +556,7 @@
                 
                 t.bars = 1; t.choke = true; t.mute = false; t.solo = false;
                 t.rawArrayBuffer = null;
-                t.volume = 80; t.nudge = savedNudge; t.modalVol = 80; t.modalMasterVol = 1.5;
+                t.volume = 80; t.nudge = savedNudge; t.modalVol = 80; t.modalBackingVol = 1.0;
                 t.buffer = null; 
             });
 
@@ -618,18 +619,18 @@
     function updateMasterVol(val) {
         appSettings.masterVol = parseFloat(val);
         document.getElementById('master-vol-val').innerText = Math.round(val * 100) + '%';
-        if (masterGain && activeTrackIdx === null) {
+        if (masterGain) {
             masterGain.gain.setTargetAtTime(val, audioCtx.currentTime, 0.015);
         }
         saveSettings();
     }
 
-    document.getElementById('modal-master-vol').oninput = function() {
+    document.getElementById('modal-backing-vol').oninput = function() {
         if(activeTrackIdx !== null) {
-            tracks[activeTrackIdx].modalMasterVol = parseFloat(this.value);
-            appSettings.trackModalMasterVols[activeTrackIdx] = tracks[activeTrackIdx].modalMasterVol;
-            document.getElementById('modal-master-vol-val').innerText = Math.round(this.value * 100) + '%';
-            if (masterGain) masterGain.gain.setTargetAtTime(this.value, audioCtx.currentTime, 0.015);
+            tracks[activeTrackIdx].modalBackingVol = parseFloat(this.value);
+            appSettings.trackModalBackingVols[activeTrackIdx] = tracks[activeTrackIdx].modalBackingVol;
+            document.getElementById('modal-backing-vol-val').innerText = Math.round(this.value * 100) + '%';
+            updateTrackGains(); 
             saveSettings();
         }
     };
@@ -639,9 +640,7 @@
             tracks[activeTrackIdx].modalVol = parseInt(this.value);
             appSettings.trackModalVols[activeTrackIdx] = tracks[activeTrackIdx].modalVol;
             document.getElementById('modal-vol-val').innerText = this.value + '%';
-            if (trackGains[activeTrackIdx]) {
-                trackGains[activeTrackIdx].gain.setTargetAtTime(this.value / 100, audioCtx.currentTime, 0.015);
-            }
+            updateTrackGains(); 
             saveSettings();
         }
     };
@@ -677,19 +676,32 @@
     };
 
     function updateTrackGains() {
-        if (!audioCtx) return;
+        if (!audioCtx || !masterGain) return;
         const anySolo = tracks.some(t => t.solo);
         
+        // Master gain is ALWAYS global master volume.
+        masterGain.gain.setTargetAtTime(appSettings.masterVol, audioCtx.currentTime, 0.015);
+
         tracks.forEach((t, i) => {
             if (trackGains[i]) {
                 let volTarget = 0;
-                let baseVol = (activeTrackIdx === i) ? t.modalVol : t.volume; 
-                if (activeTrackIdx === null) baseVol = t.volume; 
                 
-                if (anySolo) {
-                    if (t.solo) volTarget = baseVol / 100;
+                if (activeTrackIdx === null) {
+                    // Main View
+                    if (anySolo) volTarget = t.solo ? (t.volume / 100) : 0;
+                    else volTarget = t.mute ? 0 : (t.volume / 100);
                 } else {
-                    if (!t.mute) volTarget = baseVol / 100;
+                    // Modal View (Recording/Editing)
+                    if (i === activeTrackIdx) {
+                        // The track being edited ignores the backing volume multiplier
+                        if (anySolo) volTarget = t.solo ? (t.modalVol / 100) : 0;
+                        else volTarget = t.mute ? 0 : (t.modalVol / 100);
+                    } else {
+                        // All other tracks are multiplied by the Backing Tracks Vol slider
+                        let backingMult = tracks[activeTrackIdx].modalBackingVol;
+                        if (anySolo) volTarget = t.solo ? (t.volume / 100) * backingMult : 0;
+                        else volTarget = t.mute ? 0 : (t.volume / 100) * backingMult;
+                    }
                 }
                 trackGains[i].gain.setTargetAtTime(volTarget, audioCtx.currentTime, 0.015);
             }
@@ -807,8 +819,7 @@
         audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
         
         masterGain = audioCtx.createGain();
-        let targetVol = needsMic ? tracks[activeTrackIdx !== null ? activeTrackIdx : 0].modalMasterVol : appSettings.masterVol;
-        masterGain.gain.value = targetVol;
+        masterGain.gain.value = appSettings.masterVol;
         masterGain.connect(audioCtx.destination);
 
         for(let i=0; i<8; i++) {
@@ -953,7 +964,7 @@
                     recordCounter++;
                     if (laneRelative === 2) {
                         isSecretlyRecording = false;
-                        masterGain.gain.setTargetAtTime(tracks[activeTrackIdx].modalMasterVol, nextStepTime, 0.015);
+                        masterGain.gain.setTargetAtTime(appSettings.masterVol, nextStepTime, 0.015);
                         let delay = (nextStepTime - audioCtx.currentTime) * 1000;
                         setTimeout(() => { if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); updateRecBtnUI();}, delay); 
                     }
@@ -1080,8 +1091,7 @@
             if (audioCtx.state === 'suspended') { await audioCtx.resume(); }
             if (masterGain) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-                let currentVol = activeTrackIdx !== null ? tracks[activeTrackIdx].modalMasterVol : appSettings.masterVol;
-                masterGain.gain.setTargetAtTime(currentVol, audioCtx.currentTime, 0.015);
+                masterGain.gain.setTargetAtTime(appSettings.masterVol, audioCtx.currentTime, 0.015);
             }
             
             sequenceStartTime = audioCtx.currentTime + 0.1;
@@ -1154,8 +1164,8 @@
         
         document.getElementById('modal-vol').value = tracks[i].modalVol;
         document.getElementById('modal-vol-val').innerText = tracks[i].modalVol + '%';
-        document.getElementById('modal-master-vol').value = tracks[i].modalMasterVol;
-        document.getElementById('modal-master-vol-val').innerText = Math.round(tracks[i].modalMasterVol * 100) + '%';
+        document.getElementById('modal-backing-vol').value = tracks[i].modalBackingVol;
+        document.getElementById('modal-backing-vol-val').innerText = Math.round(tracks[i].modalBackingVol * 100) + '%';
         
         const modalTrackName = document.getElementById('modal-track-name');
         modalTrackName.innerText = tracks[i].name.toUpperCase();
@@ -1402,7 +1412,6 @@
             if (prefix === 'ob') {
                 document.getElementById('onboarding-modal').style.display = 'none';
                 isCalibrating = false;
-                // Auto-start for the user!
                 document.getElementById('play-btn').click();
             } else {
                 closeCalibrationFlowUIOnly('calib');
