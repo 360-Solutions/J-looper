@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.35</title>
+    <title>J-looper v3.36</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -29,7 +29,7 @@
             background-color: var(--bg-color); color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
             margin: 0 auto; 
-            padding: 0 10px 10px 10px; /* Top padding moved to sticky header */
+            padding: 0 10px 10px 10px; 
             user-select: none; -webkit-tap-highlight-color: transparent;
             touch-action: manipulation; 
             max-width: 480px; 
@@ -38,7 +38,6 @@
             min-height: 100vh;
         }
 
-        /* Sticky Header Zone */
         .sticky-zone {
             position: sticky;
             top: 0;
@@ -171,7 +170,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.35</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.36</span>
             </div>
         </div>
         <div class="header-right">
@@ -244,7 +243,7 @@
                 <span class="settings-label">About</span>
                 <div class="modal-text" style="margin-bottom: 0;">
                     Created by Jeremiah Keller.<br>
-                    Version: 3.35<br>
+                    Version: 3.36<br>
                     <em>Audio engine optimized for mobile Safari conference-call routing.</em>
                 </div>
             </div>
@@ -259,7 +258,7 @@
                 <div id="calib-flow-container" class="calib-flow">
                     <div id="calib-step-1" class="calib-step">
                         <span class="settings-label" style="color: var(--rec-red);">Step 1: Init Microphone</span>
-                        <p class="modal-text" style="font-size: 11px;">J-looper needs to enter Conference Call mode to test the latency. Press below and accept any iOS warnings.</p>
+                        <p class="modal-text" style="font-size: 11px;">J-looper needs to enter Conference Call mode to test the latency. Press below and accept any warnings.</p>
                         <button class="action-btn" style="width:100%; background: var(--gh-purple); color: white; border: none;" onclick="initCalibrationMic()">INITIALIZE MIC</button>
                     </div>
                     <div id="calib-step-2" class="calib-step">
@@ -268,7 +267,7 @@
                         <button class="action-btn" style="width:100%; background: var(--gh-green); color: white; border: none;" onclick="executeCalibrationTest()">START TEST</button>
                     </div>
                     <div id="calib-step-3" class="calib-step">
-                        <p class="modal-text" style="text-align:center; font-weight:bold;">Listening for click...</p>
+                        <p class="modal-text" style="text-align:center; font-weight:bold; color: var(--mic-orange); animation: pulse 1s infinite;">Listening for click...</p>
                     </div>
                     <div id="calib-step-4" class="calib-step">
                         <p class="modal-text" id="calib-result-text" style="text-align:center; font-weight:bold;"></p>
@@ -351,7 +350,6 @@
 </div>
 
 <script>
-    // System Memory Variables
     let appSettings = {
         tempo: 120,
         masterVol: 0.8,
@@ -425,7 +423,6 @@
         localStorage.setItem('jLooperSettings', JSON.stringify(appSettings));
     }
 
-    // --- GLOBAL NUDGE OVERRIDE ---
     function applyGlobalNudgeToAll() {
         let val = document.getElementById('global-nudge-override').value;
         let parsed = parseInt(val) || 0;
@@ -454,7 +451,6 @@
         saveSettings();
     }
 
-    // Modal Specific Vol
     document.getElementById('modal-master-vol').oninput = function() {
         if(activeTrackIdx !== null) {
             tracks[activeTrackIdx].modalMasterVol = parseFloat(this.value);
@@ -499,7 +495,7 @@
         tracks[tIdx].volume = parseInt(val);
         appSettings.trackVols[tIdx] = tracks[tIdx].volume;
         document.getElementById(`lane-vol-val-${tIdx}`).innerText = val + '%';
-        if(activeTrackIdx === null) updateTrackGains(); // Only update immediately if not in modal
+        if(activeTrackIdx === null) updateTrackGains(); 
         saveSettings();
     }
 
@@ -514,10 +510,8 @@
         tracks.forEach((t, i) => {
             if (trackGains[i]) {
                 let volTarget = 0;
-                
-                // If in modal, the active track uses modalVol, all other backing tracks use regular volume
                 let baseVol = (activeTrackIdx === i) ? t.modalVol : t.volume; 
-                if (activeTrackIdx === null) baseVol = t.volume; // If not in modal, everyone uses regular volume
+                if (activeTrackIdx === null) baseVol = t.volume; 
                 
                 if (anySolo) {
                     if (t.solo) volTarget = baseVol / 100;
@@ -959,7 +953,6 @@
         document.getElementById('modal-nudge').value = tracks[i].nudge;
         document.getElementById('modal-nudge-val').innerText = tracks[i].nudge + 'ms';
         
-        // Load the private booth volumes for this specific track!
         document.getElementById('modal-vol').value = tracks[i].modalVol;
         document.getElementById('modal-vol-val').innerText = tracks[i].modalVol + '%';
         document.getElementById('modal-master-vol').value = tracks[i].modalMasterVol;
@@ -970,7 +963,6 @@
         if (tracks[i].name === 'EMPTY') modalTrackName.classList.add('empty-track');
         else modalTrackName.classList.remove('empty-track');
         
-        // Update bar button text accurately when opening
         const modalBtn = document.getElementById('modal-bar-cycle');
         if(modalBtn) modalBtn.innerText = tracks[i].bars + (tracks[i].bars > 1 ? ' BARS' : ' BAR');
 
@@ -1072,13 +1064,12 @@
         renderSequencer(); 
         if(activeTrackIdx === i) {
             renderModalLane(); 
-            // Fix: Update the button text itself so the user sees it change!
             const modalBtn = document.getElementById('modal-bar-cycle');
             if(modalBtn) modalBtn.innerText = tracks[i].bars + (tracks[i].bars > 1 ? ' BARS' : ' BAR');
         }
     }
 
-    // --- LOOPBACK CALIBRATION LOGIC ---
+    // --- LOOPBACK CALIBRATION LOGIC REPAIRED ---
     let isCalibrating = false;
 
     function startCalibrationFlow() {
@@ -1086,66 +1077,76 @@
         document.getElementById('init-calib-btn').style.display = 'none';
         document.getElementById('calib-flow-container').style.display = 'block';
         document.getElementById('calib-step-1').style.display = 'block';
+        document.getElementById('calib-step-2').style.display = 'none';
+        document.getElementById('calib-step-3').style.display = 'none';
+        document.getElementById('calib-step-4').style.display = 'none';
     }
 
     async function initCalibrationMic() {
         document.getElementById('calib-step-1').style.display = 'none';
         isCalibrating = true;
-        await initAudioEngine(true); // Forces iOS Mic Permission Modal
+        await initAudioEngine(true); 
         document.getElementById('calib-step-2').style.display = 'block';
     }
 
-    function executeCalibrationTest() {
+    async function executeCalibrationTest() {
         if (!audioCtx || !micAnalyser) return;
         
+        // Ensure browser audio engine is awake before trying to beep
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+
         document.getElementById('calib-step-2').style.display = 'none';
         document.getElementById('calib-step-3').style.display = 'block';
 
-        // Set master gain up for the test beep
-        masterGain.gain.value = 1.0;
-
-        // Build a short, loud click sound
         const osc = audioCtx.createOscillator();
         const env = audioCtx.createGain();
         osc.type = 'square';
-        osc.frequency.value = 1000;
-        osc.connect(env);
-        env.connect(masterGain);
-
-        env.gain.setValueAtTime(0, audioCtx.currentTime);
-        env.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.01);
-        env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-
-        // Schedule it slightly in the future
-        const triggerTime = audioCtx.currentTime + 0.2;
-        const triggerPerfTime = performance.now() + 200; 
+        osc.frequency.value = 880; // Adjusted frequency to cut through noise better
         
-        osc.start(triggerTime);
-        osc.stop(triggerTime + 0.1);
+        // CRITICAL FIX: Wire directly to the destination speaker to bypass any muted sliders
+        osc.connect(env);
+        env.connect(audioCtx.destination);
+
+        // Schedule the beep precisely on the AudioContext clock
+        let triggerCtxTime = audioCtx.currentTime + 0.25; 
+        
+        env.gain.setValueAtTime(0, audioCtx.currentTime);
+        env.gain.linearRampToValueAtTime(1, triggerCtxTime);
+        env.gain.setValueAtTime(1, triggerCtxTime + 0.05);
+        env.gain.exponentialRampToValueAtTime(0.001, triggerCtxTime + 0.15);
+
+        osc.start(triggerCtxTime);
+        osc.stop(triggerCtxTime + 0.2);
 
         let detected = false;
+        let timeoutTriggered = false;
         
         const checkPeak = () => {
-            if (detected) return;
+            if (detected || timeoutTriggered) return;
             const data = new Uint8Array(micAnalyser.fftSize);
             micAnalyser.getByteTimeDomainData(data);
             
             let max = 0;
             for(let i=0; i<data.length; i++) {
-                let val = Math.abs(data[i] - 128); // Standardize wave
+                let val = Math.abs(data[i] - 128); 
                 if(val > max) max = val;
             }
 
-            // If we are past the trigger time and detect a loud signal
-            if (performance.now() > triggerPerfTime && max > 30) { 
+            // CRITICAL FIX: Check the same audioCtx clock to see if we passed the trigger time
+            if (audioCtx.currentTime > triggerCtxTime && max > 30) { 
                 detected = true;
-                let latencyMs = Math.round(performance.now() - triggerPerfTime);
+                let latencyMs = Math.round((audioCtx.currentTime - triggerCtxTime) * 1000);
+                
+                // Prevent impossibly fast detection from electrical noise
+                if(latencyMs < 5) latencyMs = 5; 
+                
                 finishCalibration(latencyMs);
                 return;
             }
 
-            // Timeout after 1.5 seconds if nothing is heard
-            if (performance.now() > triggerPerfTime + 1500) {
+            // Timeout after 1.5 seconds if no sound heard
+            if (audioCtx.currentTime > triggerCtxTime + 1.5) {
+                timeoutTriggered = true;
                 finishCalibration(-1);
                 return;
             }
@@ -1167,7 +1168,7 @@
             resultText.style.color = "var(--gh-green)";
             resultText.innerHTML = `SUCCESS!<br>Latency Detected: ${latencyResult}ms`;
             
-            // Automatically apply and save the new offset (inverted)
+            // Invert latency for the nudge offset
             let newNudge = -latencyResult;
             document.getElementById('global-nudge-override').value = newNudge;
             appSettings.globalNudge = newNudge;
@@ -1177,13 +1178,11 @@
     }
 
     async function closeCalibrationFlow() {
-        // Reset UI
         document.getElementById('calib-flow-container').style.display = 'none';
         document.getElementById('calib-step-4').style.display = 'none';
         document.getElementById('init-calib-btn').style.display = 'block';
         isCalibrating = false;
         
-        // Teardown mic engine and return to high-fidelity mode
         if (micSource) { micSource.disconnect(); micSource = null; }
         micAnalyser = null;
         if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
