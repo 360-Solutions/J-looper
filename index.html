@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v3.42</title>
+    <title>J-looper v3.43</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -49,20 +49,19 @@
             margin-bottom: 12px;
         }
 
-        header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; position: relative; }
+        header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; }
         .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex-shrink: 0; }
         #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px; white-space: nowrap;}
         .title-box { background: var(--gh-purple); color: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #6b3ec2; box-shadow: inset 0 1px 2px rgba(255,255,255,0.2); letter-spacing: 0.5px; }
         .creator-text { font-size: 11px; font-weight: 400; color: #57606a; letter-spacing: 0.2px; padding-left: 2px; margin-top: 2px; white-space: nowrap;}
 
-        .header-center { position: absolute; left: 50%; transform: translateX(-50%); top: 0; }
-        .reset-session-btn { padding: 4px 8px; color: #9e1c23; border: 1px solid #ff7b93; background: #ffe0e6; font-size: 8px; font-weight: 900; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); cursor: pointer; text-align: center; line-height: 1.2; letter-spacing: 0.3px;}
-        .reset-session-btn:active { background: #ffcadd; transform: translateY(1px); box-shadow: none; }
-        
         .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
         .header-icons { display: flex; gap: 6px; }
         .icon-text-btn { font-size: 10px; font-weight: 800; padding: 6px 10px; color: var(--gh-purple); border-color: var(--border-color); letter-spacing: 0.5px;}
         .support-btn { text-decoration: none; font-size: 9px; font-weight: 800; padding: 4px 6px; }
+
+        .reset-session-btn { font-size: 10px; font-weight: 800; padding: 6px 10px; color: #9e1c23; border: 1px solid #ff7b93; background: #ffe0e6; border-radius: 6px; cursor: pointer; letter-spacing: 0.5px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);}
+        .reset-session-btn:active { background: #ffcadd; transform: translateY(1px); box-shadow: none; }
 
         .transport {
             background: var(--panel-color); padding: 10px; border-radius: 10px;
@@ -177,21 +176,18 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.42</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v3.43</span>
             </div>
             <div class="creator-text">Created by Jeremiah Keller</div>
         </div>
         
-        <div class="header-center">
-            <button class="reset-session-btn" onclick="resetSession()">RESET<br>SESSION</button>
-        </div>
-
         <div class="header-right">
             <div class="header-icons" style="margin-bottom: 2px;">
                 <a href="#" class="bubble-btn support-btn" style="color:#FF5E5B; border-color:#FF5E5B; background: #fff0f2;">☕ KO-FI</a>
                 <a href="#" class="bubble-btn support-btn" style="color:#FF813F; border-color:#FF813F; background: #fff5f0;">☕ BUY ME A COFFEE</a>
             </div>
             <div class="header-icons">
+                <button class="reset-session-btn" onclick="resetSession()">RESET SESSION</button>
                 <button class="bubble-btn icon-text-btn" onclick="document.getElementById('help-modal').style.display='flex'">HELP / ABOUT</button>
                 <button class="bubble-btn icon-text-btn" onclick="document.getElementById('settings-modal').style.display='flex'">SETTINGS</button>
             </div>
@@ -222,6 +218,39 @@
 </div>
 
 <div id="main-grid"></div>
+
+<div id="onboarding-modal" class="modal">
+    <div class="modal-content" style="max-width: 380px;">
+        <div class="modal-scroll-area" style="text-align: center; padding: 20px;">
+            <h2 class="modal-title" style="margin-bottom: 12px; font-size: 22px;">Welcome! 👋</h2>
+            <p class="modal-text" style="font-size: 14px;">Since it's your first time here, we need to run a quick, one-time audio test to measure your device's exact latency.</p>
+            
+            <div id="ob-step-1" style="display: block;">
+                <button class="action-btn" style="width:100%; background: var(--gh-purple); color: white; border: none; padding: 18px; font-size: 14px;" onclick="initCalibrationMic('ob')">ENABLE MICROPHONE</button>
+            </div>
+            
+            <div id="ob-step-2" class="calib-step">
+                <div style="background: #fff; padding: 12px; border-radius: 6px; border-left: 4px solid var(--rec-red); margin-bottom: 15px; text-align: left;">
+                    <p class="modal-text" style="font-size: 13px; font-weight: bold; margin: 0; color: var(--rec-red);">⚠️ SAFETY PREP: LOUD BEEP</p>
+                    <p class="modal-text" style="font-size: 12px; margin: 4px 0 0 0;">Remove earbuds or headphones NOW. The device will emit a loud beep.</p>
+                </div>
+                <p class="modal-text" style="font-size: 13px; text-align: left;">1. Turn phone media volume up.<br>2. Disconnect Bluetooth.<br>3. Keep quiet when you press start.</p>
+                <button class="action-btn" style="width:100%; background: var(--gh-green); color: white; border: none; padding: 18px; font-size: 14px;" onclick="executeCalibrationTest('ob')">START TEST</button>
+            </div>
+            
+            <div id="ob-step-3" class="calib-step">
+                <p id="ob-countdown-text" class="modal-text" style="text-align:center; font-weight:bold; color: var(--rec-red); font-size: 16px;">Brace yourself... Beeping in 2s</p>
+                <p class="modal-text" style="font-size:11px; text-align:center; margin-bottom:4px;">Live Mic Debugger:</p>
+                <div class="vu-meter" style="margin-bottom: 20px; height: 10px; border-radius: 5px;"><div class="vu-fill" id="ob-vu-fill" style="background:var(--mic-orange);"></div></div>
+            </div>
+            
+            <div id="ob-step-4" class="calib-step">
+                <p class="modal-text" id="ob-result-text" style="text-align:center; font-weight:bold; font-size: 16px; margin-bottom: 5px;"></p>
+                <p style="font-size: 11px; text-align: center; color: #666; margin-top: 0;">Saving settings and getting ready...</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div id="help-modal" class="modal">
     <div class="modal-content">
@@ -277,15 +306,14 @@
                 <p class="modal-text" style="font-size: 11px; margin-bottom: 10px;">
                     Different devices process audio at different speeds. If your recordings sound out of sync, run this loopback test. It will emit a click, listen for it, and adjust your timing automatically.
                 </p>
-                <button class="action-btn" id="init-calib-btn" style="width: 100%; border-color: var(--rec-red); color: var(--rec-red); margin-bottom: 4px;" onclick="startCalibrationFlow()">RUN LOOPBACK TEST</button>
+                <button class="action-btn" id="init-calib-btn" style="width: 100%; border-color: var(--rec-red); color: var(--rec-red); margin-bottom: 4px;" onclick="initCalibrationMic('calib')">RUN LOOPBACK TEST</button>
                 <div id="last-calib-result" style="font-size: 10px; color: var(--gh-green); text-align: center; margin-bottom: 10px; font-weight: bold; min-height: 12px;"></div>
                 
                 <div id="calib-flow-container" class="calib-flow">
                     <div id="calib-step-1" class="calib-step">
                         <span class="settings-label" style="color: var(--rec-red);">Step 1: Init Microphone</span>
                         <p class="modal-text" style="font-size: 11px;">J-looper needs to enter Conference Call mode to test the latency. Press below and accept any warnings.</p>
-                        <button class="action-btn" style="width:100%; background: var(--gh-purple); color: white; border: none;" onclick="initCalibrationMic()">INITIALIZE MIC</button>
-                    </div>
+                        </div>
                     <div id="calib-step-2" class="calib-step">
                         <span class="settings-label" style="color: var(--rec-red);">Step 2: SAFETY PREP</span>
                         <div style="background: #fff; padding: 8px; border-radius: 4px; border-left: 3px solid var(--rec-red); margin-bottom: 10px;">
@@ -293,7 +321,7 @@
                             <p class="modal-text" style="font-size: 11px; margin: 4px 0 0 0;">Remove earbuds or headphones NOW. The device will emit a loud beep at 100% volume.</p>
                         </div>
                         <p class="modal-text" style="font-size: 11px;">1. Turn phone media volume up.<br>2. Disconnect Bluetooth.<br>3. Keep quiet when you press start.</p>
-                        <button class="action-btn" style="width:100%; background: var(--gh-green); color: white; border: none;" onclick="executeCalibrationTest()">START TEST</button>
+                        <button class="action-btn" style="width:100%; background: var(--gh-green); color: white; border: none;" onclick="executeCalibrationTest('calib')">START TEST</button>
                     </div>
                     <div id="calib-step-3" class="calib-step">
                         <p id="calib-countdown-text" class="modal-text" style="text-align:center; font-weight:bold; color: var(--rec-red);">Brace yourself... Beeping in 2s</p>
@@ -546,13 +574,11 @@
     function closeSettingsModal() {
         document.getElementById('settings-modal').style.display = 'none';
         
-        // Hide override view so it starts closed next time
         document.getElementById('nudge-override-view').style.display = 'none';
         document.getElementById('nudge-display-view').style.display = 'flex';
         
-        // Safety: If they close the settings modal while the mic is calibrating
         if (isCalibrating) {
-            closeCalibrationFlowUIOnly();
+            closeCalibrationFlowUIOnly('calib');
             if (micSource) { micSource.disconnect(); micSource = null; }
             micAnalyser = null;
             if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
@@ -1021,10 +1047,16 @@
             let max = 0;
             for(let i=0; i<dataArray.length; i++) { if(dataArray[i] > max) max = dataArray[i]; }
             let percent = (max / 255) * 100;
+            
             const calibVuFill = document.getElementById('calib-vu-fill');
-            if (calibVuFill) {
+            if (calibVuFill && calibVuFill.offsetParent !== null) {
                 calibVuFill.style.width = percent + '%';
                 calibVuFill.style.background = percent > 50 ? 'var(--rec-red)' : 'var(--mic-orange)';
+            }
+            const obVuFill = document.getElementById('ob-vu-fill');
+            if (obVuFill && obVuFill.offsetParent !== null) {
+                obVuFill.style.width = percent + '%';
+                obVuFill.style.background = percent > 50 ? 'var(--rec-red)' : 'var(--mic-orange)';
             }
         }
         
@@ -1037,7 +1069,7 @@
 
     document.getElementById('play-btn').onclick = async function() {
         if (!appSettings.isInitialized) {
-            document.getElementById('settings-modal').style.display = 'flex';
+            document.getElementById('onboarding-modal').style.display = 'flex';
             return; 
         }
 
@@ -1236,7 +1268,7 @@
         }
     }
 
-    // --- LOOPBACK CALIBRATION LOGIC W/ INSTANT MIC DROP ---
+    // --- SHARED CALIBRATION LOGIC ---
     let isCalibrating = false;
 
     function startCalibrationFlow() {
@@ -1250,24 +1282,23 @@
         document.getElementById('last-calib-result').innerText = '';
     }
 
-    async function initCalibrationMic() {
-        document.getElementById('calib-step-1').style.display = 'none';
+    async function initCalibrationMic(prefix) {
+        document.getElementById(`${prefix}-step-1`).style.display = 'none';
         isCalibrating = true;
         await initAudioEngine(true); 
         
         requestAnimationFrame(uiLoop);
-        
-        document.getElementById('calib-step-2').style.display = 'block';
+        document.getElementById(`${prefix}-step-2`).style.display = 'block';
     }
 
-    async function executeCalibrationTest() {
+    async function executeCalibrationTest(prefix) {
         if (!audioCtx || !micAnalyser) return;
         
         if (audioCtx.state === 'suspended') await audioCtx.resume();
 
-        document.getElementById('calib-step-2').style.display = 'none';
-        const step3 = document.getElementById('calib-step-3');
-        const countdownText = document.getElementById('calib-countdown-text');
+        document.getElementById(`${prefix}-step-2`).style.display = 'none';
+        const step3 = document.getElementById(`${prefix}-step-3`);
+        const countdownText = document.getElementById(`${prefix}-countdown-text`);
         
         step3.style.display = 'block';
         
@@ -1319,13 +1350,13 @@
                         detected = true;
                         let latencyMs = Math.round((audioCtx.currentTime - triggerCtxTime) * 1000);
                         if(latencyMs < 5) latencyMs = 5; 
-                        finishCalibration(latencyMs);
+                        finishCalibration(latencyMs, prefix);
                         return;
                     }
 
                     if (audioCtx.currentTime > triggerCtxTime + 1.5) {
                         timeoutTriggered = true;
-                        finishCalibration(-1);
+                        finishCalibration(-1, prefix);
                         return;
                     }
                     requestAnimationFrame(checkPeak);
@@ -1336,17 +1367,16 @@
         }, 1000);
     }
 
-    function finishCalibration(latencyResult) {
-        document.getElementById('calib-step-3').style.display = 'none';
-        document.getElementById('calib-step-4').style.display = 'block';
+    function finishCalibration(latencyResult, prefix) {
+        document.getElementById(`${prefix}-step-3`).style.display = 'none';
+        document.getElementById(`${prefix}-step-4`).style.display = 'block';
         
-        const resultText = document.getElementById('calib-result-text');
-        
+        const resultText = document.getElementById(`${prefix}-result-text`);
         let successStr = "";
 
         if (latencyResult === -1) {
             resultText.style.color = "var(--rec-red)";
-            resultText.innerHTML = "TEST FAILED.<br><span style='font-size:10px; font-weight:normal;'>Did not hear the click.</span>";
+            resultText.innerHTML = "TEST FAILED.<br><span style='font-size:12px; font-weight:normal;'>Did not hear the click.</span>";
             successStr = "Last Test: FAILED";
         } else {
             resultText.style.color = "var(--gh-green)";
@@ -1363,28 +1393,33 @@
             successStr = `Last Test: SUCCESS (${newNudge}ms)`;
         }
 
-        // 1. INSTANTLY KILL MIC TO PREVENT AUDIO LEAKAGE
         if (micSource) { micSource.disconnect(); micSource = null; }
         micAnalyser = null;
         if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
-        initAudioEngine(false); // Reboot into output-only mode behind the scenes
+        initAudioEngine(false); 
 
-        // 2. WAIT 2.5 SECONDS, THEN CLEAN UP UI AUTOMATICALLY
         setTimeout(() => {
-            closeCalibrationFlowUIOnly();
-            document.getElementById('last-calib-result').innerText = successStr;
-            if(latencyResult === -1) {
-                document.getElementById('last-calib-result').style.color = "var(--rec-red)";
+            if (prefix === 'ob') {
+                document.getElementById('onboarding-modal').style.display = 'none';
+                isCalibrating = false;
+                // Auto-start for the user!
+                document.getElementById('play-btn').click();
             } else {
-                document.getElementById('last-calib-result').style.color = "var(--gh-green)";
+                closeCalibrationFlowUIOnly('calib');
+                document.getElementById('last-calib-result').innerText = successStr;
+                if(latencyResult === -1) {
+                    document.getElementById('last-calib-result').style.color = "var(--rec-red)";
+                } else {
+                    document.getElementById('last-calib-result').style.color = "var(--gh-green)";
+                }
             }
         }, 2500);
     }
 
-    function closeCalibrationFlowUIOnly() {
-        document.getElementById('calib-flow-container').style.display = 'none';
-        document.getElementById('calib-step-4').style.display = 'none';
-        document.getElementById('init-calib-btn').style.display = 'block';
+    function closeCalibrationFlowUIOnly(prefix) {
+        document.getElementById(`${prefix}-flow-container`).style.display = 'none';
+        document.getElementById(`${prefix}-step-4`).style.display = 'none';
+        document.getElementById(`init-${prefix}-btn`).style.display = 'block';
         isCalibrating = false;
     }
 
