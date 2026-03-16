@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v4.02</title>
+    <title>J-looper v4.04</title>
     <style>
         :root {
             --bg-color: #ffffff; 
@@ -181,7 +181,7 @@
         <div class="header-left">
             <div id="app-title">
                 <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v4.02</span>
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v4.04</span>
             </div>
             <div class="creator-text">By Jeremiah Keller</div>
         </div>
@@ -587,14 +587,6 @@
     function closeSettingsModal() {
         document.getElementById('settings-modal').style.display = 'none';
         showSettingsView('settings-main-view'); 
-        
-        if (isCalibrating) {
-            closeCalibrationFlowUIOnly('calib');
-            if (micSource) { micSource.disconnect(); micSource = null; }
-            micAnalyser = null;
-            if (currentMicStream) { currentMicStream.getTracks().forEach(track => track.stop()); currentMicStream = null; }
-            if (audioCtx) initAudioEngine(false); 
-        }
     }
 
     function showSettingsView(viewId) {
@@ -606,7 +598,6 @@
         if (viewId === 'settings-main-view') {
             document.getElementById('settings-footer-main').style.display = 'block';
             document.getElementById('settings-footer-sub').style.display = 'none';
-            if(isCalibrating) closeCalibrationFlowUIOnly('calib');
         } else {
             document.getElementById('settings-footer-main').style.display = 'none';
             document.getElementById('settings-footer-sub').style.display = 'block';
@@ -623,7 +614,7 @@
             tracks.forEach((t, i) => { updateLaneNudge(i, parsed); });
             saveSettings();
             renderInitState();
-            closeSettingsModal(); // Instantly close out per user request
+            closeSettingsModal(); 
         }
     }
 
@@ -896,7 +887,7 @@
                             userSampleCount++;
                             tracks[activeTrackIdx].buffer = normalizeBuffer(decoded);
                             tracks[activeTrackIdx].name = `USER_${userSampleCount}`;
-                            tracks[activeTrackIdx].isUserSample = true; // Flag for skip math playback
+                            tracks[activeTrackIdx].isUserSample = true; 
                             const modalTrackName = document.getElementById('modal-track-name');
                             if(modalTrackName) {
                                 modalTrackName.innerText = tracks[activeTrackIdx].name.toUpperCase();
@@ -949,7 +940,7 @@
     function forceStopEngine() {
         if (isPlaying) {
             isPlaying = false;
-            recState = 'IDLE'; // Failsafe state reset
+            recState = 'IDLE'; 
             document.querySelectorAll('.node.playing, .modal-node.playing').forEach(el => el.classList.remove('playing'));
             if(masterGain && audioCtx) {
                 masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
@@ -980,7 +971,6 @@
                     recState = 'MIC_STARTING';
                     targetRecordStartStep = currentStep + RECORD_LOOKAHEAD_STEPS; // Absolute step locking
                     
-                    masterGain.gain.setTargetAtTime(0, nextStepTime, 0.015); // Drop backing track
                     audioChunks = []; 
                     let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
                     setTimeout(() => { 
@@ -993,6 +983,10 @@
                 if (recState === 'MIC_STARTING' && currentStep === targetRecordStartStep) {
                     recState = 'VISUAL_RECORDING';
                     targetRecordEndStep = currentStep + targetBarLength; // Lock absolute end step
+                    
+                    // Mute backing track exactly on the musical 1 so there's no bleed
+                    masterGain.gain.setTargetAtTime(0, nextStepTime, 0.015);
+                    
                     let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
                     setTimeout(updateRecBtnUI, delay); 
                 }
@@ -1002,7 +996,6 @@
                     recState = 'TAIL_RECORDING';
                     targetMicStopStep = currentStep + RECORD_TAIL_STEPS;
                     
-                    masterGain.gain.setTargetAtTime(appSettings.masterVol, nextStepTime, 0.015); // Bring backing track back
                     let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
                     setTimeout(updateRecBtnUI, delay); 
                 }
@@ -1010,6 +1003,10 @@
                 // STATE 5: Tail completes. Stop the hardware mic.
                 if (recState === 'TAIL_RECORDING' && currentStep === targetMicStopStep) {
                     recState = 'IDLE';
+                    
+                    // Unmute backing track after the secret recording tail is completely finished
+                    masterGain.gain.setTargetAtTime(appSettings.masterVol, nextStepTime, 0.015);
+                    
                     let delay = Math.max(0, (nextStepTime - audioCtx.currentTime) * 1000);
                     setTimeout(() => { 
                         if(isPlaying && mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop(); 
@@ -1040,7 +1037,6 @@
         if (trackObj) {
             if (typeof trackObj.attack === 'number') aSec = trackObj.attack / 1000;
             if (typeof trackObj.release === 'number') rSec = trackObj.release / 1000;
-            // Trim exact amount of lookahead math from the file offset
             if (trackObj.isUserSample) {
                 lookaheadSecs = (60 / appSettings.tempo) * (RECORD_LOOKAHEAD_STEPS / 4);
             }
@@ -1054,11 +1050,9 @@
         source.connect(envelopeGain); 
         envelopeGain.connect(trackGains[tIdx]); 
         
-        // This is where latency nudge shifts the actual schedule time on the sequencer grid.
         let actualPlayTime = time + (nudgeMs / 1000); 
         let finalOffset = lookaheadSecs;
 
-        // Safety catch if the calculated time pushes it slightly into the past
         if (actualPlayTime < audioCtx.currentTime) {
              finalOffset += (audioCtx.currentTime - actualPlayTime);
              actualPlayTime = audioCtx.currentTime;
@@ -1327,7 +1321,7 @@
             item.onclick = () => { 
                 tracks[activeTrackIdx].name = file; 
                 tracks[activeTrackIdx].rawArrayBuffer = null; 
-                tracks[activeTrackIdx].isUserSample = false; // Factory sample, no lookahead
+                tracks[activeTrackIdx].isUserSample = false; 
                 
                 let newNudge = appSettings.globalNudge;
                 updateLaneNudge(activeTrackIdx, newNudge);
@@ -1383,9 +1377,6 @@
 
     function initCalibrationMic(prefix) {
         document.getElementById(`${prefix}-step-1`).style.display = 'none';
-        document.getElementById('ob-step-1').style.display = 'none';
-        document.getElementById('calib-flow-container').style.display = 'block';
-        
         isCalibrating = true;
         initAudioEngine(true).then(() => {
             requestAnimationFrame(uiLoop);
@@ -1479,7 +1470,7 @@
             resultText.style.color = "var(--rec-red)";
             resultText.innerHTML = "TEST FAILED.<br><span style='font-size:12px; font-weight:normal;'>Did not hear the click.</span>";
         } else {
-            let actualNudge = latencyResult * 2;
+            let actualNudge = latencyResult; // REMOVED DOUBLING
             resultText.style.color = "var(--gh-green)";
             resultText.innerHTML = `SUCCESS!<br><span style="font-size:11px; font-weight:bold;">Base: ${latencyResult}ms | Applied: ${actualNudge}ms</span>`;
             
@@ -1504,12 +1495,6 @@
                 document.getElementById('play-btn').click();
             }
         }, 2500);
-    }
-
-    function closeCalibrationFlowUIOnly(prefix) {
-        document.getElementById('calib-flow-container').style.display = 'none';
-        if (document.getElementById(`${prefix}-step-4`)) document.getElementById(`${prefix}-step-4`).style.display = 'none';
-        isCalibrating = false;
     }
 
     document.addEventListener('visibilitychange', () => {
