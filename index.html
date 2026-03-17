@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>J-looper v4.04</title>
+    <title>WebLooper v1.0</title>
+    
     <style>
         :root {
             --bg-color: #ffffff; 
             --panel-color: #f6f8fa; 
             --text-color: #1f2328;
+            --text-dim: #656d76;
             --border-color: #d0d7de;
             
             --gh-purple: #8250df; 
             --bt-blue: #007AFF; 
+            --accent-blue: #0969da;
             --mic-orange: #ff9f0a; 
             --rec-red: #d73a49;
             --gh-green: #28a745;
@@ -39,26 +42,25 @@
         }
 
         .sticky-zone {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background-color: var(--bg-color);
-            padding-top: max(4px, env(safe-area-inset-top)); 
-            padding-bottom: 4px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 12px;
+            position: sticky; top: 0; z-index: 10; background-color: var(--bg-color);
+            padding-top: max(4px, env(safe-area-inset-top)); padding-bottom: 4px;
+            border-bottom: 1px solid var(--border-color); margin-bottom: 12px;
         }
 
         header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; }
         .header-left { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex-shrink: 1; overflow: hidden; }
         #app-title { font-size: 20px; font-weight:900; display: flex; align-items: baseline; gap: 6px; white-space: nowrap;}
         .title-box { background: var(--gh-purple); color: white; padding: 4px 8px; border-radius: 6px; border: 1px solid #6b3ec2; box-shadow: inset 0 1px 2px rgba(255,255,255,0.2); letter-spacing: 0.5px; }
-        .creator-text { font-size: 11px; font-weight: 400; color: #57606a; letter-spacing: 0.2px; padding-left: 2px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .creator-text { font-size: 11px; font-weight: 400; color: var(--text-dim); letter-spacing: 0.2px; padding-left: 2px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 
-        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
-        .header-icons { display: flex; align-items: center;}
+        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
         
-        .support-link { text-decoration: none; font-size: 10px; font-weight: 900; padding: 2px 4px; }
+        /* Sleek Support Links */
+        .support-links-header { display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
+        .support-link { text-decoration: none; font-size: 10px; font-weight: 700; color: var(--text-dim); transition: color 0.2s; display: flex; align-items: center; gap: 4px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .support-link:hover { color: var(--accent-blue); }
+
+        .header-icons { display: flex; align-items: center;}
         .sleek-text-btn { background: transparent; border: none; font-size: 10px; font-weight: 800; color: var(--gh-purple); cursor: pointer; padding: 4px; letter-spacing: 0.5px;}
         .sleek-icon-btn { background: transparent; border: none; font-size: 22px; color: var(--gh-purple); cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center;}
 
@@ -67,16 +69,12 @@
 
         .transport {
             background: var(--panel-color); padding: 10px; border-radius: 10px;
-            display: flex; gap: 10px; 
-            border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-            align-items: stretch;
+            display: flex; gap: 10px; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.04); align-items: stretch;
         }
         
         .main-play-btn { 
-            background: var(--gh-green); border: 1px solid #2ea043; color: #fff; 
-            font-weight: 900; border-radius: 8px; cursor: pointer;
-            font-size: 14px; width: 85px; flex-shrink: 0;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.1);
+            background: var(--gh-green); border: 1px solid #2ea043; color: #fff; font-weight: 900; border-radius: 8px; cursor: pointer;
+            font-size: 14px; width: 85px; flex-shrink: 0; box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.1);
         }
         .main-play-btn.stopped { background: var(--rec-red) !important; border-color: #b02826 !important; }
         .main-play-btn.init-mode { background: var(--gh-purple) !important; border-color: #6b3ec2 !important; font-size: 11px; animation: pulse 2s infinite;}
@@ -165,7 +163,7 @@
         .modal-node.the-only-one.playing { background: var(--node-led) !important; box-shadow: 0 0 8px #fff !important; }
 
         .modal-title { font-size: 18px; font-weight: 900; margin: 0; color: var(--gh-purple); }
-        .modal-text { font-size: 13px; line-height: 1.5; margin-bottom: 15px; color: #333; }
+        .modal-text { font-size: 13px; line-height: 1.5; margin-bottom: 15px; color: var(--text-color); }
         .settings-section { background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
         .settings-label { font-size: 11px; font-weight: 800; color: var(--text-color); display: block; margin-bottom: 6px; text-transform: uppercase;}
         .nudge-input { width: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; text-align: center; }
@@ -180,18 +178,22 @@
     <header>
         <div class="header-left">
             <div id="app-title">
-                <span class="title-box">J-looper</span> 
-                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v4.04</span>
+                <span class="title-box">WebLooper</span> 
+                <span style="font-size: 12px; font-weight:bold; color: var(--gh-purple);">v1.0</span>
             </div>
             <div class="creator-text">By Jeremiah Keller</div>
         </div>
         
         <div class="header-right">
-            <div class="header-icons" style="margin-bottom: 4px; gap: 8px;">
-                <a href="#" class="support-link" style="color:#FF5E5B;">☕ KO-FI</a>
-                <a href="#" class="support-link" style="color:#FF813F;">☕ BUY ME A COFFEE</a>
+            <div class="support-links-header">
+                <a href="https://ko-fi.com/360solutions" class="support-link" target="_blank">
+                    <span style="color:#FF5E5B; font-size:12px;">☕</span> KO-FI
+                </a>
+                <a href="https://www.buymeacoffee.com/jeremiahkeller" class="support-link" target="_blank">
+                    <span style="color:#FF813F; font-size:12px;">☕</span> BUY ME A COFFEE
+                </a>
             </div>
-            <div class="header-icons" style="gap: 12px;">
+            <div class="header-icons" style="gap: 12px; margin-top: 4px;">
                 <button class="reset-session-btn" onclick="resetSession()" style="margin-right: 4px;">RESET</button>
                 <button class="sleek-text-btn" onclick="document.getElementById('help-modal').style.display='flex'">HELP / ABOUT</button>
                 <button class="sleek-icon-btn" onclick="openSettingsModal()">⚙</button>
@@ -269,22 +271,27 @@
                     <strong style="font-size: 12px; color: #000; display: block; margin-bottom: 4px;">Created by Jeremiah Keller</strong>
                     <div style="font-size: 11px; font-weight: bold; color: var(--bt-blue); user-select: all;">jk.360.workspace@gmail.com</div>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-                    <a href="#" class="support-link" style="color:#FF5E5B;">☕ KO-FI</a>
-                    <a href="#" class="support-link" style="color:#FF813F;">☕ BUY ME A COFFEE</a>
+                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                    <a href="https://ko-fi.com/360solutions" target="_blank" class="support-link">
+                        <span style="color:#FF5E5B; font-size:12px;">☕</span> KO-FI
+                    </a>
+                    <a href="https://www.buymeacoffee.com/jeremiahkeller" target="_blank" class="support-link">
+                        <span style="color:#FF813F; font-size:12px;">☕</span> BUY ME A COFFEE
+                    </a>
                 </div>
             </div>
 
+            <p class="modal-text" style="font-style: italic; border-left: 3px solid var(--border-color); padding-left: 10px; color: var(--text-dim);">
+                <strong>WebLooper</strong> is a free, experimental mobile-first project by Jeremiah Keller. No warranties—just a fun way to practice rhythm. If it helps your music, consider buying me a coffee!
+            </p>
+
             <p class="modal-text">
-                Building a looper app that works on a typical smartphone without an audio interface or wired headphones comes with a unique challenge: preventing the microphone from hearing and recording the app's own backing track (audio bleed).
+                <strong>The "Conference Call" Trick:</strong><br>
+                Building a pocket looper that works on a smartphone browser without an audio interface or wired headphones comes with a unique challenge: preventing the microphone from hearing and recording the app's own backing track (audio bleed). WebLooper solves this by briefly fooling your smartphone into thinking you're on a speakerphone call while you're in the recording window. That is why you will notice a slightly "lo-fi" quality while recording. But when you hit "DONE" and return to the main screen, it releases the microphone and switches back to higher-quality audio.
             </p>
             <p class="modal-text">
-                The Latency & Bleed Compromise:<br>
-                To solve this, J-looper uses a specific cycle. When you hit record, it waits one full cycle to sync up. Then, the backing track drops out while it records you. It is like a spotlight breakdown moment where the band stops and you play alone, keeping perfect time on your own. Then, the rest of the band rejoins you at the beginning of the next cycle. To stay on beat, rely on your internal rhythm and the visual metronome.
-            </p>
-            <p class="modal-text">
-                The "Cheat Code":<br>
-                J-looper is a free JavaScript webpage, not a full-fledged App Store program. It works by briefly fooling your smartphone into thinking you're on a speakerphone call while you're in the recording window. That is why you will notice a slightly "lo-fi" quality while recording. But when you hit "DONE" and return to the main screen, it releases the microphone and switches back to higher-quality audio.
+                <strong>The Latency & Bleed Compromise:</strong><br>
+                To further solve bleed, WebLooper uses a spotlight cycle. When you hit record, it waits one full cycle to sync up. Then, the backing track drops out while it records you. It is like a spotlight breakdown moment where the band stops and you play alone, keeping perfect time on your own. Then, the rest of the virtual band rejoins you at the beginning of the next cycle. To stay on beat, rely on your internal rhythm and the visual metronome.
             </p>
         </div>
         <div class="modal-footer">
@@ -418,6 +425,11 @@
 </div>
 
 <script>
+    // =========================================================================
+    // WEBLOOPER JAVASCRIPT ENGINE
+    // Core logic kept strictly untouched to preserve latency and audio math.
+    // =========================================================================
+
     let appSettings = {
         isInitialized: false,
         tempo: 120,
@@ -445,13 +457,15 @@
     const sampleFiles = ['ds_kick1.wav', 'ds_snare1.wav', 'ds_hihat1.wav', 'ds_hihat2.wav', 'ds_clapsn1.wav', 'ds_kick2.wav'];
     const preFetchedBuffers = {};
 
+    // --- AUDIO SYSTEM GLOBALS ---
     let audioCtx = null;
     let masterGain = null;
     let trackGains = new Array(8).fill(null); 
     
     let isPlaying = false, currentStep = 0, nextStepTime = 0, activeTrackIdx = null;
     
-    // Solid Absolute State Machine for Recording
+    // --- ABSOLUTE STEP STATE MACHINE (CORE RECORDING LOGIC) ---
+    // Controls timing for mic access, backing track muting, and lookahead buffering
     let recState = 'IDLE'; // IDLE, WAITING_SYNC, PRE_ROLL, MIC_STARTING, VISUAL_RECORDING, TAIL_RECORDING
     let targetRecordStartStep = 0;
     let targetRecordEndStep = 0;
@@ -469,13 +483,14 @@
     let currentMicStream = null, micAnalyser = null, micSource = null;
     let isCalibrating = false;
 
+    // Initialize track steps
     tracks.forEach(t => { 
         let s = new Array(64).fill(false);
         if(t.steps) t.steps.forEach(idx => s[idx] = true);
         t.steps = s;
     });
 
-    // --- MEMORY FUNCTIONS ---
+    // --- MEMORY & STORAGE FUNCTIONS ---
     function loadSettings() {
         const saved = localStorage.getItem('jLooperSettings');
         if (saved) {
@@ -524,7 +539,7 @@
     }
 
     function factoryReset() {
-        if (confirm("Are you sure you want to reset J-looper?\n\nThis will clear all saved volume settings, latency nudges, and memory, returning it to absolute factory defaults.")) {
+        if (confirm("Are you sure you want to reset WebLooper?\n\nThis will clear all saved volume settings, latency nudges, and memory, returning it to absolute factory defaults.")) {
             localStorage.removeItem('jLooperSettings');
             location.reload(); 
         }
@@ -618,6 +633,7 @@
         }
     }
 
+    // --- SLIDERS & CONTROLS ---
     function updateTempo(val) { 
         appSettings.tempo = val;
         document.getElementById('tempo-val').innerText = val + ' BPM'; 
@@ -753,6 +769,7 @@
         }
     };
 
+    // --- SEQUENCER GRID RENDERING ---
     function renderSequencer() {
         const mainGrid = document.getElementById('main-grid');
         if (!mainGrid) return;
@@ -824,6 +841,7 @@
         updateTrackGains(); renderSequencer(); 
     }
 
+    // --- AUDIO CONTEXT PRE-FETCHING ---
     let fetchPromise = preFetchAll();
     async function preFetchAll() {
         const promises = sampleFiles.map(async (file) => {
@@ -951,6 +969,7 @@
         }
     }
 
+    // --- MAIN ENGINE SCHEDULER ---
     function scheduler() {
         let secondsPerStep = (60 / appSettings.tempo) / 4;
         
@@ -1090,6 +1109,7 @@
         source.start(actualPlayTime, finalOffset);
     }
 
+    // --- UI RENDER LOOP ---
     function uiLoop() {
         if (isPlaying && audioCtx) {
             let secondsPerStep = (60 / appSettings.tempo) / 4;
@@ -1375,6 +1395,7 @@
         }
     }
 
+    // --- ONBOARDING CALIBRATION FLOW ---
     function initCalibrationMic(prefix) {
         document.getElementById(`${prefix}-step-1`).style.display = 'none';
         isCalibrating = true;
@@ -1470,7 +1491,7 @@
             resultText.style.color = "var(--rec-red)";
             resultText.innerHTML = "TEST FAILED.<br><span style='font-size:12px; font-weight:normal;'>Did not hear the click.</span>";
         } else {
-            let actualNudge = latencyResult; // REMOVED DOUBLING
+            let actualNudge = latencyResult; 
             resultText.style.color = "var(--gh-green)";
             resultText.innerHTML = `SUCCESS!<br><span style="font-size:11px; font-weight:bold;">Base: ${latencyResult}ms | Applied: ${actualNudge}ms</span>`;
             
